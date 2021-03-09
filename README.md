@@ -1,2 +1,2 @@
-# quad
+# Quad
 Rust Game Engine

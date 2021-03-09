@@ -1,0 +1,9 @@
+[package]
+name = "quad"
+version = "0.0.1"
+authors = ["odanek <ondrej.danek@gmail.com>"]
+edition = "2018"
+description = "Rust Game Engine"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/odanek/quad"
