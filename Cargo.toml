@@ -7,3 +7,6 @@ description = "Rust Game Engine"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/odanek/quad"
+
+[dependencies]
+cgm = { git = "https://github.com/odanek/cgm", branch = "main" }
