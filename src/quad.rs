@@ -3,6 +3,8 @@ use winit::{
     event_loop::ControlFlow,
 };
 
+use crate::{SceneResult, World};
+
 use super::{
     scene::Scene,
     window::{Window, WindowBuilder},
@@ -10,6 +12,28 @@ use super::{
 
 pub struct Quad {
     main_window: Window,
+}
+
+pub struct Context {
+    world: Box<World>,
+    scene: Box<Scene>
+}
+
+impl Context {
+    pub fn new(scene: Box<Scene>) -> Self {
+        Context {
+            world: Box::new(World::new()),
+            scene
+        }
+    }
+
+    pub fn start_scene(&mut self) {
+        self.scene.start(&mut self.world);
+    }
+
+    pub fn update_scene(&mut self) -> SceneResult {
+        self.scene.update(&mut self.world)
+    }
 }
 
 impl Quad {
@@ -21,12 +45,16 @@ impl Quad {
         let event_loop = self.main_window.event_loop;
         let mut exit = false;
 
+        let mut context = Context::new(scene);
+        context.start_scene();
+
         event_loop.run(move |event, _, control_flow| {
             *control_flow = ControlFlow::Poll;
 
             match event {
                 Event::MainEventsCleared => {
                     if !exit {
+                        let result = context.update_scene();
                         // Update
                         // Draw
                     }
