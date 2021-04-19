@@ -16,11 +16,11 @@ pub struct Quad {
 
 pub struct Context {
     world: Box<World>,
-    scene: Box<Scene>
+    scene: Box<dyn Scene>
 }
 
 impl Context {
-    pub fn new(scene: Box<Scene>) -> Self {
+    pub fn new(scene: Box<dyn Scene>) -> Self {
         Context {
             world: Box::new(World::new()),
             scene
@@ -41,7 +41,7 @@ impl Quad {
         QuadBuilder::default()
     }
 
-    pub fn run(mut self, scene: Box<dyn Scene>) {
+    pub fn run(self, scene: Box<dyn Scene>) {
         let event_loop = self.main_window.event_loop;
         let mut exit = false;
 
@@ -54,7 +54,7 @@ impl Quad {
             match event {
                 Event::MainEventsCleared => {
                     if !exit {
-                        let result = context.update_scene();
+                        let _result = context.update_scene();
                         // Update
                         // Draw
                     }

@@ -1,8 +1,8 @@
 use super::builder::WindowBuilder;
 
 pub struct Window {
-    pub(crate) window: winit::window::Window,
-    pub(crate) event_loop: winit::event_loop::EventLoop<()>,
+    pub window: winit::window::Window,
+    pub event_loop: winit::event_loop::EventLoop<()>,
 }
 
 impl Window {
