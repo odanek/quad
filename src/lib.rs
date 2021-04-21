@@ -1,3 +1,4 @@
+mod input;
 mod quad;
 mod scene;
 mod window;

@@ -9,6 +9,7 @@ pub enum SceneResult {
 }
 
 pub trait Scene {
-    fn start(&mut self, world: &mut World);
+    fn begin(&mut self, world: &mut World);
     fn update(&mut self, world: &mut World) -> SceneResult;
+    fn end(&mut self);
 }
