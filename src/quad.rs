@@ -3,15 +3,12 @@ use winit::{
     event_loop::ControlFlow,
 };
 
-use crate::context::Context;
+use crate::{builder::QuadBuilder, context::Context};
 
-use super::{
-    scene::Scene,
-    window::{Window, WindowBuilder},
-};
+use super::{scene::Scene, window::Window};
 
 pub struct Quad {
-    main_window: Window,
+    pub main_window: Window,
 }
 
 impl Quad {
@@ -69,31 +66,5 @@ impl Quad {
                 _ => (),
             }
         });
-    }
-}
-
-pub struct QuadBuilder {
-    main_window: WindowBuilder,
-}
-
-impl Default for QuadBuilder {
-    fn default() -> Self {
-        QuadBuilder {
-            main_window: WindowBuilder::default(),
-        }
-    }
-}
-
-impl QuadBuilder {
-    pub fn main_window(mut self, window: WindowBuilder) -> QuadBuilder {
-        self.main_window = window;
-        self
-    }
-
-    pub fn run(self, scene: Box<dyn Scene>) {
-        let quad = Quad {
-            main_window: self.main_window.build(),
-        };
-        quad.run(scene);
     }
 }
