@@ -3,7 +3,7 @@ use winit::{
     event_loop::ControlFlow,
 };
 
-use crate::{SceneResult, World};
+use crate::context::Context;
 
 use super::{
     scene::Scene,
@@ -12,28 +12,6 @@ use super::{
 
 pub struct Quad {
     main_window: Window,
-}
-
-pub struct Context {
-    world: Box<World>,
-    scene: Box<dyn Scene>
-}
-
-impl Context {
-    pub fn new(scene: Box<dyn Scene>) -> Self {
-        Context {
-            world: Box::new(World::new()),
-            scene
-        }
-    }
-
-    pub fn start_scene(&mut self) {
-        self.scene.start(&mut self.world);
-    }
-
-    pub fn update_scene(&mut self) -> SceneResult {
-        self.scene.update(&mut self.world)
-    }
 }
 
 impl Quad {
@@ -46,6 +24,7 @@ impl Quad {
         let mut exit = false;
 
         let mut context = Context::new(scene);
+        context.register_resources();
         context.start_scene();
 
         event_loop.run(move |event, _, control_flow| {
