@@ -1,14 +1,13 @@
 use super::ResourceContainer;
 
 pub struct World {
-    resources: ResourceContainer
-    // Struct of arrays
+    resources: ResourceContainer, // Struct of arrays
 }
 
 impl Default for World {
     fn default() -> Self {
         World {
-            resources: Default::default()
+            resources: Default::default(),
         }
     }
 }

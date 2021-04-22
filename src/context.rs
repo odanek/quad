@@ -1,15 +1,15 @@
-use crate::{Scene, SceneResult, World, input::KeyboardInput};
+use crate::{input::KeyboardInput, Scene, SceneResult, World};
 
 pub struct Context {
     world: Box<World>,
-    scene: Box<dyn Scene>
+    scene: Box<dyn Scene>,
 }
 
 impl Context {
     pub fn new(scene: Box<dyn Scene>) -> Self {
         Context {
             world: Box::new(Default::default()),
-            scene
+            scene,
         }
     }
 

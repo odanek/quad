@@ -10,7 +10,7 @@ pub struct ResourceContainer {
 impl Default for ResourceContainer {
     fn default() -> Self {
         ResourceContainer {
-            map: Default::default()
+            map: Default::default(),
         }
     }
 }

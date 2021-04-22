@@ -1,5 +1,3 @@
-pub struct MouseInput {
-    
-}
+pub struct MouseInput {}
 
 // Buttons, position
