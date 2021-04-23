@@ -17,9 +17,20 @@ impl Default for KeyboardInput {
 }
 
 impl KeyboardInput {
-    pub(crate) fn press(&mut self, key: KeyCode) {}
+    pub(crate) fn press(&mut self, key: KeyCode) {
+        self.pressed.insert(key);
+        self.just_pressed.insert(key);
+    }
 
-    pub(crate) fn release(&mut self, key: KeyCode) {}
+    pub(crate) fn release(&mut self, key: KeyCode) {
+        self.pressed.remove(&key);
+        self.just_released.insert(key);
+    }
+
+    pub(crate) fn flush(&mut self) {
+        self.just_pressed.clear();
+        self.just_released.clear();
+    }
 
     pub fn pressed(&self, key: KeyCode) -> bool {
         self.pressed.contains(&key)
@@ -30,7 +41,7 @@ impl KeyboardInput {
     }
 
     pub fn just_released(&self, key: KeyCode) -> bool {
-        self.just_pressed.contains(&key)
+        self.just_released.contains(&key)
     }
 }
 

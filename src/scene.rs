@@ -1,4 +1,4 @@
-use super::world::World;
+use super::ecs::World;
 
 pub enum SceneResult {
     Ok,
