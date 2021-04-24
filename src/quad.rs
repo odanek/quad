@@ -3,7 +3,7 @@ use winit::{dpi::PhysicalSize, event::{ElementState, Event, WindowEvent}, event_
 use crate::{
     builder::QuadBuilder,
     context::Context,
-    input::{KeyCode, KeyboardInput},
+    input::{KeyboardInput},
     SceneResult,
 };
 
@@ -62,7 +62,7 @@ fn handle_scene_update(context: &mut Context) -> bool {
     }
 }
 
-fn handle_window_resize(context: &mut Context, size: PhysicalSize<u32>) {
+fn handle_window_resize(_context: &mut Context, size: PhysicalSize<u32>) {
     if size.width != 0 || size.height != 0 {
         // Resized
     } else {
@@ -75,8 +75,8 @@ fn handle_keyboard_event(context: &mut Context, input: winit::event::KeyboardInp
     if let Some(keycode) = input.virtual_keycode {
         let keyboard_input = context.world.get_resource_mut::<KeyboardInput>();
         match input.state {
-            ElementState::Pressed => keyboard_input.press(KeyCode::Escape),
-            ElementState::Released => keyboard_input.release(KeyCode::Escape),
+            ElementState::Pressed => keyboard_input.press(keycode.into()),
+            ElementState::Released => keyboard_input.release(keycode.into()),
         }
     }
 }
