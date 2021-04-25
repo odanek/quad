@@ -1,4 +1,8 @@
-use crate::{ecs::World, input::KeyboardInput, scene::{Scene, SceneResult}};
+use crate::{
+    ecs::World,
+    input::KeyboardInput,
+    scene::{Scene, SceneResult},
+};
 
 pub struct Context {
     pub world: Box<World>,

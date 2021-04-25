@@ -1,11 +1,10 @@
-use winit::{dpi::PhysicalSize, event::{ElementState, Event, WindowEvent}, event_loop::ControlFlow};
-
-use crate::{
-    builder::QuadBuilder,
-    context::Context,
-    input::{KeyboardInput},
-    SceneResult,
+use winit::{
+    dpi::PhysicalSize,
+    event::{ElementState, Event, WindowEvent},
+    event_loop::ControlFlow,
 };
+
+use crate::{builder::QuadBuilder, context::Context, input::KeyboardInput, SceneResult};
 
 use super::{scene::Scene, window::Window};
 
@@ -27,7 +26,7 @@ impl Quad {
         context.register_resources();
         context.start_scene();
 
-        event_loop.run(move |event, _, control_flow| {            
+        event_loop.run(move |event, _, control_flow| {
             match event {
                 Event::MainEventsCleared => {
                     if !exit {
@@ -35,18 +34,22 @@ impl Quad {
                         flush_keyboard_events(&mut context);
                     }
                 }
-                Event::WindowEvent { event, .. } => {
-                    match event {
-                        WindowEvent::KeyboardInput { input, .. } => handle_keyboard_event(&mut context, input),
-                        WindowEvent::CloseRequested => exit = true,
-                        WindowEvent::Resized(size) => handle_window_resize(&mut context, size),
-                        _ => (),
+                Event::WindowEvent { event, .. } => match event {
+                    WindowEvent::KeyboardInput { input, .. } => {
+                        handle_keyboard_event(&mut context, input)
                     }
-                }
+                    WindowEvent::CloseRequested => exit = true,
+                    WindowEvent::Resized(size) => handle_window_resize(&mut context, size),
+                    _ => (),
+                },
                 _ => (),
             }
 
-            *control_flow = if exit { ControlFlow::Exit } else { ControlFlow::Poll};
+            *control_flow = if exit {
+                ControlFlow::Exit
+            } else {
+                ControlFlow::Poll
+            };
         });
     }
 }

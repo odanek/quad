@@ -345,6 +345,6 @@ impl From<VirtualKeyCode> for KeyCode {
             VirtualKeyCode::Copy => KeyCode::Copy,
             VirtualKeyCode::Paste => KeyCode::Paste,
             VirtualKeyCode::Cut => KeyCode::Cut,
-        }        
+        }
     }
 }

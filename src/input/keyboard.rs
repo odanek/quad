@@ -46,4 +46,3 @@ impl KeyboardInput {
         self.just_released.contains(&key)
     }
 }
-

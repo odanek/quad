@@ -27,7 +27,7 @@ impl World {
         self.resources.get()
     }
 
-    pub fn get_resource_mut<T: 'static>(& self) -> RefMut<T> {
+    pub fn get_resource_mut<T: 'static>(&self) -> RefMut<T> {
         self.resources.get_mut()
     }
 }

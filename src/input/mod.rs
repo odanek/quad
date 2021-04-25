@@ -3,7 +3,7 @@ mod keyboard;
 mod keycode;
 mod mouse;
 
-pub use keycode::{KeyCode};
-pub use keyboard::{KeyboardInput};
-pub use mouse::{MouseInput};
-pub use gamepad::{GamepadInput};
+pub use gamepad::GamepadInput;
+pub use keyboard::KeyboardInput;
+pub use keycode::KeyCode;
+pub use mouse::MouseInput;
