@@ -73,7 +73,7 @@ fn handle_window_resize(_context: &mut Context, size: PhysicalSize<u32>) {
 // TODO KeyCode mapping
 fn handle_keyboard_event(context: &mut Context, input: winit::event::KeyboardInput) {
     if let Some(keycode) = input.virtual_keycode {
-        let keyboard_input = context.world.get_resource_mut::<KeyboardInput>();
+        let mut keyboard_input = context.world.get_resource_mut::<KeyboardInput>();
         match input.state {
             ElementState::Pressed => keyboard_input.press(keycode.into()),
             ElementState::Released => keyboard_input.release(keycode.into()),
@@ -82,7 +82,7 @@ fn handle_keyboard_event(context: &mut Context, input: winit::event::KeyboardInp
 }
 
 fn flush_keyboard_events(context: &mut Context) {
-    let keyboard_input = context.world.get_resource_mut::<KeyboardInput>();
+    let mut keyboard_input = context.world.get_resource_mut::<KeyboardInput>();
     keyboard_input.flush();
 }
 

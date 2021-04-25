@@ -1,3 +1,5 @@
+use std::cell::{Ref, RefMut};
+
 use super::ResourceContainer;
 
 pub struct World {
@@ -21,11 +23,11 @@ impl World {
         self.resources.remove()
     }
 
-    pub fn get_resource<'a, T: 'static>(&'a self) -> &'a T {
+    pub fn get_resource<T: 'static>(&self) -> Ref<T> {
         self.resources.get()
     }
 
-    pub fn get_resource_mut<'a, T: 'static>(&'a mut self) -> &'a mut T {
+    pub fn get_resource_mut<T: 'static>(& self) -> RefMut<T> {
         self.resources.get_mut()
     }
 }
