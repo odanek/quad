@@ -59,18 +59,15 @@ fn handle_scene_update(context: &mut Context) -> bool {
     // Update
     // Draw
     let result = context.update_scene();
-    match result {
-        SceneResult::Quit => true,
-        _ => false,
-    }
+    matches!(result, SceneResult::Quit)
 }
 
-fn handle_window_resize(_context: &mut Context, size: PhysicalSize<u32>) {
-    if size.width != 0 || size.height != 0 {
-        // Resized
-    } else {
-        // Minimized
-    }
+fn handle_window_resize(_context: &mut Context, _size: PhysicalSize<u32>) {
+    // if size.width != 0 || size.height != 0 {
+    //     // Resized
+    // } else {
+    //     // Minimized
+    // }
 }
 
 // TODO KeyCode mapping
