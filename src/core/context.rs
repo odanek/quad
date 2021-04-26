@@ -1,8 +1,9 @@
 use crate::{
     ecs::World,
-    input::KeyboardInput,
-    scene::{Scene, SceneResult},
+    input::KeyboardInput,    
 };
+
+use super::{Scene, SceneResult};
 
 pub struct Context {
     pub world: Box<World>,

@@ -1,4 +1,6 @@
-use crate::{window::WindowBuilder, Quad};
+use crate::{window::WindowBuilder};
+
+use super::Quad;
 
 pub struct QuadBuilder {
     main_window: WindowBuilder,

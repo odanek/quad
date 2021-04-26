@@ -4,9 +4,10 @@ use winit::{
     event_loop::ControlFlow,
 };
 
-use crate::{builder::QuadBuilder, context::Context, input::KeyboardInput, SceneResult};
+use crate::{input::KeyboardInput, window::Window};
 
-use super::{scene::Scene, window::Window};
+use super::{Scene, SceneResult, builder::QuadBuilder, context::Context};
+
 
 pub struct Quad {
     pub(crate) main_window: Window,

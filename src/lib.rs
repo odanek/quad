@@ -1,10 +1,7 @@
-mod builder;
-mod context;
+mod core;
 pub mod ecs;
 pub mod input;
-mod quad;
-mod scene;
+pub mod data;
 pub mod window;
 
-pub use quad::Quad;
-pub use scene::{Scene, SceneResult};
+pub use crate::core::{Quad, Scene, SceneResult};
