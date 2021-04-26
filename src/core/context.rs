@@ -1,7 +1,4 @@
-use crate::{
-    ecs::World,
-    input::KeyboardInput,    
-};
+use crate::{ecs::World, input::KeyboardInput};
 
 use super::{Scene, SceneResult};
 

@@ -1,4 +1,4 @@
-use crate::{window::WindowBuilder};
+use crate::window::WindowBuilder;
 
 use super::Quad;
 

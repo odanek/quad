@@ -6,8 +6,7 @@ use winit::{
 
 use crate::{input::KeyboardInput, window::Window};
 
-use super::{Scene, SceneResult, builder::QuadBuilder, context::Context};
-
+use super::{builder::QuadBuilder, context::Context, Scene, SceneResult};
 
 pub struct Quad {
     pub(crate) main_window: Window,
