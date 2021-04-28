@@ -1,5 +1,3 @@
-use winit::event_loop::EventLoop;
-
 use super::{size::FullScreen, Size, Window};
 
 pub struct WindowBuilder {
@@ -28,7 +26,7 @@ impl WindowBuilder {
     }
 
     pub fn build(&self) -> Window {
-        let event_loop = EventLoop::new();
+        let event_loop = winit::event_loop::EventLoop::new();
         let mut builder = winit::window::WindowBuilder::new().with_title(self.title.clone());
 
         match self.size {

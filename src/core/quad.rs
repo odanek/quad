@@ -1,12 +1,6 @@
-use winit::{
-    dpi::PhysicalSize,
-    event::{ElementState, Event, WindowEvent},
-    event_loop::ControlFlow,
-};
+use crate::window::Window;
 
-use crate::{input::KeyboardInput, window::Window};
-
-use super::{builder::QuadBuilder, context::Context, Scene, SceneResult};
+use super::{builder::QuadBuilder, context::Context, Scene};
 
 pub struct Quad {
     pub(crate) main_window: Window,
@@ -27,19 +21,24 @@ impl Quad {
         context.start_scene();
 
         event_loop.run(move |event, _, control_flow| {
+            use winit::{
+                event::{Event, WindowEvent},
+                event_loop::ControlFlow,
+            };
+
             match event {
                 Event::MainEventsCleared => {
                     if !exit {
-                        exit = handle_scene_update(&mut context);
-                        flush_keyboard_events(&mut context);
+                        exit = context.handle_scene_update();
+                        context.flush_keyboard_events();
                     }
                 }
                 Event::WindowEvent { event, .. } => match event {
                     WindowEvent::KeyboardInput { input, .. } => {
-                        handle_keyboard_event(&mut context, input)
+                        context.handle_keyboard_event(input)
                     }
                     WindowEvent::CloseRequested => exit = true,
-                    WindowEvent::Resized(size) => handle_window_resize(&mut context, size),
+                    WindowEvent::Resized(size) => context.handle_window_resize(size),
                     _ => (),
                 },
                 _ => (),
@@ -53,40 +52,3 @@ impl Quad {
         });
     }
 }
-
-// TODO Methods on Context
-fn handle_scene_update(context: &mut Context) -> bool {
-    // Update
-    // Draw
-    let result = context.update_scene();
-    matches!(result, SceneResult::Quit)
-}
-
-fn handle_window_resize(_context: &mut Context, _size: PhysicalSize<u32>) {
-    // if size.width != 0 || size.height != 0 {
-    //     // Resized
-    // } else {
-    //     // Minimized
-    // }
-}
-
-// TODO KeyCode mapping
-fn handle_keyboard_event(context: &mut Context, input: winit::event::KeyboardInput) {
-    if let Some(keycode) = input.virtual_keycode {
-        let mut keyboard_input = context.world.get_resource_mut::<KeyboardInput>();
-        match input.state {
-            ElementState::Pressed => keyboard_input.press(keycode.into()),
-            ElementState::Released => keyboard_input.release(keycode.into()),
-        }
-    }
-}
-
-fn flush_keyboard_events(context: &mut Context) {
-    let mut keyboard_input = context.world.get_resource_mut::<KeyboardInput>();
-    keyboard_input.flush();
-}
-
-// match virtual_code {
-//     VirtualKeyCode::Escape => *control_flow = ControlFlow::Exit,
-//     _ => (),
-// }

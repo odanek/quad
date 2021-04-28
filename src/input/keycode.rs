@@ -1,5 +1,3 @@
-use winit::event::VirtualKeyCode;
-
 #[derive(Debug, Hash, Ord, PartialOrd, PartialEq, Eq, Clone, Copy)]
 #[repr(u32)]
 pub enum KeyCode {
@@ -179,8 +177,10 @@ pub enum KeyCode {
     Cut,
 }
 
-impl From<VirtualKeyCode> for KeyCode {
-    fn from(code: VirtualKeyCode) -> Self {
+impl From<winit::event::VirtualKeyCode> for KeyCode {
+    fn from(code: winit::event::VirtualKeyCode) -> Self {
+        use winit::event::VirtualKeyCode;
+
         match code {
             VirtualKeyCode::Key1 => KeyCode::Key1,
             VirtualKeyCode::Key2 => KeyCode::Key2,
