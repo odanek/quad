@@ -23,15 +23,19 @@ impl Resources {
 
     pub fn get<T: 'static>(&self) -> Option<Ref<T>> {
         let type_id = TypeId::of::<T>();
-        let resource = self.map.get(&type_id)?;        
+        let resource = self.map.get(&type_id)?;
         let borrowed = resource.borrow();
-        Some(Ref::map(borrowed, |value| value.downcast_ref::<T>().unwrap()))
+        Some(Ref::map(borrowed, |value| {
+            value.downcast_ref::<T>().unwrap()
+        }))
     }
 
     pub fn get_mut<T: 'static>(&self) -> Option<RefMut<T>> {
         let type_id = TypeId::of::<T>();
-        let resource = self.map.get(&type_id)?;        
+        let resource = self.map.get(&type_id)?;
         let borrowed = resource.borrow_mut();
-        Some(RefMut::map(borrowed, |value| value.downcast_mut::<T>().unwrap()))
+        Some(RefMut::map(borrowed, |value| {
+            value.downcast_mut::<T>().unwrap()
+        }))
     }
 }

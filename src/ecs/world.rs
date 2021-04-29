@@ -5,7 +5,7 @@ use super::{Entities, Entity, EntityMut, EntityRef, Resources};
 // Struct of arrays
 #[derive(Default)]
 pub struct World {
-    resources: Resources, 
+    resources: Resources,
     entities: Entities,
 }
 
