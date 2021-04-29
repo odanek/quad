@@ -27,9 +27,9 @@ impl Context {
         self.scene.update(&mut self.world)
     }
 
-    pub fn end_scene(&mut self) {
-        self.scene.end();
-    }
+    // pub fn end_scene(&mut self) {
+    //     self.scene.end();
+    // }
 
     pub fn handle_scene_update(&mut self) -> bool {
         // Update
@@ -46,12 +46,11 @@ impl Context {
         // }
     }
 
-    // TODO KeyCode mapping
     pub fn handle_keyboard_event(&mut self, input: winit::event::KeyboardInput) {
         use winit::event::ElementState;
 
         if let Some(keycode) = input.virtual_keycode {
-            let mut keyboard_input = self.world.get_resource_mut::<KeyboardInput>();
+            let mut keyboard_input = self.world.resource_mut::<KeyboardInput>();
             match input.state {
                 ElementState::Pressed => keyboard_input.press(keycode.into()),
                 ElementState::Released => keyboard_input.release(keycode.into()),
@@ -60,7 +59,7 @@ impl Context {
     }
 
     pub fn flush_keyboard_events(&mut self) {
-        let mut keyboard_input = self.world.get_resource_mut::<KeyboardInput>();
+        let mut keyboard_input = self.world.resource_mut::<KeyboardInput>();
         keyboard_input.flush();
     }
 }

@@ -3,53 +3,35 @@ use std::{
     cell::{Ref, RefCell, RefMut},
     collections::HashMap,
 };
-
-pub struct ResourceContainer {
+#[derive(Default)]
+pub struct Resources {
     map: HashMap<TypeId, RefCell<Box<dyn Any>>>,
 }
 
-impl Default for ResourceContainer {
-    fn default() -> Self {
-        ResourceContainer {
-            map: Default::default(),
-        }
-    }
-}
-
-impl ResourceContainer {
+impl Resources {
     pub fn add<T: 'static>(&mut self, resource: Box<T>) {
         let type_id = TypeId::of::<T>();
         self.map.insert(type_id, RefCell::new(resource));
         // .expect_none("Resource already exists"); // TODO
     }
 
-    pub fn remove<T: 'static>(&mut self) -> Box<T> {
+    pub fn remove<T: 'static>(&mut self) -> Option<Box<T>> {
         let type_id = TypeId::of::<T>();
-        self.map
-            .remove(&type_id)
-            .expect("Resource not found")
-            .into_inner()
-            .downcast::<T>()
-            .expect("Invalid resource type")
+        let resource = self.map.remove(&type_id)?;
+        Some(resource.into_inner().downcast::<T>().unwrap())
     }
 
-    pub fn get<T: 'static>(&self) -> Ref<T> {
+    pub fn get<T: 'static>(&self) -> Option<Ref<T>> {
         let type_id = TypeId::of::<T>();
-        let borrowed = self.map.get(&type_id).expect("Resource not found").borrow();
-        Ref::map(borrowed, |value| {
-            value.downcast_ref::<T>().expect("Invalid resource type")
-        })
+        let resource = self.map.get(&type_id)?;        
+        let borrowed = resource.borrow();
+        Some(Ref::map(borrowed, |value| value.downcast_ref::<T>().unwrap()))
     }
 
-    pub fn get_mut<T: 'static>(&self) -> RefMut<T> {
+    pub fn get_mut<T: 'static>(&self) -> Option<RefMut<T>> {
         let type_id = TypeId::of::<T>();
-        let borrowed = self
-            .map
-            .get(&type_id)
-            .expect("Resource not found")
-            .borrow_mut();
-        RefMut::map(borrowed, |value| {
-            value.downcast_mut::<T>().expect("Invalid resource type")
-        })
+        let resource = self.map.get(&type_id)?;        
+        let borrowed = resource.borrow_mut();
+        Some(RefMut::map(borrowed, |value| value.downcast_mut::<T>().unwrap()))
     }
 }
