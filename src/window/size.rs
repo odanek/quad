@@ -34,6 +34,12 @@ pub enum Size {
     FullScreen(FullScreen),
 }
 
+impl Default for Size {
+    fn default() -> Self {
+        Self::FullScreen(FullScreen::Borderless)
+    }
+}
+
 impl From<PhysicalSize> for Size {
     fn from(size: PhysicalSize) -> Self {
         Self::Physical(size)

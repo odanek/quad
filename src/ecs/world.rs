@@ -1,5 +1,3 @@
-use std::cell::{Ref, RefMut};
-
 use super::{Entities, Entity, EntityMut, EntityRef, Resources};
 
 // Struct of arrays
@@ -11,6 +9,21 @@ pub struct World {
 
 impl World {
     #[inline]
+    pub fn new() -> World {
+        World::default()
+    }
+
+    #[inline]
+    pub fn resources(&self) -> &Resources {
+        &self.resources
+    }
+
+    #[inline]
+    pub fn entities(&self) -> &Entities {
+        &self.entities
+    }
+
+    #[inline]
     pub fn add_resource<T: 'static>(&mut self, resource: Box<T>) {
         self.resources.add(resource);
     }
@@ -21,22 +34,22 @@ impl World {
     }
 
     #[inline]
-    pub fn get_resource<T: 'static>(&self) -> Option<Ref<T>> {
+    pub fn get_resource<T: 'static>(&self) -> Option<&T> {
         self.resources.get()
     }
 
     #[inline]
-    pub fn resource<T: 'static>(&self) -> Ref<T> {
+    pub fn resource<T: 'static>(&self) -> &T {
         self.get_resource().expect("Resource not found")
     }
 
     #[inline]
-    pub fn get_resource_mut<T: 'static>(&self) -> Option<RefMut<T>> {
+    pub fn get_resource_mut<T: 'static>(&mut self) -> Option<&mut T> {
         self.resources.get_mut()
     }
 
     #[inline]
-    pub fn resource_mut<T: 'static>(&self) -> RefMut<T> {
+    pub fn resource_mut<T: 'static>(&mut self) -> &mut T {
         self.get_resource_mut().expect("Resource not found")
     }
 

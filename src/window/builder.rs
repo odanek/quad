@@ -1,17 +1,9 @@
-use super::{size::FullScreen, Size, Window};
+use super::{Size, Window};
 
+#[derive(Default)]
 pub struct WindowBuilder {
     title: String,
     size: Size,
-}
-
-impl Default for WindowBuilder {
-    fn default() -> Self {
-        Self {
-            title: "Quad".to_owned(),
-            size: FullScreen::Borderless.into(),
-        }
-    }
 }
 
 impl WindowBuilder {
@@ -45,6 +37,9 @@ impl WindowBuilder {
         }
 
         let window = builder.build(&event_loop).expect("Unable to create window");
-        Window { event_loop, window }
+        Window {
+            _window: window,
+            event_loop,
+        }
     }
 }

@@ -3,9 +3,10 @@ mod size;
 
 pub use builder::WindowBuilder;
 pub use size::{FullScreen, LogicalSize, PhysicalSize, Size};
+
 pub struct Window {
-    pub window: winit::window::Window,
-    pub event_loop: winit::event_loop::EventLoop<()>,
+    pub(crate) _window: winit::window::Window,
+    pub(crate) event_loop: winit::event_loop::EventLoop<()>,
 }
 
 impl Window {
