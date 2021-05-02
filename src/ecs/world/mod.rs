@@ -1,10 +1,15 @@
-use super::{Entities, Entity, EntityMut, EntityRef, Resources};
+mod entity_ref;
+
+use self::entity_ref::{EntityMut, EntityRef};
+
+use super::{Entities, Entity, Resources, component::Components};
 
 // Struct of arrays
 #[derive(Default)]
 pub struct World {
     resources: Resources,
     entities: Entities,
+    components: Components,
 }
 
 impl World {
@@ -55,7 +60,8 @@ impl World {
 
     #[inline]
     pub fn get_entity(&self, entity: Entity) -> Option<EntityRef> {
-        self.entities.get(entity)
+        None
+        // self.entities.get(entity)
     }
 
     #[inline]
@@ -65,7 +71,8 @@ impl World {
 
     #[inline]
     pub fn get_entity_mut(&mut self, entity: Entity) -> Option<EntityMut> {
-        self.entities.get_mut(entity)
+        None
+        // self.entities.get_mut(entity)
     }
 
     #[inline]

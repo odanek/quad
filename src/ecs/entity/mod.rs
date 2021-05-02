@@ -14,19 +14,19 @@ pub struct Entities {
 // TODO Use enum as in Arena
 struct EntityEntry {
     pub generation: u32,
-    // pub location: EntityLocation,
+    pub location: EntityLocation,
 }
 
-// struct EntityLocation {
+pub struct EntityLocation {
 //     // archetype, index
-// }
+}
 
 impl Entities {
-    pub fn get(&self, entity: Entity) -> Option<EntityRef> {
+    pub fn get(&self, entity: Entity) -> Option<EntityLocation> {
         None
     }
 
-    pub fn get_mut(&mut self, entity: Entity) -> Option<EntityMut> {
+    pub fn get_mut(&mut self, entity: Entity) -> Option<&mut EntityLocation> {
         None
     }
 
@@ -35,6 +35,3 @@ impl Entities {
     }
 }
 
-pub struct EntityRef {}
-
-pub struct EntityMut {}
