@@ -2,7 +2,7 @@ mod entity_ref;
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{Entities, Entity, Resources, component::Components};
+use super::{Entities, Entity, Resources, component::Components, resource::Resource};
 
 // Struct of arrays
 #[derive(Default)]
@@ -29,32 +29,32 @@ impl World {
     }
 
     #[inline]
-    pub fn add_resource<T: 'static>(&mut self, resource: Box<T>) {
+    pub fn add_resource<T: Resource>(&mut self, resource: Box<T>) {
         self.resources.add(resource);
     }
 
     #[inline]
-    pub fn remove_resource<T: 'static>(&mut self) -> Option<Box<T>> {
+    pub fn remove_resource<T: Resource>(&mut self) -> Option<Box<T>> {
         self.resources.remove()
     }
 
     #[inline]
-    pub fn get_resource<T: 'static>(&self) -> Option<&T> {
+    pub fn get_resource<T: Resource>(&self) -> Option<&T> {
         self.resources.get()
     }
 
     #[inline]
-    pub fn resource<T: 'static>(&self) -> &T {
+    pub fn resource<T: Resource>(&self) -> &T {
         self.get_resource().expect("Resource not found")
     }
 
     #[inline]
-    pub fn get_resource_mut<T: 'static>(&mut self) -> Option<&mut T> {
+    pub fn get_resource_mut<T: Resource>(&mut self) -> Option<&mut T> {
         self.resources.get_mut()
     }
 
     #[inline]
-    pub fn resource_mut<T: 'static>(&mut self) -> &mut T {
+    pub fn resource_mut<T: Resource>(&mut self) -> &mut T {
         self.get_resource_mut().expect("Resource not found")
     }
 

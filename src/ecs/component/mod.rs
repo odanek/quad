@@ -42,5 +42,5 @@ pub struct ComponentInfo {
 #[derive(Debug, Default)]
 pub struct Components {
     components: Vec<ComponentInfo>,
-    indices: HashMap<TypeId, usize>,    
+    indices: HashMap<TypeId, usize>,
 }
