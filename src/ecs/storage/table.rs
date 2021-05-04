@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ecs::{Entity, archetype::ArchetypeId, component::ComponentId};
+use crate::ecs::{archetype::ArchetypeId, component::ComponentId, Entity};
 
 use super::BlobVec;
 
@@ -26,9 +26,8 @@ impl TableId {
 
 pub struct Column {
     pub(crate) component_id: ComponentId,
-    pub(crate) data: BlobVec,    
+    pub(crate) data: BlobVec,
 }
-
 
 pub struct Table {
     columns: HashMap<ComponentId, Column>,

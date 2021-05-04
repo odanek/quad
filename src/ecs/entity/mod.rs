@@ -1,4 +1,4 @@
-use super::archetype::{ArchetypeId};
+use super::archetype::ArchetypeId;
 
 #[derive(Clone, Copy, Hash, Eq, PartialEq)]
 pub struct Entity {
@@ -26,7 +26,7 @@ impl Entity {
 #[derive(Default)]
 pub struct Entities {
     entries: Vec<EntityEntry>,
-    free: Vec<u32>, // TODO: use the same pattern as in Arena or Bevy    
+    free: Vec<u32>, // TODO: use the same pattern as in Arena or Bevy
     len: u32,
 }
 
@@ -38,12 +38,12 @@ struct EntityEntry {
 
 #[derive(Copy, Clone, Debug)]
 pub struct EntityLocation {
-   pub archetype: ArchetypeId,
-   pub row: u32,
+    pub archetype: ArchetypeId,
+    pub row: u32,
 }
 
 impl Entities {
-    pub fn alloc(&mut self, location: EntityLocation) -> Entity {        
+    pub fn alloc(&mut self, location: EntityLocation) -> Entity {
         if let Some(id) = self.free.pop() {
             self.len += 1;
             let entry = &mut self.entries[id as usize];
@@ -51,13 +51,13 @@ impl Entities {
 
             Entity {
                 generation: entry.generation,
-                id
+                id,
             }
         } else {
-            self.len = self.len.checked_add(1).expect("Too many entities");            
+            self.len = self.len.checked_add(1).expect("Too many entities");
             let entry = EntityEntry {
                 generation: 0,
-                location,                
+                location,
             };
             self.entries.push(entry);
             Entity::new(self.len)
