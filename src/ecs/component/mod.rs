@@ -15,16 +15,16 @@ impl Default for StorageType {
 }
 
 #[derive(Debug, Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
-pub struct ComponentId(usize);
+pub struct ComponentId(u32);
 
 impl ComponentId {
     #[inline]
-    pub const fn new(index: usize) -> Self {
+    pub const fn new(index: u32) -> Self {
         Self(index)
     }
 
     #[inline]
-    pub fn index(self) -> usize {
+    pub fn index(self) -> u32 {
         self.0
     }
 }

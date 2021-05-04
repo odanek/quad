@@ -2,7 +2,7 @@ use super::archetype::{ArchetypeId};
 
 #[derive(Clone, Copy, Hash, Eq, PartialEq)]
 pub struct Entity {
-    pub(crate) generation: u32,
+    pub(crate) generation: u32, // TODO: Combine into single u64?
     pub(crate) id: u32,
 }
 

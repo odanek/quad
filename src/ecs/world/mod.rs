@@ -2,7 +2,7 @@ mod entity_ref;
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{Entities, Entity, Resources, component::Components, resource::Resource};
+use super::{Entities, Entity, Resources, component::Components, resource::Resource, storage::Storages};
 
 // Struct of arrays
 #[derive(Default)]
@@ -10,6 +10,7 @@ pub struct World {
     resources: Resources,
     entities: Entities,
     components: Components,
+    storages: Storages,
 }
 
 impl World {
