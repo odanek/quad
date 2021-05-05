@@ -61,6 +61,10 @@ impl World {
         self.get_resource_mut().expect("Resource not found")
     }
 
+    // pub fn spawn(&mut self) -> EntityMut {
+    //     // self.entities.alloc();        
+    // }
+
     #[inline]
     pub fn get_entity(&self, entity: Entity) -> Option<EntityRef> {
         None

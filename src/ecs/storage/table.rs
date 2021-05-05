@@ -37,6 +37,7 @@ pub struct Table {
     capacity: usize,
 }
 
+#[derive(Default)]
 pub struct Tables {
     tables: Vec<Table>,
     table_ids: HashMap<u32, TableId>,
