@@ -2,14 +2,13 @@ mod entity_ref;
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{
-    component::Components, resource::Resource, storage::Storages, Entities, Entity, Resources,
-};
+use super::{Entities, Entity, Resources, archetype::Archetypes, component::Components, resource::Resource, storage::Storages};
 
 // Struct of arrays
 #[derive(Default)]
 pub struct World {
     resources: Resources,
+    archetypes: Archetypes,
     entities: Entities,
     components: Components,
     storages: Storages,
@@ -61,9 +60,12 @@ impl World {
         self.get_resource_mut().expect("Resource not found")
     }
 
-    // pub fn spawn(&mut self) -> EntityMut {
-    //     // self.entities.alloc();        
-    // }
+    pub fn spawn(&mut self) -> EntityMut {
+        let archetype = self.archetypes.empty_mut();
+        // let table_row = self.storages.tables[archetype.table_id()].allocate(entity);
+        // let location = archetype.allocate(entity, table_row);        
+        EntityMut {}
+    }
 
     #[inline]
     pub fn get_entity(&self, entity: Entity) -> Option<EntityRef> {

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::{Index, IndexMut}};
 
 use crate::ecs::{archetype::ArchetypeId, component::ComponentId, Entity};
 
@@ -9,18 +9,18 @@ pub struct TableId(u32);
 
 impl TableId {
     #[inline]
-    pub fn new(index: u32) -> Self {
-        TableId(index)
-    }
-
-    #[inline]
-    pub fn index(self) -> u32 {
-        self.0
+    pub fn new(id: u32) -> Self {
+        TableId(id)
     }
 
     #[inline]
     pub const fn empty() -> TableId {
         TableId(0)
+    }
+
+    #[inline]
+    pub fn index(self) -> usize {
+        self.0 as usize
     }
 }
 
@@ -39,6 +39,21 @@ pub struct Table {
 
 #[derive(Default)]
 pub struct Tables {
-    tables: Vec<Table>,
-    table_ids: HashMap<u32, TableId>,
+    tables: Vec<Table>,    
+}
+
+impl Index<TableId> for Tables {
+    type Output = Table;
+
+    #[inline]
+    fn index(&self, index: TableId) -> &Self::Output {
+        &self.tables[index.index()]
+    }
+}
+
+impl IndexMut<TableId> for Tables {
+    #[inline]
+    fn index_mut(&mut self, index: TableId) -> &mut Self::Output {
+        &mut self.tables[index.index()]
+    }
 }
