@@ -37,10 +37,7 @@ pub struct Archetype {
 impl Archetype {
     #[inline]
     pub fn new(id: ArchetypeId, table_id: TableId) -> Self {
-        Self {
-            id,
-            table_id
-        }
+        Self { id, table_id }
     }
 
     #[inline]
@@ -59,7 +56,9 @@ impl Default for Archetypes {
             archetypes: Vec::new(),
         };
 
-        archetypes.archetypes.push(Archetype::new(ArchetypeId::empty(), TableId::empty()));
+        archetypes
+            .archetypes
+            .push(Archetype::new(ArchetypeId::empty(), TableId::empty()));
         archetypes
     }
 }
@@ -68,7 +67,8 @@ impl Archetypes {
     #[inline]
     pub fn empty_mut(&mut self) -> &mut Archetype {
         unsafe {
-            self.archetypes.get_unchecked_mut(ArchetypeId::empty().index())
+            self.archetypes
+                .get_unchecked_mut(ArchetypeId::empty().index())
         }
     }
 }

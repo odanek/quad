@@ -2,7 +2,10 @@ mod entity_ref;
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{Entities, Entity, Resources, archetype::Archetypes, component::Components, resource::Resource, storage::Storages};
+use super::{
+    archetype::Archetypes, component::Components, resource::Resource, storage::Storages, Entities,
+    Entity, Resources,
+};
 
 // Struct of arrays
 #[derive(Default)]
@@ -63,7 +66,7 @@ impl World {
     pub fn spawn(&mut self) -> EntityMut {
         let archetype = self.archetypes.empty_mut();
         // let table_row = self.storages.tables[archetype.table_id()].allocate(entity);
-        // let location = archetype.allocate(entity, table_row);        
+        // let location = archetype.allocate(entity, table_row);
         EntityMut {}
     }
 

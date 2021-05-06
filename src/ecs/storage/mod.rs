@@ -8,4 +8,3 @@ pub use table::*;
 pub struct Storages {
     pub tables: Tables,
 }
-

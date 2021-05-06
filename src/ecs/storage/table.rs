@@ -1,4 +1,7 @@
-use std::{collections::HashMap, ops::{Index, IndexMut}};
+use std::{
+    collections::HashMap,
+    ops::{Index, IndexMut},
+};
 
 use crate::ecs::{archetype::ArchetypeId, component::ComponentId, Entity};
 
@@ -39,7 +42,7 @@ pub struct Table {
 
 #[derive(Default)]
 pub struct Tables {
-    tables: Vec<Table>,    
+    tables: Vec<Table>,
 }
 
 impl Index<TableId> for Tables {
