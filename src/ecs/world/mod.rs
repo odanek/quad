@@ -65,9 +65,14 @@ impl World {
 
     pub fn spawn(&mut self) -> EntityMut {
         let archetype = self.archetypes.empty_mut();
-        // let table_row = self.storages.tables[archetype.table_id()].allocate(entity);
-        // let location = archetype.allocate(entity, table_row);
-        EntityMut {}
+        let location = archetype.next_location(); // TODO: Method on table instead?
+        let entity = self.entities.alloc(location);
+        let table = &mut self.storages.tables[archetype.table_id()];
+        unsafe {
+            table.allocate(entity);
+            archetype.allocate(entity);
+            EntityMut::new(self, entity, location)
+        }
     }
 
     #[inline]

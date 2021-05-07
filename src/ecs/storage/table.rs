@@ -1,9 +1,8 @@
 use std::{
-    collections::HashMap,
     ops::{Index, IndexMut},
 };
 
-use crate::ecs::{archetype::ArchetypeId, component::ComponentId, Entity};
+use crate::ecs::{component::ComponentId, Entity};
 
 use super::BlobVec;
 
@@ -33,16 +32,75 @@ pub struct Column {
 }
 
 pub struct Table {
-    columns: HashMap<ComponentId, Column>,
+    // columns: HashMap<ComponentId, Column>,
     entities: Vec<Entity>,
-    archetypes: Vec<ArchetypeId>,
+    // archetypes: Vec<ArchetypeId>,
     grow_amount: usize,
     capacity: usize,
 }
 
-#[derive(Default)]
+impl Table {
+    pub fn with_capacity(capacity: usize, column_capacity: usize, grow_amount: usize) -> Table {
+        Self {
+            // columns: HashMap::with_capacity(column_capacity),
+            entities: Vec::with_capacity(capacity),
+            // archetypes: Vec::new(),
+            grow_amount,
+            capacity,
+        }
+    }
+
+    pub fn reserve(&mut self, amount: usize) {
+        let available_space = self.capacity - self.len();
+        if available_space < amount {
+            let min_capacity = self.len() + amount;
+            let new_capacity =
+                ((min_capacity + self.grow_amount - 1) / self.grow_amount) * self.grow_amount;
+            let reserve_amount = new_capacity - self.len();
+            // for column in self.columns.values_mut() {
+            //     column.reserve(reserve_amount);
+            // }
+            // self.entities.reserve(reserve_amount);
+            self.capacity = new_capacity;
+        }
+    }
+
+    pub unsafe fn allocate(&mut self, entity: Entity) {
+        self.reserve(1);
+        // TODO: Check that location matches entities.len()
+        self.entities.push(entity);
+        // for column in self.columns.values_mut() {
+        //     column.data.set_len(self.entities.len());
+        // }
+    }
+
+    #[inline]
+    pub fn capacity(&self) -> usize {
+        self.capacity
+    }
+
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.entities.len()
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.entities.is_empty()
+    }
+}
+
 pub struct Tables {
     tables: Vec<Table>,
+}
+
+impl Default for Tables {
+    fn default() -> Self {
+        let empty_table = Table::with_capacity(0, 0, 64);
+        Tables {
+            tables: vec![empty_table],            
+        }
+    }
 }
 
 impl Index<TableId> for Tables {

@@ -1,4 +1,6 @@
-use super::storage::TableId;
+use std::ops::{Index, IndexMut};
+
+use super::{Entity, entity::EntityLocation, storage::TableId};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct ArchetypeId(u32);
@@ -32,17 +34,34 @@ impl ArchetypeId {
 pub struct Archetype {
     id: ArchetypeId,
     table_id: TableId,
+    entities: Vec<Entity>,
 }
 
 impl Archetype {
     #[inline]
     pub fn new(id: ArchetypeId, table_id: TableId) -> Self {
-        Self { id, table_id }
+        Self { id, table_id, entities: Vec::new() }
+    }
+
+    #[inline]
+    pub fn id(&self) -> ArchetypeId {
+        self.id
     }
 
     #[inline]
     pub fn table_id(&self) -> TableId {
         self.table_id
+    }
+
+    pub fn next_location(&self) -> EntityLocation {
+        EntityLocation {
+            archetype: self.id,
+            row: self.entities.len() as u32,
+        }
+    }
+
+    pub unsafe fn allocate(&mut self, entity: Entity) {
+        self.entities.push(entity);
     }
 }
 
@@ -70,5 +89,21 @@ impl Archetypes {
             self.archetypes
                 .get_unchecked_mut(ArchetypeId::empty().index())
         }
+    }
+}
+
+impl Index<ArchetypeId> for Archetypes {
+    type Output = Archetype;
+
+    #[inline]
+    fn index(&self, index: ArchetypeId) -> &Self::Output {
+        &self.archetypes[index.index()]
+    }
+}
+
+impl IndexMut<ArchetypeId> for Archetypes {
+    #[inline]
+    fn index_mut(&mut self, index: ArchetypeId) -> &mut Self::Output {
+        &mut self.archetypes[index.index()]
     }
 }
