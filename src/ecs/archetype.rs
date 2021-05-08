@@ -1,6 +1,6 @@
 use std::ops::{Index, IndexMut};
 
-use super::{Entity, entity::EntityLocation, storage::TableId};
+use super::{entity::EntityLocation, storage::TableId, Entity};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct ArchetypeId(u32);
@@ -40,7 +40,11 @@ pub struct Archetype {
 impl Archetype {
     #[inline]
     pub fn new(id: ArchetypeId, table_id: TableId) -> Self {
-        Self { id, table_id, entities: Vec::new() }
+        Self {
+            id,
+            table_id,
+            entities: Vec::new(),
+        }
     }
 
     #[inline]

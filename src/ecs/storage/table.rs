@@ -1,6 +1,4 @@
-use std::{
-    ops::{Index, IndexMut},
-};
+use std::{collections::HashMap, ops::{Index, IndexMut}};
 
 use crate::ecs::{component::ComponentId, Entity};
 
@@ -32,7 +30,7 @@ pub struct Column {
 }
 
 pub struct Table {
-    // columns: HashMap<ComponentId, Column>,
+    columns: HashMap<ComponentId, Column>,
     entities: Vec<Entity>,
     // archetypes: Vec<ArchetypeId>,
     grow_amount: usize,
@@ -42,7 +40,7 @@ pub struct Table {
 impl Table {
     pub fn with_capacity(capacity: usize, column_capacity: usize, grow_amount: usize) -> Table {
         Self {
-            // columns: HashMap::with_capacity(column_capacity),
+            columns: HashMap::with_capacity(column_capacity),
             entities: Vec::with_capacity(capacity),
             // archetypes: Vec::new(),
             grow_amount,
@@ -65,9 +63,8 @@ impl Table {
         }
     }
 
-    pub unsafe fn allocate(&mut self, entity: Entity) {
-        self.reserve(1);
-        // TODO: Check that location matches entities.len()
+    pub unsafe fn allocate(&mut self, entity: Entity) {        
+        self.reserve(1);        
         self.entities.push(entity);
         // for column in self.columns.values_mut() {
         //     column.data.set_len(self.entities.len());
@@ -98,7 +95,7 @@ impl Default for Tables {
     fn default() -> Self {
         let empty_table = Table::with_capacity(0, 0, 64);
         Tables {
-            tables: vec![empty_table],            
+            tables: vec![empty_table],
         }
     }
 }

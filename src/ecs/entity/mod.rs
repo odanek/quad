@@ -60,7 +60,7 @@ impl Entities {
                 location,
             };
             self.entries.push(entry);
-            Entity::new(self.len)
+            Entity::new(self.len - 1)
         }
     }
 
