@@ -54,18 +54,35 @@ impl Entities {
                 id,
             }
         } else {
+            let id = self.len;
             self.len = self.len.checked_add(1).expect("Too many entities");
             let entry = EntityEntry {
                 generation: 0,
                 location,
             };
             self.entries.push(entry);
-            Entity::new(self.len - 1)
+            Entity::new(id)
         }
     }
 
     pub fn free(&mut self, entity: Entity) -> Option<EntityLocation> {
-        None
+        let entry = &mut self.entries[entity.id as usize];
+        if entry.generation != entity.generation {
+            return None;
+        }
+        entry.generation += 1;
+
+        let loccation = entry.location; // TODO: Reset location to some empty value?
+
+        self.free.push(entity.id);        
+        self.len -= 1;
+        Some(loccation)
+    }
+
+    pub fn clear(&mut self) {
+        self.entries.clear();
+        self.free.clear();
+        self.len = 0;
     }
 
     pub fn get(&self, entity: Entity) -> Option<EntityLocation> {

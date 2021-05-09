@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::{Index, IndexMut}};
+use std::{collections::HashMap, ops::{Index, IndexMut}, ptr::NonNull};
 
 use crate::ecs::{component::ComponentId, Entity};
 
@@ -29,10 +29,33 @@ pub struct Column {
     pub(crate) data: BlobVec,
 }
 
+impl Column {
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+
+    #[inline]
+    pub(crate) fn reserve(&mut self, additional: usize) {
+        self.data.reserve(additional);
+    }
+
+    #[inline]
+    pub unsafe fn get_ptr(&self) -> NonNull<u8> {
+        self.data.get_ptr()
+    }
+}
+
 pub struct Table {
     columns: HashMap<ComponentId, Column>,
-    entities: Vec<Entity>,
+    // entities: Vec<Entity>,
     // archetypes: Vec<ArchetypeId>,
+    len: usize,
     grow_amount: usize,
     capacity: usize,
 }
@@ -41,8 +64,9 @@ impl Table {
     pub fn with_capacity(capacity: usize, column_capacity: usize, grow_amount: usize) -> Table {
         Self {
             columns: HashMap::with_capacity(column_capacity),
-            entities: Vec::with_capacity(capacity),
+            // entities: Vec::with_capacity(capacity),
             // archetypes: Vec::new(),
+            len: 0,
             grow_amount,
             capacity,
         }
@@ -55,20 +79,21 @@ impl Table {
             let new_capacity =
                 ((min_capacity + self.grow_amount - 1) / self.grow_amount) * self.grow_amount;
             let reserve_amount = new_capacity - self.len();
-            // for column in self.columns.values_mut() {
-            //     column.reserve(reserve_amount);
-            // }
+            for column in self.columns.values_mut() {
+                column.reserve(reserve_amount);
+            }
             // self.entities.reserve(reserve_amount);
             self.capacity = new_capacity;
         }
     }
 
     pub unsafe fn allocate(&mut self, entity: Entity) {        
-        self.reserve(1);        
-        self.entities.push(entity);
-        // for column in self.columns.values_mut() {
-        //     column.data.set_len(self.entities.len());
-        // }
+        self.reserve(1);
+        self.len += 1;
+        // self.entities.push(entity);
+        for column in self.columns.values_mut() {
+            column.data.set_len(self.len);
+        }
     }
 
     #[inline]
@@ -78,12 +103,12 @@ impl Table {
 
     #[inline]
     pub fn len(&self) -> usize {
-        self.entities.len()
+        self.len
     }
 
     #[inline]
     pub fn is_empty(&self) -> bool {
-        self.entities.is_empty()
+        self.len == 0
     }
 }
 
