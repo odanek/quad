@@ -22,19 +22,13 @@ impl ArchetypeId {
     }
 }
 
-// pub struct Archetype {
-//     id: ArchetypeId,
-//     entities: Vec<Entity>,
-//     edges: Edges,
-//     table_info: TableInfo,
-//     table_components: Cow<'static, [ComponentId]>,
-//     pub(crate) components: SparseSet<ComponentId, ArchetypeComponentInfo>,
-// }
-
 pub struct Archetype {
     id: ArchetypeId,
     table_id: TableId,
     entities: Vec<Entity>,
+//     edges: Edges,
+//     table_components: Cow<'static, [ComponentId]>,
+//     pub(crate) components: SparseSet<ComponentId, ArchetypeComponentInfo>,
 }
 
 impl Archetype {

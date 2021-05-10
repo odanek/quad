@@ -1,4 +1,8 @@
-use std::{collections::HashMap, ops::{Index, IndexMut}, ptr::NonNull};
+use std::{
+    collections::HashMap,
+    ops::{Index, IndexMut},
+    ptr::NonNull,
+};
 
 use crate::ecs::{component::ComponentId, Entity};
 
@@ -87,7 +91,7 @@ impl Table {
         }
     }
 
-    pub unsafe fn allocate(&mut self, entity: Entity) {        
+    pub unsafe fn allocate(&mut self, entity: Entity) {
         self.reserve(1);
         self.len += 1;
         // self.entities.push(entity);

@@ -1,4 +1,8 @@
-use std::{alloc::{Layout, handle_alloc_error}, cell::UnsafeCell, ptr::NonNull};
+use std::{
+    alloc::{handle_alloc_error, Layout},
+    cell::UnsafeCell,
+    ptr::NonNull,
+};
 
 #[derive(Debug)]
 pub struct BlobVec {

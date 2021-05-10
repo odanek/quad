@@ -74,7 +74,7 @@ impl Entities {
 
         let loccation = entry.location; // TODO: Reset location to some empty value?
 
-        self.free.push(entity.id);        
+        self.free.push(entity.id);
         self.len -= 1;
         Some(loccation)
     }

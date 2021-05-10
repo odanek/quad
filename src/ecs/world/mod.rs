@@ -34,6 +34,16 @@ impl World {
     }
 
     #[inline]
+    pub fn archetypes(&self) -> &Archetypes {
+        &self.archetypes
+    }
+
+    #[inline]
+    pub fn components(&self) -> &Components {
+        &self.components
+    }
+
+    #[inline]
     pub fn add_resource<T: Resource>(&mut self, resource: Box<T>) {
         self.resources.add(resource);
     }

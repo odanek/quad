@@ -24,8 +24,8 @@ impl ComponentId {
     }
 
     #[inline]
-    pub fn index(self) -> u32 {
-        self.0
+    pub fn index(self) -> usize {
+        self.0 as usize
     }
 }
 
@@ -39,8 +39,56 @@ pub struct ComponentInfo {
     storage_type: StorageType,
 }
 
+impl ComponentInfo {
+    #[inline]
+    pub fn id(&self) -> ComponentId {
+        self.id
+    }
+
+    #[inline]
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    #[inline]
+    pub fn type_id(&self) -> TypeId {
+        self.type_id
+    }
+
+    #[inline]
+    pub fn layout(&self) -> Layout {
+        self.layout
+    }
+
+    #[inline]
+    pub fn drop(&self) -> unsafe fn(*mut u8) {
+        self.drop
+    }
+
+    #[inline]
+    pub fn storage_type(&self) -> StorageType {
+        self.storage_type
+    }
+
+    // fn new(id: ComponentId, descriptor: ComponentDescriptor) -> Self {
+    //     ComponentInfo {
+    //         id,
+    //         name: descriptor.name,
+    //         storage_type: descriptor.storage_type,
+    //         type_id: descriptor.type_id,
+    //         drop: descriptor.drop,
+    //         layout: descriptor.layout,
+    //     }
+    // }
+}
+
+
 #[derive(Debug, Default)]
 pub struct Components {
     components: Vec<ComponentInfo>,
     indices: HashMap<TypeId, usize>,
+}
+
+impl Components {
+    
 }
