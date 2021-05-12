@@ -1,4 +1,4 @@
-use std::{alloc::Layout, any::TypeId, collections::HashMap};
+use std::{alloc::Layout, any::{TypeId, type_name}, collections::{HashMap, hash_map::Entry}};
 
 pub trait Component: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Component for T {}
@@ -70,18 +70,21 @@ impl ComponentInfo {
         self.storage_type
     }
 
-    // fn new(id: ComponentId, descriptor: ComponentDescriptor) -> Self {
-    //     ComponentInfo {
-    //         id,
-    //         name: descriptor.name,
-    //         storage_type: descriptor.storage_type,
-    //         type_id: descriptor.type_id,
-    //         drop: descriptor.drop,
-    //         layout: descriptor.layout,
-    //     }
-    // }
+    pub fn new<T: Component>(id: ComponentId) -> Self {
+        Self {
+            id,
+            name: type_name::<T>().to_owned(),
+            storage_type: StorageType::default(),
+            type_id: TypeId::of::<T>(),
+            drop: drop_ptr::<T>,
+            layout: Layout::new::<T>(),
+        }
+    }
 }
 
+unsafe fn drop_ptr<T>(x: *mut u8) {
+    x.cast::<T>().drop_in_place()
+}
 
 #[derive(Debug, Default)]
 pub struct Components {
@@ -90,5 +93,36 @@ pub struct Components {
 }
 
 impl Components {
+    // pub(crate) fn add<T: Component>(&mut self) -> Result<ComponentId, ComponentsError> {
+    //     let index = self.components.len();
+    //     let type_id = TypeId::of::<T>();
+    //     let index_entry = self.indices.entry(type_id);
+    //     if let Entry::Occupied(_) = index_entry {
+    //         return Err(ComponentsError::ComponentAlreadyExists {
+    //             type_id,
+    //             name: descriptor.name,
+    //         });
+    //     }
+    //     self.indices.insert(type_id, index);
+
+    //     self.components
+    //         .push(ComponentInfo::new(ComponentId(index), descriptor));
+
+    //     Ok(ComponentId(index))
+    // }
     
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.components.len()
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.components.len() == 0
+    }
+
+    #[inline]
+    pub fn get_info(&self, id: ComponentId) -> Option<&ComponentInfo> {
+        self.components.get(id.0)
+    }
 }
