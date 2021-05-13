@@ -1,4 +1,8 @@
-use std::{alloc::Layout, any::{TypeId, type_name}, collections::{HashMap, hash_map::Entry}};
+use std::{
+    alloc::Layout,
+    any::{type_name, TypeId},
+    collections::{hash_map::Entry, HashMap},
+};
 
 pub trait Component: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Component for T {}
@@ -15,17 +19,17 @@ impl Default for StorageType {
 }
 
 #[derive(Debug, Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
-pub struct ComponentId(u32);
+pub struct ComponentId(usize);
 
 impl ComponentId {
     #[inline]
-    pub const fn new(index: u32) -> Self {
+    pub const fn new(index: usize) -> Self {
         Self(index)
     }
 
     #[inline]
     pub fn index(self) -> usize {
-        self.0 as usize
+        self.0
     }
 }
 
@@ -86,6 +90,10 @@ unsafe fn drop_ptr<T>(x: *mut u8) {
     x.cast::<T>().drop_in_place()
 }
 
+pub enum ComponentsError {
+    ComponentAlreadyExists,
+}
+
 #[derive(Debug, Default)]
 pub struct Components {
     components: Vec<ComponentInfo>,
@@ -93,24 +101,21 @@ pub struct Components {
 }
 
 impl Components {
-    // pub(crate) fn add<T: Component>(&mut self) -> Result<ComponentId, ComponentsError> {
-    //     let index = self.components.len();
-    //     let type_id = TypeId::of::<T>();
-    //     let index_entry = self.indices.entry(type_id);
-    //     if let Entry::Occupied(_) = index_entry {
-    //         return Err(ComponentsError::ComponentAlreadyExists {
-    //             type_id,
-    //             name: descriptor.name,
-    //         });
-    //     }
-    //     self.indices.insert(type_id, index);
+    pub(crate) fn add<T: Component>(&mut self) -> Result<ComponentId, ComponentsError> {
+        let index = self.components.len();
+        let type_id = TypeId::of::<T>();
+        let index_entry = self.indices.entry(type_id);
+        if let Entry::Occupied(_) = index_entry {
+            return Err(ComponentsError::ComponentAlreadyExists);
+        }
+        self.indices.insert(type_id, index);
 
-    //     self.components
-    //         .push(ComponentInfo::new(ComponentId(index), descriptor));
+        let id = ComponentId::new(index);
+        self.components.push(ComponentInfo::new::<T>(id));
 
-    //     Ok(ComponentId(index))
-    // }
-    
+        Ok(id)
+    }
+
     #[inline]
     pub fn len(&self) -> usize {
         self.components.len()
@@ -123,6 +128,6 @@ impl Components {
 
     #[inline]
     pub fn get_info(&self, id: ComponentId) -> Option<&ComponentInfo> {
-        self.components.get(id.0)
+        self.components.get(id.index())
     }
 }

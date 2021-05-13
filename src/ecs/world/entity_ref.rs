@@ -2,7 +2,26 @@ use crate::ecs::{archetype::Archetype, entity::EntityLocation, Entity};
 
 use super::World;
 
-pub struct EntityRef {}
+pub struct EntityRef<'w> {
+    world: &'w World,
+    entity: Entity,
+    location: EntityLocation,
+}
+
+impl<'w> EntityRef<'w> {
+    #[inline]
+    pub(crate) fn new(
+        world: &'w World,
+        entity: Entity,
+        location: EntityLocation,
+    ) -> Self {
+        EntityRef {
+            world,
+            entity,
+            location,
+        }
+    }
+}
 
 pub struct EntityMut<'w> {
     world: &'w mut World,
@@ -12,7 +31,7 @@ pub struct EntityMut<'w> {
 
 impl<'w> EntityMut<'w> {
     #[inline]
-    pub(crate) unsafe fn new(
+    pub(crate) fn new(
         world: &'w mut World,
         entity: Entity,
         location: EntityLocation,

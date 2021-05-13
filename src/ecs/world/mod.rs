@@ -86,9 +86,9 @@ impl World {
     }
 
     #[inline]
-    pub fn get_entity(&self, entity: Entity) -> Option<EntityRef> {
-        None
-        // self.entities.get(entity)
+    pub fn get_entity(&self, entity: Entity) -> Option<EntityRef> {        
+        let location = self.entities.get(entity)?;
+        Some(EntityRef::new(self, entity, location))
     }
 
     #[inline]
@@ -97,9 +97,9 @@ impl World {
     }
 
     #[inline]
-    pub fn get_entity_mut(&mut self, entity: Entity) -> Option<EntityMut> {
-        None
-        // self.entities.get_mut(entity)
+    pub fn get_entity_mut(&mut self, entity: Entity) -> Option<EntityMut> {        
+        let location = self.entities.get(entity)?;
+        Some(EntityMut::new(self, entity, location))
     }
 
     #[inline]
