@@ -10,11 +10,7 @@ pub struct EntityRef<'w> {
 
 impl<'w> EntityRef<'w> {
     #[inline]
-    pub(crate) fn new(
-        world: &'w World,
-        entity: Entity,
-        location: EntityLocation,
-    ) -> Self {
+    pub(crate) fn new(world: &'w World, entity: Entity, location: EntityLocation) -> Self {
         EntityRef {
             world,
             entity,
@@ -31,11 +27,7 @@ pub struct EntityMut<'w> {
 
 impl<'w> EntityMut<'w> {
     #[inline]
-    pub(crate) fn new(
-        world: &'w mut World,
-        entity: Entity,
-        location: EntityLocation,
-    ) -> Self {
+    pub(crate) fn new(world: &'w mut World, entity: Entity, location: EntityLocation) -> Self {
         EntityMut {
             world,
             entity,

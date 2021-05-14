@@ -26,9 +26,9 @@ pub struct Archetype {
     id: ArchetypeId,
     table_id: TableId,
     entities: Vec<Entity>,
-//     edges: Edges,
-//     table_components: Cow<'static, [ComponentId]>,
-//     pub(crate) components: SparseSet<ComponentId, ArchetypeComponentInfo>,
+    //     edges: Edges,
+    //     table_components: Cow<'static, [ComponentId]>,
+    //     pub(crate) components: SparseSet<ComponentId, ArchetypeComponentInfo>,
 }
 
 impl Archetype {
