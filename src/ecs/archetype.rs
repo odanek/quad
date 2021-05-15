@@ -2,6 +2,12 @@ use std::ops::{Index, IndexMut};
 
 use super::{entity::EntityLocation, storage::TableId, Entity};
 
+// #[derive(Default)]
+// pub struct Edges {
+//     pub add_bundle: HashMap<BundleId, AddBundle>,
+//     pub remove_bundle: HashMap<BundleId, Option<ArchetypeId>>,    
+// }
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct ArchetypeId(u32);
 

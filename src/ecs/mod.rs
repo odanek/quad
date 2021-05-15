@@ -1,4 +1,5 @@
 mod archetype;
+mod bundle;
 mod component;
 mod entity;
 mod resource;
