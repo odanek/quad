@@ -1,31 +1,18 @@
 use std::{any::TypeId, collections::HashMap};
 
-use super::component::{ComponentId, StorageType, type_info::TypeInfo};
+use super::component::{type_info::TypeInfo, Component, ComponentId, StorageType};
 
-pub unsafe trait Bundle: Send + Sync + 'static {    
+pub trait Bundle: Send + Sync + 'static {
     fn type_info() -> Vec<TypeInfo>;
-
-    unsafe fn from_components(func: impl FnMut() -> *mut u8) -> Self
-    where
-        Self: Sized;
 
     fn get_components(self, func: impl FnMut(*mut u8));
 }
 
-macro_rules! tuple_impl {
+macro_rules! bundle_impl {
     ($($name: ident),*) => {
-        unsafe impl<$($name: Component),*> Bundle for ($($name,)*) {
+        impl<$($name: Component),*> Bundle for ($($name,)*) {
             fn type_info() -> Vec<TypeInfo> {
                 vec![$(TypeInfo::of::<$name>()),*]
-            }
-
-            #[allow(unused_variables, unused_mut)]
-            unsafe fn from_components(mut func: impl FnMut() -> *mut u8) -> Self {
-                #[allow(non_snake_case)]
-                let ($(mut $name,)*) = (
-                    $(func().cast::<$name>(),)*
-                );
-                ($($name.read(),)*)
             }
 
             #[allow(unused_variables, unused_mut)]
@@ -41,7 +28,17 @@ macro_rules! tuple_impl {
     }
 }
 
-// all_tuples!(tuple_impl, 0, 15, C);
+bundle_impl!(A);
+bundle_impl!(A, B);
+bundle_impl!(A, B, C);
+bundle_impl!(A, B, C, D);
+bundle_impl!(A, B, C, D, E);
+bundle_impl!(A, B, C, D, E, F);
+bundle_impl!(A, B, C, D, E, F, G);
+bundle_impl!(A, B, C, D, E, F, G, H);
+bundle_impl!(A, B, C, D, E, F, G, H, I);
+bundle_impl!(A, B, C, D, E, F, G, H, I, J);
+bundle_impl!(A, B, C, D, E, F, G, H, I, J, K);
 
 #[derive(Debug, Clone, Copy)]
 pub struct BundleId(usize);
@@ -59,9 +56,7 @@ pub struct BundleInfo {
     pub(crate) storage_types: Vec<StorageType>,
 }
 
-impl BundleInfo {
-
-}
+impl BundleInfo {}
 
 #[derive(Default)]
 pub struct Bundles {
@@ -69,5 +64,4 @@ pub struct Bundles {
     bundle_ids: HashMap<TypeId, BundleId>,
 }
 
-impl Bundles {
-}
+impl Bundles {}

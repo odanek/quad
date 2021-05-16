@@ -2,7 +2,7 @@ pub mod type_info;
 
 use std::{
     alloc::Layout,
-    any::{TypeId},
+    any::TypeId,
     collections::{hash_map::Entry, HashMap},
 };
 
@@ -107,7 +107,7 @@ pub struct Components {
 impl Components {
     pub(crate) fn add<T: Component>(&mut self) -> Result<ComponentId, ComponentsError> {
         let index = self.components.len();
-        let info = TypeInfo::of::<T>();        
+        let info = TypeInfo::of::<T>();
         let index_entry = self.indices.entry(info.type_id());
         if let Entry::Occupied(_) = index_entry {
             return Err(ComponentsError::ComponentAlreadyExists);
@@ -140,5 +140,4 @@ impl Components {
         let type_id = TypeId::of::<T>();
         self.indices.get(&type_id).map(|index| ComponentId(*index))
     }
-
 }
