@@ -1,3 +1,6 @@
+#[macro_use]
+mod macros;
+
 mod archetype;
 mod bundle;
 mod component;

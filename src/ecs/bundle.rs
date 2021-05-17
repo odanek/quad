@@ -28,17 +28,7 @@ macro_rules! bundle_impl {
     }
 }
 
-bundle_impl!(A);
-bundle_impl!(A, B);
-bundle_impl!(A, B, C);
-bundle_impl!(A, B, C, D);
-bundle_impl!(A, B, C, D, E);
-bundle_impl!(A, B, C, D, E, F);
-bundle_impl!(A, B, C, D, E, F, G);
-bundle_impl!(A, B, C, D, E, F, G, H);
-bundle_impl!(A, B, C, D, E, F, G, H, I);
-bundle_impl!(A, B, C, D, E, F, G, H, I, J);
-bundle_impl!(A, B, C, D, E, F, G, H, I, J, K);
+all_tuples!(bundle_impl);
 
 #[derive(Debug, Clone, Copy)]
 pub struct BundleId(usize);
