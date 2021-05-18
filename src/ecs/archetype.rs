@@ -1,12 +1,41 @@
-use std::ops::{Index, IndexMut};
+use std::{collections::HashMap, ops::{Index, IndexMut}};
 
-use super::{entity::EntityLocation, storage::TableId, Entity};
+use super::{Entity, bundle::BundleId, entity::EntityLocation, storage::TableId};
 
-// #[derive(Default)]
-// pub struct Edges {
-//     pub add_bundle: HashMap<BundleId, AddBundle>,
-//     pub remove_bundle: HashMap<BundleId, Option<ArchetypeId>>,
-// }
+#[derive(Default)]
+pub struct Edges {
+    pub add_bundle: HashMap<BundleId, ArchetypeId>,
+    pub remove_bundle: HashMap<BundleId, ArchetypeId>,
+}
+
+impl Edges {
+    #[inline]
+    pub fn get_add_bundle(&self, bundle_id: BundleId) -> Option<&ArchetypeId> {
+        self.add_bundle.get(&bundle_id)
+    }
+
+    #[inline]
+    pub fn set_add_bundle(
+        &mut self,
+        bundle_id: BundleId,
+        archetype_id: ArchetypeId
+    ) {
+        self.add_bundle.insert(
+            bundle_id,
+            archetype_id
+        );
+    }
+
+    #[inline]
+    pub fn get_remove_bundle(&self, bundle_id: BundleId) -> Option<ArchetypeId> {
+        self.remove_bundle.get(&bundle_id).cloned()
+    }
+
+    #[inline]
+    pub fn set_remove_bundle(&mut self, bundle_id: BundleId, archetype_id: ArchetypeId) {
+        self.remove_bundle.insert(bundle_id, archetype_id);
+    }
+}
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct ArchetypeId(u32);
@@ -32,7 +61,7 @@ pub struct Archetype {
     id: ArchetypeId,
     table_id: TableId,
     entities: Vec<Entity>,
-    //     edges: Edges,
+    edges: Edges,
     //     table_components: Cow<'static, [ComponentId]>,
     //     pub(crate) components: SparseSet<ComponentId, ArchetypeComponentInfo>,
 }
@@ -43,7 +72,8 @@ impl Archetype {
         Self {
             id,
             table_id,
-            entities: Vec::new(),
+            entities: Default::default(),
+            edges: Default::default()
         }
     }
 

@@ -30,7 +30,7 @@ macro_rules! bundle_impl {
 
 all_tuples!(bundle_impl);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct BundleId(usize);
 
 impl BundleId {
@@ -54,4 +54,6 @@ pub struct Bundles {
     bundle_ids: HashMap<TypeId, BundleId>,
 }
 
-impl Bundles {}
+impl Bundles {
+
+}
