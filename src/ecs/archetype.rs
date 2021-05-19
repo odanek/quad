@@ -1,6 +1,6 @@
-use std::{collections::HashMap, ops::{Index, IndexMut}};
+use std::{collections::{HashMap, HashSet}, ops::{Index, IndexMut}};
 
-use super::{Entity, bundle::BundleId, entity::EntityLocation, storage::TableId};
+use super::{Entity, bundle::BundleId, component::ComponentId, entity::EntityLocation, storage::TableId};
 
 #[derive(Default)]
 pub struct Edges {
@@ -15,15 +15,8 @@ impl Edges {
     }
 
     #[inline]
-    pub fn set_add_bundle(
-        &mut self,
-        bundle_id: BundleId,
-        archetype_id: ArchetypeId
-    ) {
-        self.add_bundle.insert(
-            bundle_id,
-            archetype_id
-        );
+    pub fn set_add_bundle(&mut self, bundle_id: BundleId, archetype_id: ArchetypeId) {
+        self.add_bundle.insert(bundle_id, archetype_id);
     }
 
     #[inline]
@@ -62,8 +55,8 @@ pub struct Archetype {
     table_id: TableId,
     entities: Vec<Entity>,
     edges: Edges,
+    components: HashSet<ComponentId>,
     //     table_components: Cow<'static, [ComponentId]>,
-    //     pub(crate) components: SparseSet<ComponentId, ArchetypeComponentInfo>,
 }
 
 impl Archetype {
@@ -73,7 +66,8 @@ impl Archetype {
             id,
             table_id,
             entities: Default::default(),
-            edges: Default::default()
+            edges: Default::default(),
+            components: Default::default()
         }
     }
 
@@ -87,6 +81,31 @@ impl Archetype {
         self.table_id
     }
 
+    #[inline]
+    pub fn edges(&self) -> &Edges {
+        &self.edges
+    }
+
+    #[inline]
+    pub(crate) fn edges_mut(&mut self) -> &mut Edges {
+        &mut self.edges
+    }
+
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.entities.len()
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.entities.is_empty()
+    }
+
+    #[inline]
+    pub fn contains(&self, component_id: ComponentId) -> bool {
+        self.components.contains(&component_id)
+    }
+
     pub fn next_location(&self) -> EntityLocation {
         EntityLocation {
             archetype: self.id,
@@ -96,6 +115,10 @@ impl Archetype {
 
     pub unsafe fn allocate(&mut self, entity: Entity) {
         self.entities.push(entity);
+    }
+
+    pub fn reserve(&mut self, additional: usize) {
+        self.entities.reserve(additional);
     }
 }
 
@@ -119,10 +142,9 @@ impl Default for Archetypes {
 impl Archetypes {
     #[inline]
     pub fn empty_mut(&mut self) -> &mut Archetype {
-        unsafe {
-            self.archetypes
-                .get_unchecked_mut(ArchetypeId::empty().index())
-        }
+        self.archetypes
+            .get_mut(ArchetypeId::empty().index())
+            .unwrap()
     }
 }
 
