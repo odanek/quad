@@ -1,6 +1,11 @@
-use std::{collections::{HashMap, HashSet}, ops::{Index, IndexMut}};
+use std::{
+    collections::{HashMap, HashSet},
+    ops::{Index, IndexMut},
+};
 
-use super::{Entity, bundle::BundleId, component::ComponentId, entity::EntityLocation, storage::TableId};
+use super::{
+    bundle::BundleId, component::ComponentId, entity::EntityLocation, storage::TableId, Entity,
+};
 
 #[derive(Default)]
 pub struct Edges {
@@ -67,7 +72,7 @@ impl Archetype {
             table_id,
             entities: Default::default(),
             edges: Default::default(),
-            components: Default::default()
+            components: Default::default(),
         }
     }
 
@@ -122,6 +127,21 @@ impl Archetype {
     }
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub struct ArchetypeGeneration(u32);
+
+impl ArchetypeGeneration {
+    #[inline]
+    pub fn new(generation: u32) -> Self {
+        ArchetypeGeneration(generation)
+    }
+
+    #[inline]
+    pub fn value(self) -> u32 {
+        self.0
+    }
+}
+
 pub struct Archetypes {
     pub(crate) archetypes: Vec<Archetype>,
 }
@@ -141,10 +161,46 @@ impl Default for Archetypes {
 
 impl Archetypes {
     #[inline]
+    pub fn generation(&self) -> ArchetypeGeneration {
+        ArchetypeGeneration(self.archetypes.len() as u32)
+    }
+
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.archetypes.len()
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.archetypes.is_empty()
+    }
+
+    #[inline]
+    pub fn get(&self, id: ArchetypeId) -> Option<&Archetype> {
+        self.archetypes.get(id.index())
+    }
+
+    #[inline]
+    pub fn get_mut(&mut self, id: ArchetypeId) -> Option<&mut Archetype> {
+        self.archetypes.get_mut(id.index())
+    }    
+
+    #[inline]
+    pub fn empty(&self) -> &Archetype {
+        unsafe { self.archetypes.get_unchecked(ArchetypeId::empty().index()) }
+    }
+
+    #[inline]
     pub fn empty_mut(&mut self) -> &mut Archetype {
-        self.archetypes
-            .get_mut(ArchetypeId::empty().index())
-            .unwrap()
+        unsafe {
+            self.archetypes
+                .get_unchecked_mut(ArchetypeId::empty().index())
+        }
+    }
+
+    #[inline]
+    pub fn iter(&self) -> impl Iterator<Item = &Archetype> {
+        self.archetypes.iter()
     }
 }
 

@@ -54,6 +54,4 @@ pub struct Bundles {
     bundle_ids: HashMap<TypeId, BundleId>,
 }
 
-impl Bundles {
-
-}
+impl Bundles {}
