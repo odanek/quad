@@ -1,4 +1,6 @@
-use crate::ecs::{Entity, archetype::Archetype, bundle::Bundle, component::Component, entity::EntityLocation};
+use crate::ecs::{
+    archetype::Archetype, bundle::Bundle, component::Component, entity::EntityLocation, Entity,
+};
 
 use super::World;
 

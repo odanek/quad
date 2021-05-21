@@ -107,7 +107,7 @@ impl Archetype {
     }
 
     #[inline]
-    pub fn contains(&self, component_id: ComponentId) -> bool {        
+    pub fn contains(&self, component_id: ComponentId) -> bool {
         self.components.contains(&component_id)
     }
 
@@ -183,7 +183,7 @@ impl Archetypes {
     #[inline]
     pub fn get_mut(&mut self, id: ArchetypeId) -> Option<&mut Archetype> {
         self.archetypes.get_mut(id.index())
-    }    
+    }
 
     #[inline]
     pub fn empty(&self) -> &Archetype {
