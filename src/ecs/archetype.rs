@@ -107,7 +107,7 @@ impl Archetype {
     }
 
     #[inline]
-    pub fn contains(&self, component_id: ComponentId) -> bool {
+    pub fn contains(&self, component_id: ComponentId) -> bool {        
         self.components.contains(&component_id)
     }
 
