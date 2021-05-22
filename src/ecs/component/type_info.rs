@@ -1,4 +1,4 @@
-use std::{alloc::Layout, any::TypeId};
+use std::{alloc::Layout, any::{TypeId, type_name}};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypeInfo {
@@ -14,7 +14,7 @@ impl TypeInfo {
             type_id: TypeId::of::<T>(),
             layout: Layout::new::<T>(),
             drop: Self::drop_ptr::<T>,
-            type_name: core::any::type_name::<T>(),
+            type_name: type_name::<T>(),
         }
     }
 

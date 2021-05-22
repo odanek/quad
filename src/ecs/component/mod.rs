@@ -94,6 +94,7 @@ unsafe fn drop_ptr<T>(x: *mut u8) {
     x.cast::<T>().drop_in_place()
 }
 
+#[derive(Debug)]
 pub enum ComponentsError {
     ComponentAlreadyExists,
 }
@@ -105,9 +106,8 @@ pub struct Components {
 }
 
 impl Components {
-    pub(crate) fn add<T: Component>(&mut self) -> Result<ComponentId, ComponentsError> {
-        let index = self.components.len();
-        let info = TypeInfo::of::<T>();
+    pub(crate) fn add(&mut self, info: &TypeInfo) -> Result<ComponentId, ComponentsError> {
+        let index = self.components.len();        
         let index_entry = self.indices.entry(info.type_id());
         if let Entry::Occupied(_) = index_entry {
             return Err(ComponentsError::ComponentAlreadyExists);
@@ -115,7 +115,7 @@ impl Components {
         self.indices.insert(info.type_id(), index);
 
         let id = ComponentId::new(index);
-        self.components.push(ComponentInfo::new(id, &info));
+        self.components.push(ComponentInfo::new(id, info));
 
         Ok(id)
     }
@@ -136,8 +136,16 @@ impl Components {
     }
 
     #[inline]
-    pub fn get_id<T: Component>(&self) -> Option<ComponentId> {
-        let type_id = TypeId::of::<T>();
+    pub fn get_id(&self, type_id: TypeId) -> Option<ComponentId> {        
         self.indices.get(&type_id).map(|index| ComponentId(*index))
+    }
+
+    pub fn get_or_insert(&mut self, info: &TypeInfo) -> ComponentId {
+        let component_id = self.get_id(info.type_id());
+        if let Some(id) = component_id {
+            id
+        } else {
+            self.add(info).unwrap()
+        }
     }
 }
