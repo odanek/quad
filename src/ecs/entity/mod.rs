@@ -39,7 +39,7 @@ struct EntityEntry {
 #[derive(Copy, Clone, Debug)]
 pub struct EntityLocation {
     pub archetype: ArchetypeId,
-    pub row: u32,
+    pub row: usize,
 }
 
 impl Entities {

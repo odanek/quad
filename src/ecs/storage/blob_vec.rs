@@ -98,6 +98,19 @@ impl BlobVec {
         *self.data.get()
     }
 
+    #[inline]
+    pub unsafe fn get_unchecked(&self, index: usize) -> *mut u8 {
+        debug_assert!(index < self.len());
+        self.get_ptr().as_ptr().add(index * self.item_layout.size())
+    }
+
+    #[inline]
+    pub unsafe fn set_unchecked(&self, index: usize, value: *mut u8) {
+        debug_assert!(index < self.len());
+        let ptr = self.get_unchecked(index);
+        std::ptr::copy_nonoverlapping(value, ptr, self.item_layout.size());
+    }
+
     pub fn clear(&mut self) {
         let len = self.len;
         // We set len to 0 _before_ dropping elements for unwind safety. This ensures we don't

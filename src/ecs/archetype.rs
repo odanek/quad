@@ -114,7 +114,7 @@ impl Archetype {
     pub fn next_location(&self) -> EntityLocation {
         EntityLocation {
             archetype: self.id,
-            row: self.entities.len() as u32,
+            row: self.entities.len(),
         }
     }
 

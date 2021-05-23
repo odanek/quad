@@ -1,6 +1,6 @@
 use std::{any::{TypeId, type_name}, collections::HashMap};
 
-use super::component::{Component, ComponentId, Components, StorageType, type_info::TypeInfo};
+use super::{Entity, component::{Component, ComponentId, Components, StorageType, type_info::TypeInfo}, storage::Table};
 
 pub trait Bundle: Send + Sync + 'static {
     fn type_info() -> Vec<TypeInfo>;
@@ -60,6 +60,29 @@ impl BundleInfo {
     #[inline]
     pub fn storage_types(&self) -> &[StorageType] {
         &self.storage_types
+    }
+    
+    #[allow(clippy::too_many_arguments)]
+    #[inline]
+    pub(crate) unsafe fn write_components<T: Bundle>(
+        &self,
+        entity: Entity,
+        table: &Table,
+        table_row: usize,        
+        bundle: T,
+    ) {
+        let mut bundle_component = 0;
+        bundle.get_components(|component_ptr| {
+            // SAFE: component_id was initialized by get_dynamic_bundle_info
+            let component_id = *self.component_ids.get_unchecked(bundle_component);            
+            match self.storage_types[bundle_component] {
+                StorageType::Table => {
+                    let column = table.get_column(component_id).unwrap();
+                    column.set_unchecked(table_row, component_ptr);                    
+                }
+            }
+            bundle_component += 1;
+        });
     }
 }
 

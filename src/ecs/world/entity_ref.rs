@@ -1,6 +1,13 @@
 use std::any::TypeId;
 
-use crate::ecs::{Entities, Entity, archetype::{Archetype, Archetypes}, bundle::{Bundle, BundleInfo}, component::{Component, Components}, entity::EntityLocation, storage::Storages};
+use crate::ecs::{
+    archetype::{Archetype, Archetypes},
+    bundle::{Bundle, BundleInfo},
+    component::{Component, Components},
+    entity::EntityLocation,
+    storage::Storages,
+    Entities, Entity,
+};
 
 use super::World;
 
@@ -117,18 +124,8 @@ impl<'w> EntityMut<'w> {
         };
         self.location = new_location;
 
-        let table = &storages.tables[archetype.table_id()];
-        let table_row = archetype.entity_table_row(new_location.index);
-        // SAFE: table row is valid
-        unsafe {
-            bundle_info.write_components(
-                entity,
-                table,
-                table_row,
-                bundle_status,
-                bundle,
-            )
-        };
+        let table = &storages.tables[archetype.table_id()];        
+        unsafe { bundle_info.write_components(entity, table, new_location.row, bundle) };
 
         self
     }
@@ -187,15 +184,12 @@ unsafe fn get_insert_bundle_info<'a>(
         let new_location = if old_table_id == new_table_id {
             archetypes[new_archetype_id].allocate(entity, old_table_row)
         } else {
-            let (old_table, new_table) =
-                storages.tables.get_2_mut(old_table_id, new_table_id);
+            let (old_table, new_table) = storages.tables.get_2_mut(old_table_id, new_table_id);
             // PERF: store "non bundle" components in edge, then just move those to avoid
             // redundant copies
-            let move_result =
-                old_table.move_to_superset_unchecked(old_table_row, new_table);
+            let move_result = old_table.move_to_superset_unchecked(old_table_row, new_table);
 
-            let new_location =
-                archetypes[new_archetype_id].allocate(entity, move_result.new_row);
+            let new_location = archetypes[new_archetype_id].allocate(entity, move_result.new_row);
             // if an entity was moved into this entity's table spot, update its table row
             if let Some(swapped_entity) = move_result.swapped_entity {
                 let swapped_location = entities.get(swapped_entity).unwrap();

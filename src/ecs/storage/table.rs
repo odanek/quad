@@ -53,6 +53,11 @@ impl Column {
     pub unsafe fn get_ptr(&self) -> NonNull<u8> {
         self.data.get_ptr()
     }
+
+    #[inline]
+    pub unsafe fn set_unchecked(&self, row: usize, data: *mut u8) {
+        self.data.set_unchecked(row, data);
+    }
 }
 
 pub struct Table {
@@ -65,6 +70,36 @@ pub struct Table {
 }
 
 impl Table {
+    #[inline]
+    pub fn capacity(&self) -> usize {
+        self.capacity
+    }
+
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
+    #[inline]
+    pub fn get_column(&self, component_id: ComponentId) -> Option<&Column> {
+        self.columns.get(&component_id)
+    }
+
+    #[inline]
+    pub fn get_column_mut(&mut self, component_id: ComponentId) -> Option<&mut Column> {
+        self.columns.get_mut(&component_id)
+    }
+
+    #[inline]
+    pub fn has_column(&self, component_id: ComponentId) -> bool {
+        self.columns.contains_key(&component_id)
+    }
+
     pub fn with_capacity(capacity: usize, column_capacity: usize, grow_amount: usize) -> Table {
         Self {
             columns: HashMap::with_capacity(column_capacity),
@@ -98,21 +133,6 @@ impl Table {
         for column in self.columns.values_mut() {
             column.data.set_len(self.len);
         }
-    }
-
-    #[inline]
-    pub fn capacity(&self) -> usize {
-        self.capacity
-    }
-
-    #[inline]
-    pub fn len(&self) -> usize {
-        self.len
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.len == 0
     }
 }
 
