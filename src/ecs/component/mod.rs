@@ -107,7 +107,7 @@ pub struct Components {
 
 impl Components {
     pub(crate) fn add(&mut self, info: &TypeInfo) -> Result<ComponentId, ComponentsError> {
-        let index = self.components.len();        
+        let index = self.components.len();
         let index_entry = self.indices.entry(info.type_id());
         if let Entry::Occupied(_) = index_entry {
             return Err(ComponentsError::ComponentAlreadyExists);
@@ -136,7 +136,7 @@ impl Components {
     }
 
     #[inline]
-    pub fn get_id(&self, type_id: TypeId) -> Option<ComponentId> {        
+    pub fn get_id(&self, type_id: TypeId) -> Option<ComponentId> {
         self.indices.get(&type_id).map(|index| ComponentId(*index))
     }
 

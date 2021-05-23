@@ -124,7 +124,7 @@ impl<'w> EntityMut<'w> {
         };
         self.location = new_location;
 
-        let table = &storages.tables[archetype.table_id()];        
+        let table = &storages.tables[archetype.table_id()];
         unsafe { bundle_info.write_components(entity, table, new_location.row, bundle) };
 
         self

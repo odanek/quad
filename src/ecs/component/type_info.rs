@@ -1,4 +1,7 @@
-use std::{alloc::Layout, any::{TypeId, type_name}};
+use std::{
+    alloc::Layout,
+    any::{type_name, TypeId},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypeInfo {

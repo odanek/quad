@@ -1,6 +1,13 @@
-use std::{any::{TypeId, type_name}, collections::HashMap};
+use std::{
+    any::{type_name, TypeId},
+    collections::HashMap,
+};
 
-use super::{Entity, component::{Component, ComponentId, Components, StorageType, type_info::TypeInfo}, storage::Table};
+use super::{
+    component::{type_info::TypeInfo, Component, ComponentId, Components, StorageType},
+    storage::Table,
+    Entity,
+};
 
 pub trait Bundle: Send + Sync + 'static {
     fn type_info() -> Vec<TypeInfo>;
@@ -61,24 +68,24 @@ impl BundleInfo {
     pub fn storage_types(&self) -> &[StorageType] {
         &self.storage_types
     }
-    
+
     #[allow(clippy::too_many_arguments)]
     #[inline]
     pub(crate) unsafe fn write_components<T: Bundle>(
         &self,
         entity: Entity,
         table: &Table,
-        table_row: usize,        
+        table_row: usize,
         bundle: T,
     ) {
         let mut bundle_component = 0;
         bundle.get_components(|component_ptr| {
             // SAFE: component_id was initialized by get_dynamic_bundle_info
-            let component_id = *self.component_ids.get_unchecked(bundle_component);            
+            let component_id = *self.component_ids.get_unchecked(bundle_component);
             match self.storage_types[bundle_component] {
                 StorageType::Table => {
                     let column = table.get_column(component_id).unwrap();
-                    column.set_unchecked(table_row, component_ptr);                    
+                    column.set_unchecked(table_row, component_ptr);
                 }
             }
             bundle_component += 1;
@@ -111,13 +118,12 @@ impl Bundles {
         let id = self.bundle_ids.entry(TypeId::of::<T>()).or_insert_with(|| {
             let type_info = T::type_info();
             let id = BundleId(bundle_infos.len());
-            let bundle_info =
-                initialize_bundle(type_name::<T>(), &type_info, id, components);
+            let bundle_info = initialize_bundle(type_name::<T>(), &type_info, id, components);
             bundle_infos.push(bundle_info);
             id
         });
         unsafe { self.bundle_infos.get_unchecked(id.0) }
-    }    
+    }
 }
 
 fn initialize_bundle(
@@ -130,7 +136,7 @@ fn initialize_bundle(
     let mut storage_types = Vec::new();
 
     for type_info in type_info {
-        let component_id = components.get_or_insert(&type_info);        
+        let component_id = components.get_or_insert(&type_info);
         let info = components.get_info(component_id).unwrap();
         component_ids.push(component_id);
         storage_types.push(info.storage_type());

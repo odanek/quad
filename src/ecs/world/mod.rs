@@ -2,7 +2,10 @@ mod entity_ref;
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{Entities, Entity, Resources, archetype::Archetypes, bundle::Bundles, component::Components, resource::Resource, storage::Storages};
+use super::{
+    archetype::Archetypes, bundle::Bundles, component::Components, resource::Resource,
+    storage::Storages, Entities, Entity, Resources,
+};
 
 // Struct of arrays
 #[derive(Default)]
