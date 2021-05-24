@@ -4,7 +4,7 @@ use std::{
 };
 
 use super::{
-    component::{type_info::TypeInfo, Component, ComponentId, Components, StorageType},
+    component::{type_info::TypeInfo, Component, ComponentId, Components},
     storage::Table,
     Entity,
 };
@@ -50,7 +50,6 @@ impl BundleId {
 pub struct BundleInfo {
     pub(crate) id: BundleId,
     pub(crate) component_ids: Vec<ComponentId>,
-    pub(crate) storage_types: Vec<StorageType>,
 }
 
 impl BundleInfo {
@@ -65,8 +64,13 @@ impl BundleInfo {
     }
 
     #[inline]
-    pub fn storage_types(&self) -> &[StorageType] {
-        &self.storage_types
+    pub fn len(&self) -> usize {
+        self.component_ids.len()
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.component_ids.is_empty()
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -82,12 +86,8 @@ impl BundleInfo {
         bundle.get_components(|component_ptr| {
             // SAFE: component_id was initialized by get_dynamic_bundle_info
             let component_id = *self.component_ids.get_unchecked(bundle_component);
-            match self.storage_types[bundle_component] {
-                StorageType::Table => {
-                    let column = table.get_column(component_id).unwrap();
-                    column.set_unchecked(table_row, component_ptr);
-                }
-            }
+            let column = table.get_column(component_id).unwrap();
+            column.set_unchecked(table_row, component_ptr);
             bundle_component += 1;
         });
     }
@@ -126,6 +126,7 @@ impl Bundles {
     }
 }
 
+// TODO: Are (A, B) and (B, A) different bundles? Sort components to treat them as the same bundle?
 fn initialize_bundle(
     bundle_type_name: &'static str,
     type_info: &[TypeInfo],
@@ -133,13 +134,11 @@ fn initialize_bundle(
     components: &mut Components,
 ) -> BundleInfo {
     let mut component_ids = Vec::new();
-    let mut storage_types = Vec::new();
 
     for type_info in type_info {
         let component_id = components.get_or_insert(&type_info);
         let info = components.get_info(component_id).unwrap();
-        component_ids.push(component_id);
-        storage_types.push(info.storage_type());
+        component_ids.push(component_id);        
     }
 
     let mut deduped = component_ids.clone();
@@ -151,7 +150,6 @@ fn initialize_bundle(
 
     BundleInfo {
         id,
-        component_ids,
-        storage_types,
+        component_ids
     }
 }

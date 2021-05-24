@@ -4,16 +4,16 @@ use std::{
     ptr::NonNull,
 };
 
-use crate::ecs::{component::ComponentId, Entity};
+use crate::ecs::{Entity, component::{ComponentId, ComponentInfo}};
 
 use super::BlobVec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct TableId(u32);
+pub struct TableId(usize);
 
 impl TableId {
     #[inline]
-    pub fn new(id: u32) -> Self {
+    pub fn new(id: usize) -> Self {
         TableId(id)
     }
 
@@ -24,16 +24,24 @@ impl TableId {
 
     #[inline]
     pub fn index(self) -> usize {
-        self.0 as usize
+        self.0
     }
 }
 
 pub struct Column {
-    pub(crate) component_id: ComponentId,
+    pub(crate) component: ComponentId,
     pub(crate) data: BlobVec,
 }
 
 impl Column {
+    #[inline]
+    pub fn new(component_info: &ComponentInfo, capacity: usize) -> Self {
+        Column {
+            component: component_info.id(),
+            data: BlobVec::new(component_info.layout(), component_info.drop(), capacity),
+        }
+    }
+
     #[inline]
     pub fn len(&self) -> usize {
         self.data.len()
@@ -62,14 +70,23 @@ impl Column {
 
 pub struct Table {
     columns: HashMap<ComponentId, Column>,
-    // entities: Vec<Entity>,
-    // archetypes: Vec<ArchetypeId>,
     len: usize,
     grow_amount: usize,
     capacity: usize,
 }
 
 impl Table {
+    pub fn new(infos: &[ComponentInfo], capacity: usize, grow_amount: usize) -> Table {
+        Self {
+            columns: HashMap::with_capacity(column_capacity),
+            // entities: Vec::with_capacity(capacity),
+            // archetypes: Vec::new(),
+            len: 0,
+            grow_amount,
+            capacity,
+        }
+    }
+
     #[inline]
     pub fn capacity(&self) -> usize {
         self.capacity
@@ -98,17 +115,6 @@ impl Table {
     #[inline]
     pub fn has_column(&self, component_id: ComponentId) -> bool {
         self.columns.contains_key(&component_id)
-    }
-
-    pub fn with_capacity(capacity: usize, column_capacity: usize, grow_amount: usize) -> Table {
-        Self {
-            columns: HashMap::with_capacity(column_capacity),
-            // entities: Vec::with_capacity(capacity),
-            // archetypes: Vec::new(),
-            len: 0,
-            grow_amount,
-            capacity,
-        }
     }
 
     pub fn reserve(&mut self, amount: usize) {
@@ -146,6 +152,10 @@ impl Default for Tables {
         Tables {
             tables: vec![empty_table],
         }
+    }
+
+    pub(crate) fn new(components: &[ComponentId]) -> TableId {
+        let table = Table::with_capacity(capacity, column_capacity, grow_amount);
     }
 }
 

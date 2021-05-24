@@ -11,17 +11,6 @@ use self::type_info::TypeInfo;
 pub trait Component: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Component for T {}
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub enum StorageType {
-    Table,
-}
-
-impl Default for StorageType {
-    fn default() -> Self {
-        StorageType::Table
-    }
-}
-
 #[derive(Debug, Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
 pub struct ComponentId(usize);
 
@@ -44,7 +33,6 @@ pub struct ComponentInfo {
     type_id: TypeId,
     layout: Layout,
     drop: unsafe fn(*mut u8),
-    storage_type: StorageType,
 }
 
 impl ComponentInfo {
@@ -73,16 +61,10 @@ impl ComponentInfo {
         self.drop
     }
 
-    #[inline]
-    pub fn storage_type(&self) -> StorageType {
-        self.storage_type
-    }
-
     pub fn new(id: ComponentId, type_info: &TypeInfo) -> Self {
         Self {
             id,
             name: type_info.type_name(),
-            storage_type: StorageType::default(),
             type_id: type_info.type_id(),
             drop: type_info.drop(),
             layout: type_info.layout(),

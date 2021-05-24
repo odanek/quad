@@ -60,8 +60,7 @@ pub struct Archetype {
     table_id: TableId,
     entities: Vec<Entity>,
     edges: Edges,
-    components: HashSet<ComponentId>,
-    //     table_components: Cow<'static, [ComponentId]>,
+    components: HashSet<ComponentId>,    
 }
 
 impl Archetype {
@@ -109,6 +108,11 @@ impl Archetype {
     #[inline]
     pub fn contains(&self, component_id: ComponentId) -> bool {
         self.components.contains(&component_id)
+    }
+
+    #[inline]
+    pub fn components(&self) -> impl Iterator<Item = ComponentId> + '_ {
+        self.components.iter().cloned()
     }
 
     pub fn next_location(&self) -> EntityLocation {
