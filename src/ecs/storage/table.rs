@@ -77,8 +77,13 @@ pub struct Table {
 
 impl Table {
     pub fn new(infos: &[ComponentInfo], capacity: usize, grow_amount: usize) -> Table {
+        let columns = HashMap::with_capacity(infos.len());
+        for info in infos {
+            columns.insert(info.id(), Column::new(info, capacity));
+        }
+
         Self {
-            columns: HashMap::with_capacity(column_capacity),
+            columns,
             // entities: Vec::with_capacity(capacity),
             // archetypes: Vec::new(),
             len: 0,
@@ -154,9 +159,7 @@ impl Default for Tables {
         }
     }
 
-    pub(crate) fn new(components: &[ComponentId]) -> TableId {
-        let table = Table::with_capacity(capacity, column_capacity, grow_amount);
-    }
+    
 }
 
 impl Index<TableId> for Tables {

@@ -28,8 +28,8 @@ impl ComponentId {
 
 #[derive(Debug)]
 pub struct ComponentInfo {
-    name: &'static str,
     id: ComponentId,
+    name: &'static str,
     type_id: TypeId,
     layout: Layout,
     drop: unsafe fn(*mut u8),

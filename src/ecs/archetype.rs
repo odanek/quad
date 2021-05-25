@@ -55,12 +55,17 @@ impl ArchetypeId {
     }
 }
 
+#[derive(Hash, PartialEq, Eq)]
+pub struct ArchetypeIdentity {
+    components: Vec<ComponentId>,
+}
+
 pub struct Archetype {
     id: ArchetypeId,
     table_id: TableId,
     entities: Vec<Entity>,
     edges: Edges,
-    components: HashSet<ComponentId>,    
+    components: Vec<ComponentId>,
 }
 
 impl Archetype {
@@ -147,15 +152,18 @@ impl ArchetypeGeneration {
 }
 
 pub struct Archetypes {
-    pub(crate) archetypes: Vec<Archetype>,
+    archetypes: Vec<Archetype>,
+    archetype_ids: HashMap<ArchetypeIdentity, ArchetypeId>,
 }
 
 impl Default for Archetypes {
     fn default() -> Self {
         let mut archetypes = Archetypes {
             archetypes: Vec::new(),
+            archetype_ids: Default::default()
         };
 
+        // TODO: Use get_id_or_insert to populate alse id map
         archetypes
             .archetypes
             .push(Archetype::new(ArchetypeId::empty(), TableId::empty()));

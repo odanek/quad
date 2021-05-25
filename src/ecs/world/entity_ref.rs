@@ -256,8 +256,7 @@ unsafe fn add_bundle_to_archetype(
         // add an edge from the old archetype to the new archetype
         archetypes[archetype_id].edges_mut().set_add_bundle(
             bundle_info.id,
-            new_archetype_id,
-            bundle_status,
+            new_archetype_id
         );
         new_archetype_id
     }
