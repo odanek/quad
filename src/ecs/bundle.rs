@@ -138,7 +138,7 @@ fn initialize_bundle(
     for type_info in type_info {
         let component_id = components.get_or_insert(&type_info);
         let info = components.get_info(component_id).unwrap();
-        component_ids.push(component_id);        
+        component_ids.push(component_id);
     }
 
     let mut deduped = component_ids.clone();
@@ -148,8 +148,5 @@ fn initialize_bundle(
         panic!("Bundle {} has duplicate components", bundle_type_name);
     }
 
-    BundleInfo {
-        id,
-        component_ids
-    }
+    BundleInfo { id, component_ids }
 }

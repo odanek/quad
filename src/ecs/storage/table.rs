@@ -1,32 +1,16 @@
 use std::{
     collections::HashMap,
+    iter::FromIterator,
     ops::{Index, IndexMut},
     ptr::NonNull,
 };
 
-use crate::ecs::{Entity, component::{ComponentId, ComponentInfo}};
+use crate::ecs::{
+    component::{ComponentId, ComponentInfo, Components},
+    Entity,
+};
 
 use super::BlobVec;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct TableId(usize);
-
-impl TableId {
-    #[inline]
-    pub fn new(id: usize) -> Self {
-        TableId(id)
-    }
-
-    #[inline]
-    pub const fn empty() -> TableId {
-        TableId(0)
-    }
-
-    #[inline]
-    pub fn index(self) -> usize {
-        self.0
-    }
-}
 
 pub struct Column {
     pub(crate) component: ComponentId,
@@ -68,7 +52,41 @@ impl Column {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TableId(usize);
+
+impl TableId {
+    #[inline]
+    pub fn new(id: usize) -> Self {
+        TableId(id)
+    }
+
+    #[inline]
+    pub const fn empty() -> TableId {
+        TableId(0)
+    }
+
+    #[inline]
+    pub fn index(self) -> usize {
+        self.0
+    }
+}
+
+#[derive(Hash, PartialEq, Eq)]
+pub struct TableIdentity {
+    components: Vec<ComponentId>,
+}
+
+impl TableIdentity {
+    pub fn new(components: &[ComponentId]) -> Self {
+        Self {
+            components: Vec::from_iter(components.iter().cloned()),
+        }
+    }
+}
+
 pub struct Table {
+    id: TableId,
     columns: HashMap<ComponentId, Column>,
     len: usize,
     grow_amount: usize,
@@ -76,16 +94,20 @@ pub struct Table {
 }
 
 impl Table {
-    pub fn new(infos: &[ComponentInfo], capacity: usize, grow_amount: usize) -> Table {
+    pub fn new(
+        id: TableId,
+        infos: &[&ComponentInfo],
+        capacity: usize,
+        grow_amount: usize,
+    ) -> Table {
         let columns = HashMap::with_capacity(infos.len());
         for info in infos {
             columns.insert(info.id(), Column::new(info, capacity));
         }
 
         Self {
+            id,
             columns,
-            // entities: Vec::with_capacity(capacity),
-            // archetypes: Vec::new(),
             len: 0,
             grow_amount,
             capacity,
@@ -140,7 +162,6 @@ impl Table {
     pub unsafe fn allocate(&mut self, entity: Entity) {
         self.reserve(1);
         self.len += 1;
-        // self.entities.push(entity);
         for column in self.columns.values_mut() {
             column.data.set_len(self.len);
         }
@@ -149,17 +170,43 @@ impl Table {
 
 pub struct Tables {
     tables: Vec<Table>,
+    table_ids: HashMap<TableIdentity, TableId>,
 }
 
 impl Default for Tables {
     fn default() -> Self {
-        let empty_table = Table::with_capacity(0, 0, 64);
-        Tables {
-            tables: vec![empty_table],
-        }
-    }
+        let empty_id = TableId::empty();
+        let empty_identity = TableIdentity::new(&[]);
+        let empty_table = Table::new(empty_id, &[], 0, 64);
 
-    
+        let tables = vec![empty_table];
+        let table_ids = HashMap::new();
+        table_ids.insert(empty_identity, empty_id);
+
+        Tables { tables, table_ids }
+    }
+}
+
+impl Tables {
+    pub fn get_id_or_insert(
+        &mut self,
+        component_ids: &[ComponentId],
+        components: &Components,
+    ) -> TableId {
+        let tables = &mut self.tables;
+        let identity = TableIdentity::new(component_ids);
+
+        *self.table_ids.entry(identity).or_insert_with(move || {
+            let id = TableId(tables.len());
+            let infos = component_ids
+                .iter()
+                .map(|id| components.get_info(*id).unwrap())
+                .collect::<Vec<_>>();
+
+            tables.push(Table::new(id, &infos, 0, 64));
+            id
+        })
+    }
 }
 
 impl Index<TableId> for Tables {

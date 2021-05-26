@@ -39,7 +39,7 @@ impl<'w> EntityRef<'w> {
 
     #[inline]
     pub fn archetype(&self) -> &Archetype {
-        &self.world.archetypes[self.location.archetype]
+        &self.world.archetypes[self.location.archetype_id]
     }
 
     #[inline]
@@ -79,7 +79,7 @@ impl<'w> EntityMut<'w> {
 
     #[inline]
     pub fn archetype(&self) -> &Archetype {
-        &self.world.archetypes[self.location.archetype]
+        &self.world.archetypes[self.location.archetype_id]
     }
 
     #[inline]
@@ -111,7 +111,7 @@ impl<'w> EntityMut<'w> {
         let bundle_info = self.world.bundles.init_info::<T>(components);
         let current_location = self.location;
 
-        let (archetype, new_location) = unsafe {
+        let new_location = unsafe {
             get_insert_bundle_info(
                 entities,
                 archetypes,
@@ -124,7 +124,10 @@ impl<'w> EntityMut<'w> {
         };
         self.location = new_location;
 
+        let archetype = &archetypes[new_location.archetype_id];
         let table = &storages.tables[archetype.table_id()];
+
+        // TODO: If we overwrite, where are old components dropped?
         unsafe { bundle_info.write_components(entity, table, new_location.row, bundle) };
 
         self
@@ -147,31 +150,28 @@ impl<'w> EntityMut<'w> {
     }
 }
 
-// Use a non-generic function to cut down on monomorphization
-unsafe fn get_insert_bundle_info<'a>(
+unsafe fn get_insert_bundle_info(
     entities: &mut Entities,
-    archetypes: &'a mut Archetypes,
+    archetypes: &mut Archetypes,
     components: &mut Components,
     storages: &mut Storages,
     bundle_info: &BundleInfo,
     current_location: EntityLocation,
     entity: Entity,
-) -> (&'a Archetype, EntityLocation) {
+) -> EntityLocation {
     let new_archetype_id = add_bundle_to_archetype(
         archetypes,
         storages,
         components,
-        current_location.archetype,
+        current_location.archetype_id,
         bundle_info,
     );
-    if new_archetype_id == current_location.archetype {
-        let archetype = &archetypes[current_location.archetype];
-        let edge = archetype.edges().get_add_bundle(bundle_info.id).unwrap();
-        (archetype, &edge.bundle_status, current_location)
+    if new_archetype_id == current_location.archetype_id {
+        current_location
     } else {
         let (old_table_row, old_table_id) = {
-            let old_archetype = &mut archetypes[current_location.archetype];
-            let result = old_archetype.swap_remove(current_location.index);
+            let old_archetype = &mut archetypes[current_location.archetype_id];
+            let result = old_archetype.swap_remove(current_location.row);
             if let Some(swapped_entity) = result.swapped_entity {
                 entities.meta[swapped_entity.id as usize].location = current_location;
             }
@@ -193,19 +193,19 @@ unsafe fn get_insert_bundle_info<'a>(
             if let Some(swapped_entity) = move_result.swapped_entity {
                 let swapped_location = entities.get(swapped_entity).unwrap();
                 archetypes[swapped_location.archetype_id]
-                    .set_entity_table_row(swapped_location.index, old_table_row);
+                    .set_entity_table_row(swapped_location.row, old_table_row);
             }
             new_location
         };
 
         entities.meta[entity.id as usize].location = new_location;
         let (old_archetype, new_archetype) =
-            archetypes.get_2_mut(current_location.archetype, new_archetype_id);
+            archetypes.get_2_mut(current_location.archetype_id, new_archetype_id);
         let edge = old_archetype
             .edges()
             .get_add_bundle(bundle_info.id)
             .unwrap();
-        (&*new_archetype, &edge.bundle_status, new_location)
+        (&*new_archetype, new_location)
 
         // Sparse set components are intentionally ignored here. They don't need to move
     }
@@ -224,40 +224,34 @@ unsafe fn add_bundle_to_archetype(
     {
         return *add_bundle;
     }
-    let mut new_table_components = Vec::new();
+    let mut new_components = Vec::new();
 
     let current_archetype = &mut archetypes[archetype_id];
     for component_id in bundle_info.component_ids.iter().cloned() {
         if !current_archetype.contains(component_id) {
             let component_info = components.get_info(component_id).unwrap();
-            new_table_components.push(component_id)
+            new_components.push(component_id)
         }
     }
 
-    if new_table_components.is_empty() {
+    if new_components.is_empty() {
         let edges = current_archetype.edges_mut();
         edges.set_add_bundle(bundle_info.id, archetype_id);
         archetype_id
     } else {
         let current_archetype = &archetypes[archetype_id];
-        new_table_components.extend(current_archetype.components());
-        // sort to ignore order while hashing
-        new_table_components.sort();
+        new_components.extend(current_archetype.components());
+        new_components.sort();
 
-        // SAFE: all component ids in `new_table_components` exist
         let table_id = storages
             .tables
-            .get_id_or_insert(&new_table_components, components);
+            .get_id_or_insert(&new_components, components);
 
-        let table_components = new_table_components;
+        let new_archetype_id = archetypes.get_id_or_insert(table_id, &new_components);
 
-        let new_archetype_id =
-            archetypes.get_id_or_insert(table_id, table_components, sparse_set_components);
-        // add an edge from the old archetype to the new archetype
-        archetypes[archetype_id].edges_mut().set_add_bundle(
-            bundle_info.id,
-            new_archetype_id
-        );
+        archetypes[archetype_id]
+            .edges_mut()
+            .set_add_bundle(bundle_info.id, new_archetype_id);
         new_archetype_id
     }
 }

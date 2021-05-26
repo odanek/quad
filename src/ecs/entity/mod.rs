@@ -38,7 +38,7 @@ struct EntityEntry {
 
 #[derive(Copy, Clone, Debug)]
 pub struct EntityLocation {
-    pub archetype: ArchetypeId,
+    pub archetype_id: ArchetypeId,
     pub row: usize,
 }
 

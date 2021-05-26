@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
+    iter::FromIterator,
     ops::{Index, IndexMut},
 };
 
@@ -36,11 +37,11 @@ impl Edges {
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct ArchetypeId(u32);
+pub struct ArchetypeId(usize);
 
 impl ArchetypeId {
     #[inline]
-    pub const fn new(id: u32) -> Self {
+    pub const fn new(id: usize) -> Self {
         Self(id)
     }
 
@@ -51,13 +52,21 @@ impl ArchetypeId {
 
     #[inline]
     pub fn index(self) -> usize {
-        self.0 as usize
+        self.0
     }
 }
 
 #[derive(Hash, PartialEq, Eq)]
 pub struct ArchetypeIdentity {
     components: Vec<ComponentId>,
+}
+
+impl ArchetypeIdentity {
+    pub fn new(components: &[ComponentId]) -> Self {
+        Self {
+            components: Vec::from_iter(components.iter().cloned()),
+        }
+    }
 }
 
 pub struct Archetype {
@@ -70,13 +79,13 @@ pub struct Archetype {
 
 impl Archetype {
     #[inline]
-    pub fn new(id: ArchetypeId, table_id: TableId) -> Self {
+    pub fn new(id: ArchetypeId, components: &[ComponentId], table_id: TableId) -> Self {
         Self {
             id,
             table_id,
             entities: Default::default(),
             edges: Default::default(),
-            components: Default::default(),
+            components: Vec::from_iter(components.iter().cloned()),
         }
     }
 
@@ -122,7 +131,7 @@ impl Archetype {
 
     pub fn next_location(&self) -> EntityLocation {
         EntityLocation {
-            archetype: self.id,
+            archetype_id: self.id,
             row: self.entities.len(),
         }
     }
@@ -160,13 +169,10 @@ impl Default for Archetypes {
     fn default() -> Self {
         let mut archetypes = Archetypes {
             archetypes: Vec::new(),
-            archetype_ids: Default::default()
+            archetype_ids: Default::default(),
         };
 
-        // TODO: Use get_id_or_insert to populate alse id map
-        archetypes
-            .archetypes
-            .push(Archetype::new(ArchetypeId::empty(), TableId::empty()));
+        archetypes.get_id_or_insert(TableId::empty(), &[]);
         archetypes
     }
 }
@@ -213,6 +219,22 @@ impl Archetypes {
     #[inline]
     pub fn iter(&self) -> impl Iterator<Item = &Archetype> {
         self.archetypes.iter()
+    }
+
+    pub fn get_id_or_insert(
+        &mut self,
+        table_id: TableId,
+        components: &[ComponentId],
+    ) -> ArchetypeId {
+        let archetypes = &mut self.archetypes;
+        let identity = ArchetypeIdentity::new(components);
+
+        *self.archetype_ids.entry(identity).or_insert_with(move || {
+            let id = ArchetypeId(archetypes.len());
+
+            archetypes.push(Archetype::new(id, components, table_id));
+            id
+        })
     }
 }
 
