@@ -80,7 +80,7 @@ impl World {
         let entity = self.entities.alloc(location);
         let table = &mut self.storages.tables[archetype.table_id()];
         unsafe {
-            table.allocate(entity);
+            table.allocate();
             archetype.allocate(entity);
             EntityMut::new(self, entity, location)
         }

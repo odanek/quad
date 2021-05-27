@@ -169,45 +169,32 @@ unsafe fn get_insert_bundle_info(
     if new_archetype_id == current_location.archetype_id {
         current_location
     } else {
+        // TODO: Simplify this since we know that archetype index is the same as table index
+
         let (old_table_row, old_table_id) = {
             let old_archetype = &mut archetypes[current_location.archetype_id];
             let result = old_archetype.swap_remove(current_location.row);
-            if let Some(swapped_entity) = result.swapped_entity {
-                entities.meta[swapped_entity.id as usize].location = current_location;
+            if let Some(swapped_entity) = result {
+                entities.update_location(swapped_entity, current_location)
             }
-            (result.table_row, old_archetype.table_id())
+            (current_location.row, old_archetype.table_id())
         };
 
         let new_table_id = archetypes[new_archetype_id].table_id();
 
-        let new_location = if old_table_id == new_table_id {
-            archetypes[new_archetype_id].allocate(entity, old_table_row)
-        } else {
+        let new_location = {
             let (old_table, new_table) = storages.tables.get_2_mut(old_table_id, new_table_id);
-            // PERF: store "non bundle" components in edge, then just move those to avoid
-            // redundant copies
-            let move_result = old_table.move_to_superset_unchecked(old_table_row, new_table);
+            old_table.move_to_superset_unchecked(old_table_row, new_table);
 
-            let new_location = archetypes[new_archetype_id].allocate(entity, move_result.new_row);
-            // if an entity was moved into this entity's table spot, update its table row
-            if let Some(swapped_entity) = move_result.swapped_entity {
-                let swapped_location = entities.get(swapped_entity).unwrap();
-                archetypes[swapped_location.archetype_id]
-                    .set_entity_table_row(swapped_location.row, old_table_row);
-            }
+            let new_location = archetypes[new_archetype_id].next_location();
+            archetypes[new_archetype_id].allocate(entity);
+
             new_location
         };
 
-        entities.meta[entity.id as usize].location = new_location;
-        let (old_archetype, new_archetype) =
-            archetypes.get_2_mut(current_location.archetype_id, new_archetype_id);
-        let edge = old_archetype
-            .edges()
-            .get_add_bundle(bundle_info.id)
-            .unwrap();
-        (&*new_archetype, new_location)
+        entities.update_location(entity, new_location);
 
-        // Sparse set components are intentionally ignored here. They don't need to move
+        new_location
     }
 }
 
@@ -229,7 +216,6 @@ unsafe fn add_bundle_to_archetype(
     let current_archetype = &mut archetypes[archetype_id];
     for component_id in bundle_info.component_ids.iter().cloned() {
         if !current_archetype.contains(component_id) {
-            let component_info = components.get_info(component_id).unwrap();
             new_components.push(component_id)
         }
     }

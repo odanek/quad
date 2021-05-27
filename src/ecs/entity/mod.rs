@@ -96,4 +96,8 @@ impl Entities {
     pub fn contains(&self, entity: Entity) -> bool {
         false
     }
+
+    pub(crate) fn update_location(&mut self, entity: Entity, location: EntityLocation) {
+        self.entries[entity.id as usize].location = location;
+    }
 }

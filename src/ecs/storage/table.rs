@@ -5,15 +5,12 @@ use std::{
     ptr::NonNull,
 };
 
-use crate::ecs::{
-    component::{ComponentId, ComponentInfo, Components},
-    Entity,
-};
+use crate::ecs::component::{ComponentId, ComponentInfo, Components};
 
 use super::BlobVec;
 
 pub struct Column {
-    pub(crate) component: ComponentId,
+    pub(crate) component_id: ComponentId,
     pub(crate) data: BlobVec,
 }
 
@@ -21,7 +18,7 @@ impl Column {
     #[inline]
     pub fn new(component_info: &ComponentInfo, capacity: usize) -> Self {
         Column {
-            component: component_info.id(),
+            component_id: component_info.id(),
             data: BlobVec::new(component_info.layout(), component_info.drop(), capacity),
         }
     }
@@ -38,7 +35,7 @@ impl Column {
 
     #[inline]
     pub(crate) fn reserve(&mut self, additional: usize) {
-        self.data.reserve(additional);
+        self.data.reserve_exact(additional);
     }
 
     #[inline]
@@ -49,6 +46,11 @@ impl Column {
     #[inline]
     pub unsafe fn set_unchecked(&self, row: usize, data: *mut u8) {
         self.data.set_unchecked(row, data);
+    }
+
+    #[inline]
+    pub(crate) unsafe fn swap_remove_and_forget_unchecked(&mut self, row: usize) -> *mut u8 {
+        self.data.swap_remove_and_forget_unchecked(row)
     }
 }
 
@@ -100,7 +102,7 @@ impl Table {
         capacity: usize,
         grow_amount: usize,
     ) -> Table {
-        let columns = HashMap::with_capacity(infos.len());
+        let mut columns = HashMap::with_capacity(infos.len());
         for info in infos {
             columns.insert(info.id(), Column::new(info, capacity));
         }
@@ -159,11 +161,21 @@ impl Table {
         }
     }
 
-    pub unsafe fn allocate(&mut self, entity: Entity) {
+    pub unsafe fn allocate(&mut self) -> usize {
         self.reserve(1);
         self.len += 1;
         for column in self.columns.values_mut() {
             column.data.set_len(self.len);
+        }
+        self.len - 1
+    }
+
+    pub unsafe fn move_to_superset_unchecked(&mut self, row: usize, new_table: &mut Table) {
+        let new_row = new_table.allocate();
+        for column in self.columns.values_mut() {
+            let new_column = new_table.get_column_mut(column.component_id).unwrap();
+            let data = column.swap_remove_and_forget_unchecked(row);
+            new_column.set_unchecked(new_row, data);
         }
     }
 }
@@ -180,7 +192,7 @@ impl Default for Tables {
         let empty_table = Table::new(empty_id, &[], 0, 64);
 
         let tables = vec![empty_table];
-        let table_ids = HashMap::new();
+        let mut table_ids = HashMap::new();
         table_ids.insert(empty_identity, empty_id);
 
         Tables { tables, table_ids }
@@ -206,6 +218,17 @@ impl Tables {
             tables.push(Table::new(id, &infos, 0, 64));
             id
         })
+    }
+
+    #[inline]
+    pub(crate) fn get_2_mut(&mut self, a: TableId, b: TableId) -> (&mut Table, &mut Table) {
+        if a.index() > b.index() {
+            let (b_slice, a_slice) = self.tables.split_at_mut(a.index());
+            (&mut a_slice[0], &mut b_slice[b.index()])
+        } else {
+            let (a_slice, b_slice) = self.tables.split_at_mut(b.index());
+            (&mut a_slice[a.index()], &mut b_slice[0])
+        }
     }
 }
 

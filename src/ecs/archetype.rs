@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     iter::FromIterator,
     ops::{Index, IndexMut},
 };
@@ -142,6 +142,17 @@ impl Archetype {
 
     pub fn reserve(&mut self, additional: usize) {
         self.entities.reserve(additional);
+    }
+
+    pub fn swap_remove(&mut self, index: usize) -> Option<Entity> {
+        let is_last = index == self.entities.len() - 1;
+        self.entities.swap_remove(index);
+
+        if is_last {
+            None
+        } else {
+            Some(self.entities[index])
+        }
     }
 }
 
