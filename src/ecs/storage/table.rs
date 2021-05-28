@@ -1,7 +1,6 @@
 use std::{
     collections::HashMap,
     ops::{Index, IndexMut},
-    ptr::NonNull,
 };
 
 use crate::ecs::component::{ComponentId, ComponentInfo, Components};
@@ -23,23 +22,8 @@ impl Column {
     }
 
     #[inline]
-    pub fn len(&self) -> usize {
-        self.data.len()
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.data.is_empty()
-    }
-
-    #[inline]
     pub(crate) fn reserve(&mut self, additional: usize) {
         self.data.reserve_exact(additional);
-    }
-
-    #[inline]
-    pub unsafe fn get_ptr(&self) -> NonNull<u8> {
-        self.data.get_ptr()
     }
 
     #[inline]
@@ -87,7 +71,6 @@ impl TableIdentity {
 }
 
 pub struct Table {
-    id: TableId,
     columns: HashMap<ComponentId, Column>,
     len: usize,
     grow_amount: usize,
@@ -95,39 +78,18 @@ pub struct Table {
 }
 
 impl Table {
-    pub fn new(
-        id: TableId,
-        infos: &[&ComponentInfo],
-        capacity: usize,
-        grow_amount: usize,
-    ) -> Table {
+    pub fn new(infos: &[&ComponentInfo], capacity: usize, grow_amount: usize) -> Table {
         let mut columns = HashMap::with_capacity(infos.len());
         for info in infos {
             columns.insert(info.id(), Column::new(info, capacity));
         }
 
         Self {
-            id,
             columns,
             len: 0,
             grow_amount,
             capacity,
         }
-    }
-
-    #[inline]
-    pub fn capacity(&self) -> usize {
-        self.capacity
-    }
-
-    #[inline]
-    pub fn len(&self) -> usize {
-        self.len
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.len == 0
     }
 
     #[inline]
@@ -140,18 +102,13 @@ impl Table {
         self.columns.get_mut(&component_id)
     }
 
-    #[inline]
-    pub fn has_column(&self, component_id: ComponentId) -> bool {
-        self.columns.contains_key(&component_id)
-    }
-
     pub fn reserve(&mut self, amount: usize) {
-        let available_space = self.capacity - self.len();
+        let available_space = self.capacity - self.len;
         if available_space < amount {
-            let min_capacity = self.len() + amount;
+            let min_capacity = self.len + amount;
             let new_capacity =
                 ((min_capacity + self.grow_amount - 1) / self.grow_amount) * self.grow_amount;
-            let reserve_amount = new_capacity - self.len();
+            let reserve_amount = new_capacity - self.len;
             for column in self.columns.values_mut() {
                 column.reserve(reserve_amount);
             }
@@ -188,7 +145,7 @@ impl Default for Tables {
     fn default() -> Self {
         let empty_id = TableId::empty();
         let empty_identity = TableIdentity::new(&[]);
-        let empty_table = Table::new(empty_id, &[], 0, 64);
+        let empty_table = Table::new(&[], 0, 64);
 
         let tables = vec![empty_table];
         let mut table_ids = HashMap::new();
@@ -214,7 +171,7 @@ impl Tables {
                 .map(|id| components.get_info(*id).unwrap())
                 .collect::<Vec<_>>();
 
-            tables.push(Table::new(id, &infos, 0, 64));
+            tables.push(Table::new(&infos, 0, 64));
             id
         })
     }

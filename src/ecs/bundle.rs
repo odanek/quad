@@ -53,36 +53,14 @@ pub struct BundleInfo {
 
 impl BundleInfo {
     #[inline]
-    pub fn id(&self) -> BundleId {
-        self.id
-    }
-
-    #[inline]
-    pub fn components(&self) -> &[ComponentId] {
-        &self.component_ids
-    }
-
-    #[inline]
-    pub fn len(&self) -> usize {
-        self.component_ids.len()
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.component_ids.is_empty()
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    #[inline]
     pub(crate) unsafe fn write_components<T: Bundle>(
-        &self,        
+        &self,
         table: &Table,
         table_row: usize,
         bundle: T,
     ) {
         let mut bundle_component = 0;
         bundle.get_components(|component_ptr| {
-            // SAFE: component_id was initialized by get_dynamic_bundle_info
             let component_id = *self.component_ids.get_unchecked(bundle_component);
             let column = table.get_column(component_id).unwrap();
             column.set_unchecked(table_row, component_ptr);
@@ -98,16 +76,6 @@ pub struct Bundles {
 }
 
 impl Bundles {
-    #[inline]
-    pub fn get(&self, bundle_id: BundleId) -> Option<&BundleInfo> {
-        self.bundle_infos.get(bundle_id.index())
-    }
-
-    #[inline]
-    pub fn get_id(&self, type_id: TypeId) -> Option<BundleId> {
-        self.bundle_ids.get(&type_id).cloned()
-    }
-
     pub(crate) fn init_info<'a, T: Bundle>(
         &'a mut self,
         components: &mut Components,
@@ -134,7 +102,7 @@ fn initialize_bundle(
     let mut component_ids = Vec::new();
 
     for type_info in type_info {
-        let component_id = components.get_or_insert(&type_info);        
+        let component_id = components.get_or_insert(&type_info);
         component_ids.push(component_id);
     }
 

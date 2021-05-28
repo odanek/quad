@@ -41,16 +41,6 @@ impl BlobVec {
     }
 
     #[inline]
-    pub fn len(&self) -> usize {
-        self.len
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.len == 0
-    }
-
-    #[inline]
     pub fn capacity(&self) -> usize {
         self.capacity
     }
@@ -63,7 +53,7 @@ impl BlobVec {
     }
 
     fn grow_exact(&mut self, increment: usize) {
-        assert!(self.item_layout.size() != 0);
+        debug_assert!(self.item_layout.size() != 0);
 
         let new_capacity = self.capacity + increment;
         let new_layout =
@@ -97,13 +87,13 @@ impl BlobVec {
 
     #[inline]
     pub unsafe fn get_unchecked(&self, index: usize) -> *mut u8 {
-        debug_assert!(index < self.len());
+        debug_assert!(index < self.len);
         self.get_ptr().as_ptr().add(index * self.item_layout.size())
     }
 
     #[inline]
     pub unsafe fn set_unchecked(&self, index: usize, value: *mut u8) {
-        debug_assert!(index < self.len());
+        debug_assert!(index < self.len);
         let ptr = self.get_unchecked(index);
         std::ptr::copy_nonoverlapping(value, ptr, self.item_layout.size());
     }
@@ -125,7 +115,7 @@ impl BlobVec {
 
     #[inline]
     pub unsafe fn swap_remove_and_forget_unchecked(&mut self, index: usize) -> *mut u8 {
-        debug_assert!(index < self.len());
+        debug_assert!(index < self.len);
         let last = self.len - 1;
         let swap_scratch = self.swap_scratch.as_ptr();
         std::ptr::copy_nonoverlapping(
