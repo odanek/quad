@@ -76,7 +76,7 @@ impl World {
 
     pub fn spawn(&mut self) -> EntityMut {
         let archetype = self.archetypes.empty_mut();
-        let location = archetype.next_location(); // TODO: Method on table instead?
+        let location = archetype.next_location();
         let entity = self.entities.alloc(location);
         let table = &mut self.storages.tables[archetype.table_id()];
         unsafe {

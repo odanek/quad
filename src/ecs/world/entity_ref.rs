@@ -166,31 +166,23 @@ unsafe fn get_insert_bundle_info(
         current_location.archetype_id,
         bundle_info,
     );
+
     if new_archetype_id == current_location.archetype_id {
         current_location
     } else {
-        // TODO: Simplify this since we know that archetype index is the same as table index
+        let old_archetype = &mut archetypes[current_location.archetype_id];        
+        let result = old_archetype.swap_remove(current_location.row);
+        if let Some(swapped_entity) = result {
+            entities.update_location(swapped_entity, current_location)
+        }        
 
-        let (old_table_row, old_table_id) = {
-            let old_archetype = &mut archetypes[current_location.archetype_id];
-            let result = old_archetype.swap_remove(current_location.row);
-            if let Some(swapped_entity) = result {
-                entities.update_location(swapped_entity, current_location)
-            }
-            (current_location.row, old_archetype.table_id())
-        };
-
+        let old_table_id = old_archetype.table_id();
         let new_table_id = archetypes[new_archetype_id].table_id();
+        let (old_table, new_table) = storages.tables.get_2_mut(old_table_id, new_table_id);
+        old_table.move_to_superset_unchecked(current_location.row, new_table);
 
-        let new_location = {
-            let (old_table, new_table) = storages.tables.get_2_mut(old_table_id, new_table_id);
-            old_table.move_to_superset_unchecked(old_table_row, new_table);
-
-            let new_location = archetypes[new_archetype_id].next_location();
-            archetypes[new_archetype_id].allocate(entity);
-
-            new_location
-        };
+        let new_location = archetypes[new_archetype_id].next_location();            
+        archetypes[new_archetype_id].allocate(entity);        
 
         entities.update_location(entity, new_location);
 
