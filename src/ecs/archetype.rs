@@ -1,6 +1,5 @@
 use std::{
     collections::HashMap,
-    iter::FromIterator,
     ops::{Index, IndexMut},
 };
 
@@ -64,7 +63,7 @@ pub struct ArchetypeIdentity {
 impl ArchetypeIdentity {
     pub fn new(components: &[ComponentId]) -> Self {
         Self {
-            components: components.iter().cloned().collect(),
+            components: components.to_vec(),
         }
     }
 }
@@ -85,7 +84,7 @@ impl Archetype {
             table_id,
             entities: Default::default(),
             edges: Default::default(),
-            components: components.iter().cloned().collect(),
+            components: components.to_vec(),
         }
     }
 

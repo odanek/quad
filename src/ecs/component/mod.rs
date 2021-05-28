@@ -72,10 +72,6 @@ impl ComponentInfo {
     }
 }
 
-unsafe fn drop_ptr<T>(x: *mut u8) {
-    x.cast::<T>().drop_in_place()
-}
-
 #[derive(Debug)]
 pub enum ComponentsError {
     ComponentAlreadyExists,

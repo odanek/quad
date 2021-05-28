@@ -6,7 +6,6 @@ use std::{
 use super::{
     component::{type_info::TypeInfo, Component, ComponentId, Components},
     storage::Table,
-    Entity,
 };
 
 pub trait Bundle: Send + Sync + 'static {

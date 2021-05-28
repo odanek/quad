@@ -86,15 +86,33 @@ impl Entities {
     }
 
     pub fn get(&self, entity: Entity) -> Option<EntityLocation> {
-        None
+        if (entity.id as usize) < self.entries.len() {
+            let entry = &self.entries[entity.id as usize];
+            if entry.generation != entity.generation {
+                return None;
+            }
+            Some(entry.location)
+        } else {
+            None
+        }
     }
 
     pub fn get_mut(&mut self, entity: Entity) -> Option<&mut EntityLocation> {
-        None
+        if (entity.id as usize) < self.entries.len() {
+            let entry = &mut self.entries[entity.id as usize];
+            if entry.generation != entity.generation {
+                return None;
+            }
+            Some(&mut entry.location)
+        } else {
+            None
+        }
     }
 
     pub fn contains(&self, entity: Entity) -> bool {
-        false
+        self.entries
+            .get(entity.id as usize)
+            .map_or(true, |entry| entry.generation == entity.generation)
     }
 
     pub(crate) fn update_location(&mut self, entity: Entity, location: EntityLocation) {

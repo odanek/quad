@@ -1,6 +1,5 @@
 use std::{
     collections::HashMap,
-    iter::FromIterator,
     ops::{Index, IndexMut},
     ptr::NonNull,
 };
@@ -82,7 +81,7 @@ pub struct TableIdentity {
 impl TableIdentity {
     pub fn new(components: &[ComponentId]) -> Self {
         Self {
-            components: components.iter().cloned().collect(),
+            components: components.to_vec(),
         }
     }
 }

@@ -16,7 +16,7 @@ impl TypeInfo {
         Self {
             type_id: TypeId::of::<T>(),
             layout: Layout::new::<T>(),
-            drop: Self::drop_ptr::<T>,
+            drop: drop_ptr::<T>,
             type_name: type_name::<T>(),
         }
     }
@@ -40,8 +40,8 @@ impl TypeInfo {
     pub fn type_name(&self) -> &'static str {
         self.type_name
     }
+}
 
-    pub(crate) unsafe fn drop_ptr<T>(x: *mut u8) {
-        x.cast::<T>().drop_in_place()
-    }
+unsafe fn drop_ptr<T>(x: *mut u8) {
+    x.cast::<T>().drop_in_place()
 }
