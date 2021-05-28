@@ -64,7 +64,7 @@ pub struct ArchetypeIdentity {
 impl ArchetypeIdentity {
     pub fn new(components: &[ComponentId]) -> Self {
         Self {
-            components: Vec::from_iter(components.iter().cloned()),
+            components: components.iter().cloned().collect(),
         }
     }
 }
@@ -85,7 +85,7 @@ impl Archetype {
             table_id,
             entities: Default::default(),
             edges: Default::default(),
-            components: Vec::from_iter(components.iter().cloned()),
+            components: components.iter().cloned().collect(),
         }
     }
 

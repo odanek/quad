@@ -82,7 +82,7 @@ pub struct TableIdentity {
 impl TableIdentity {
     pub fn new(components: &[ComponentId]) -> Self {
         Self {
-            components: Vec::from_iter(components.iter().cloned()),
+            components: components.iter().cloned().collect(),
         }
     }
 }

@@ -76,8 +76,7 @@ impl BundleInfo {
     #[allow(clippy::too_many_arguments)]
     #[inline]
     pub(crate) unsafe fn write_components<T: Bundle>(
-        &self,
-        entity: Entity,
+        &self,        
         table: &Table,
         table_row: usize,
         bundle: T,
@@ -136,8 +135,7 @@ fn initialize_bundle(
     let mut component_ids = Vec::new();
 
     for type_info in type_info {
-        let component_id = components.get_or_insert(&type_info);
-        let info = components.get_info(component_id).unwrap();
+        let component_id = components.get_or_insert(&type_info);        
         component_ids.push(component_id);
     }
 

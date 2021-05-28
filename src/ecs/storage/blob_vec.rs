@@ -28,7 +28,7 @@ impl BlobVec {
             let swap_scratch = NonNull::new(unsafe { std::alloc::alloc(item_layout) })
                 .unwrap_or_else(|| handle_alloc_error(item_layout));
             let mut blob_vec = BlobVec {
-                swap_scratch: swap_scratch,
+                swap_scratch,
                 data: NonNull::dangling(),
                 capacity: 0,
                 len: 0,

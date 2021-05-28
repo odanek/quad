@@ -128,7 +128,7 @@ impl<'w> EntityMut<'w> {
         let table = &storages.tables[archetype.table_id()];
 
         // TODO: If we overwrite, where are old components dropped?
-        unsafe { bundle_info.write_components(entity, table, new_location.row, bundle) };
+        unsafe { bundle_info.write_components(table, new_location.row, bundle) };
 
         self
     }
@@ -170,19 +170,19 @@ unsafe fn get_insert_bundle_info(
     if new_archetype_id == current_location.archetype_id {
         current_location
     } else {
-        let old_archetype = &mut archetypes[current_location.archetype_id];        
+        let old_archetype = &mut archetypes[current_location.archetype_id];
         let result = old_archetype.swap_remove(current_location.row);
         if let Some(swapped_entity) = result {
             entities.update_location(swapped_entity, current_location)
-        }        
+        }
 
         let old_table_id = old_archetype.table_id();
         let new_table_id = archetypes[new_archetype_id].table_id();
         let (old_table, new_table) = storages.tables.get_2_mut(old_table_id, new_table_id);
         old_table.move_to_superset_unchecked(current_location.row, new_table);
 
-        let new_location = archetypes[new_archetype_id].next_location();            
-        archetypes[new_archetype_id].allocate(entity);        
+        let new_location = archetypes[new_archetype_id].next_location();
+        archetypes[new_archetype_id].allocate(entity);
 
         entities.update_location(entity, new_location);
 
