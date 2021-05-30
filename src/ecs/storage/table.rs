@@ -35,6 +35,11 @@ impl Column {
     pub(crate) unsafe fn swap_remove_and_forget_unchecked(&mut self, row: usize) -> *mut u8 {
         self.data.swap_remove_and_forget_unchecked(row)
     }
+
+    #[inline]
+    pub unsafe fn get_unchecked(&self, row: usize) -> *mut u8 {
+        self.data.get_unchecked(row)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -156,7 +161,7 @@ impl Default for Tables {
 }
 
 impl Tables {
-    pub fn get_id_or_insert(
+    pub unsafe fn get_id_or_insert(
         &mut self,
         component_ids: &[ComponentId],
         components: &Components,
@@ -168,7 +173,7 @@ impl Tables {
             let id = TableId(tables.len());
             let infos = component_ids
                 .iter()
-                .map(|id| components.get_info(*id).unwrap())
+                .map(|id| components.get_info_unchecked(*id))
                 .collect::<Vec<_>>();
 
             tables.push(Table::new(&infos, 0, 64));

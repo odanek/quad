@@ -35,13 +35,23 @@ impl World {
     }
 
     #[inline]
-    pub fn archetypes(&self) -> &Archetypes {
+    pub(crate) fn archetypes(&self) -> &Archetypes {
         &self.archetypes
     }
 
     #[inline]
     pub fn components(&self) -> &Components {
         &self.components
+    }
+
+    #[inline]
+    pub(crate) fn storages(&self) -> &Storages {
+        &self.storages
+    }
+
+    #[inline]
+    pub(crate) fn bundles(&self) -> &Bundles {
+        &self.bundles
     }
 
     #[inline]

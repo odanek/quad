@@ -49,6 +49,14 @@ impl<'w> EntityRef<'w> {
             .get_id(TypeId::of::<T>())
             .map_or(false, |id| self.archetype().contains(id))
     }
+
+    #[inline]
+    pub fn get<T: Component>(&self) -> Option<&'w T> {
+        unsafe {
+            get_component(&self.world, TypeId::of::<T>(), self.location)
+                .map(|value| &*value.cast::<T>())
+        }
+    }
 }
 
 pub struct EntityMut<'w> {
@@ -92,12 +100,18 @@ impl<'w> EntityMut<'w> {
 
     #[inline]
     pub fn get<T: Component>(&self) -> Option<&'w T> {
-        todo!()
+        unsafe {
+            get_component(&self.world, TypeId::of::<T>(), self.location)
+                .map(|value| &*value.cast::<T>())
+        }
     }
 
     #[inline]
     pub fn get_mut<T: Component>(&mut self) -> Option<&'w mut T> {
-        todo!()
+        unsafe {
+            get_component(&self.world, TypeId::of::<T>(), self.location)
+                .map(|value| &mut *value.cast::<T>())
+        }
     }
 
     // TODO: move relevant methods to World (add/remove bundle)
@@ -151,7 +165,7 @@ impl<'w> EntityMut<'w> {
                 storages,
                 components,
                 old_location.archetype_id,
-                bundle_info
+                bundle_info,
             )?
         };
 
@@ -226,6 +240,18 @@ impl<'w> EntityMut<'w> {
     pub fn despawn(self) {
         todo!()
     }
+}
+
+unsafe fn get_component(
+    world: &World,
+    type_id: TypeId,
+    location: EntityLocation,
+) -> Option<*mut u8> {
+    let component_id = world.components.get_id(type_id)?;
+    let archetype = &world.archetypes[location.archetype_id];
+    let table = &world.storages.tables[archetype.table_id()];
+    let column = table.get_column(component_id)?;
+    Some(column.get_unchecked(location.row))
 }
 
 unsafe fn get_insert_bundle_info(
@@ -317,10 +343,10 @@ unsafe fn remove_bundle_from_archetype(
     storages: &mut Storages,
     components: &mut Components,
     archetype_id: ArchetypeId,
-    bundle_info: &BundleInfo
+    bundle_info: &BundleInfo,
 ) -> Option<ArchetypeId> {
     // let remove_bundle_result = {
-    //     let current_archetype = &mut archetypes[archetype_id];        
+    //     let current_archetype = &mut archetypes[archetype_id];
     //     current_archetype.edges().get_remove_bundle(bundle_info.id)
     // };
     // let result = if let Some(result) = remove_bundle_result {
