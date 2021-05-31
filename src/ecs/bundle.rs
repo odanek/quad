@@ -11,6 +11,10 @@ use super::{
 pub trait Bundle: Send + Sync + 'static {
     fn type_info() -> Vec<TypeInfo>;
 
+    unsafe fn from_components(func: impl FnMut() -> *mut u8) -> Self
+    where
+        Self: Sized;
+
     fn get_components(self, func: impl FnMut(*mut u8));
 }
 
@@ -19,6 +23,15 @@ macro_rules! bundle_impl {
         impl<$($name: Component),*> Bundle for ($($name,)*) {
             fn type_info() -> Vec<TypeInfo> {
                 vec![$(TypeInfo::of::<$name>()),*]
+            }
+
+            #[allow(unused_variables, unused_mut)]
+            unsafe fn from_components(mut func: impl FnMut() -> *mut u8) -> Self {
+                #[allow(non_snake_case)]
+                let ($(mut $name,)*) = (
+                    $(func().cast::<$name>(),)*
+                );
+                ($($name.read(),)*)
             }
 
             #[allow(unused_variables, unused_mut)]

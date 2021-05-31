@@ -35,7 +35,7 @@ impl World {
     }
 
     #[inline]
-    pub(crate) fn archetypes(&self) -> &Archetypes {
+    pub fn archetypes(&self) -> &Archetypes {
         &self.archetypes
     }
 
@@ -45,12 +45,12 @@ impl World {
     }
 
     #[inline]
-    pub(crate) fn storages(&self) -> &Storages {
+    pub fn storages(&self) -> &Storages {
         &self.storages
     }
 
     #[inline]
-    pub(crate) fn bundles(&self) -> &Bundles {
+    pub fn bundles(&self) -> &Bundles {
         &self.bundles
     }
 
@@ -89,9 +89,9 @@ impl World {
         let location = archetype.next_location();
         let entity = self.entities.alloc(location);
         let table = &mut self.storages.tables[archetype.table_id()];
+        archetype.allocate(entity);
         unsafe {
             table.allocate();
-            archetype.allocate(entity);
             EntityMut::new(self, entity, location)
         }
     }

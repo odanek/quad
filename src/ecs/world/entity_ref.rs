@@ -177,60 +177,36 @@ impl<'w> EntityMut<'w> {
         let mut bundle_components = bundle_info.component_ids.iter().cloned();
         let entity = self.entity;
 
-        // let result = unsafe {
-        //     T::from_components(|| {
-        //         let component_id = bundle_components.next().unwrap();
-        //         // SAFE: entity location is valid and table row is removed below
-        //         take_component(
-        //             components,
-        //             storages,
-        //             old_archetype,
-        //             removed_components,
-        //             component_id,
-        //             entity,
-        //             old_location,
-        //         )
-        //     })
-        // };
+        let result = unsafe {
+            T::from_components(|| {
+                let component_id = bundle_components.next().unwrap();
+                let table = &storages.tables[old_archetype.table_id()];
+                let column = table.get_column(component_id).unwrap();
+                column.get_unchecked(old_location.row)
+            })
+        };
 
-        // let remove_result = old_archetype.swap_remove(old_location.index);
-        // if let Some(swapped_entity) = remove_result.swapped_entity {
-        //     entities.meta[swapped_entity.id as usize].location = old_location;
-        // }
-        // let old_table_row = remove_result.table_row;
-        // let old_table_id = old_archetype.table_id();
-        // let new_archetype = &mut archetypes[new_archetype_id];
+        let remove_result = old_archetype.swap_remove(old_location.row);
+        if let Some(swapped_entity) = remove_result {
+            entities.update_location(swapped_entity, old_location);
+        }
+        let old_table_row = old_location.row;
+        let old_table_id = old_archetype.table_id();
+        let new_archetype = &mut archetypes[new_archetype_id];
 
-        // let new_location = if old_table_id == new_archetype.table_id() {
-        //     unsafe { new_archetype.allocate(entity, old_table_row) }
-        // } else {
-        //     let (old_table, new_table) = storages
-        //         .tables
-        //         .get_2_mut(old_table_id, new_archetype.table_id());
+        let (old_table, new_table) = storages
+            .tables
+            .get_2_mut(old_table_id, new_archetype.table_id());
 
-        //     // SAFE: table_row exists. All "missing" components have been extracted into the bundle
-        //     // above and the caller takes ownership
-        //     let move_result =
-        //         unsafe { old_table.move_to_and_forget_missing_unchecked(old_table_row, new_table) };
+        unsafe { old_table.move_to_and_forget_missing_unchecked(old_table_row, new_table) };
 
-        //     // SAFE: new_table_row is a valid position in new_archetype's table
-        //     let new_location = unsafe { new_archetype.allocate(entity, move_result.new_row) };
+        let new_location = new_archetype.next_location();
+        new_archetype.allocate(entity);
 
-        //     // if an entity was moved into this entity's table spot, update its table row
-        //     if let Some(swapped_entity) = move_result.swapped_entity {
-        //         let swapped_location = entities.get(swapped_entity).unwrap();
-        //         let archetype = &mut archetypes[swapped_location.archetype_id];
-        //         archetype.set_entity_table_row(swapped_location.index, old_table_row);
-        //     }
+        self.location = new_location;
+        entities.update_location(entity, new_location);
 
-        //     new_location
-        // };
-
-        // self.location = new_location;
-        // entities.meta[self.entity.id as usize].location = new_location;
-
-        // Some(result)
-        None
+        Some(result)
     }
 
     pub fn remove<T: Component>(&mut self) -> Option<T> {
@@ -285,8 +261,9 @@ unsafe fn get_insert_bundle_info(
         let (old_table, new_table) = storages.tables.get_2_mut(old_table_id, new_table_id);
         old_table.move_to_superset_unchecked(current_location.row, new_table);
 
-        let new_location = archetypes[new_archetype_id].next_location();
-        archetypes[new_archetype_id].allocate(entity);
+        let new_archetype = &mut archetypes[new_archetype_id];
+        let new_location = new_archetype.next_location();
+        new_archetype.allocate(entity);
 
         entities.update_location(entity, new_location);
 
@@ -362,10 +339,7 @@ unsafe fn remove_bundle_from_archetype(
     //         for component_id in bundle_info.component_ids.iter().cloned() {
     //             if current_archetype.contains(component_id) {
     //                 let component_info = components.get_info_unchecked(component_id);
-    //                 match component_info.storage_type() {
-    //                     StorageType::Table => removed_table_components.push(component_id),
-    //                     StorageType::SparseSet => removed_sparse_set_components.push(component_id),
-    //                 }
+    //                 removed_table_components.push(component_id)
     //             } else {
     //                 // a component in the bundle was not present in the entity's archetype, so this
     //                 // removal is invalid cache the result in the archetype
@@ -380,14 +354,8 @@ unsafe fn remove_bundle_from_archetype(
     //         // sort removed components so we can do an efficient "sorted remove". archetype
     //         // components are already sorted
     //         removed_table_components.sort();
-    //         removed_sparse_set_components.sort();
     //         next_table_components = current_archetype.table_components().to_vec();
-    //         next_sparse_set_components = current_archetype.sparse_set_components().to_vec();
     //         sorted_remove(&mut next_table_components, &removed_table_components);
-    //         sorted_remove(
-    //             &mut next_sparse_set_components,
-    //             &removed_sparse_set_components,
-    //         );
 
     //         next_table_id = if removed_table_components.is_empty() {
     //             current_archetype.table_id()

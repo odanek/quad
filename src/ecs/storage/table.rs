@@ -139,6 +139,21 @@ impl Table {
             new_column.set_unchecked(new_row, data);
         }
     }
+
+    pub unsafe fn move_to_and_forget_missing_unchecked(
+        &mut self,
+        row: usize,
+        new_table: &mut Table,
+    ) {
+        debug_assert!(row < self.len);
+        let new_row = new_table.allocate();
+        for column in self.columns.values_mut() {
+            let data = column.swap_remove_and_forget_unchecked(row);
+            if let Some(new_column) = new_table.get_column_mut(column.component_id) {
+                new_column.set_unchecked(new_row, data);
+            }
+        }
+    }
 }
 
 pub struct Tables {

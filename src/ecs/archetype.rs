@@ -135,7 +135,7 @@ impl Archetype {
         }
     }
 
-    pub unsafe fn allocate(&mut self, entity: Entity) {
+    pub fn allocate(&mut self, entity: Entity) {
         self.entities.push(entity);
     }
 
@@ -190,7 +190,7 @@ impl Default for Archetypes {
 impl Archetypes {
     #[inline]
     pub fn generation(&self) -> ArchetypeGeneration {
-        ArchetypeGeneration(self.archetypes.len() as u32)
+        ArchetypeGeneration::new(self.archetypes.len() as u32)
     }
 
     #[inline]
