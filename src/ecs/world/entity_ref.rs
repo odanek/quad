@@ -151,7 +151,7 @@ impl<'w> EntityMut<'w> {
         self.insert_bundle((value,))
     }
 
-    pub fn remove_bundle<T: Bundle>(&mut self) -> Option<T> {
+    pub fn remove_bundle<T: Bundle>(&mut self) -> T {
         let archetypes = &mut self.world.archetypes;
         let storages = &mut self.world.storages;
         let components = &mut self.world.components;
@@ -166,12 +166,8 @@ impl<'w> EntityMut<'w> {
                 components,
                 old_location.archetype_id,
                 bundle_info,
-            )?
+            )
         };
-
-        if new_archetype_id == old_location.archetype_id {
-            return None;
-        }
 
         let old_archetype = &mut archetypes[old_location.archetype_id];
         let mut bundle_components = bundle_info.component_ids.iter().cloned();
@@ -181,10 +177,14 @@ impl<'w> EntityMut<'w> {
             T::from_components(|| {
                 let component_id = bundle_components.next().unwrap();
                 let table = &storages.tables[old_archetype.table_id()];
-                let column = table.get_column(component_id).unwrap();
+                let column = table.get_column(component_id).expect("The entity does not contain given component");
                 column.get_unchecked(old_location.row)
             })
         };
+
+        if new_archetype_id == old_location.archetype_id {
+            return result;
+        }
 
         let remove_result = old_archetype.swap_remove(old_location.row);
         if let Some(swapped_entity) = remove_result {
@@ -206,11 +206,11 @@ impl<'w> EntityMut<'w> {
         self.location = new_location;
         entities.update_location(entity, new_location);
 
-        Some(result)
+        result
     }
 
-    pub fn remove<T: Component>(&mut self) -> Option<T> {
-        self.remove_bundle::<(T,)>().map(|v| v.0)
+    pub fn remove<T: Component>(&mut self) -> T {
+        self.remove_bundle::<(T,)>().0
     }
 
     pub fn despawn(self) {
@@ -321,73 +321,34 @@ unsafe fn remove_bundle_from_archetype(
     components: &mut Components,
     archetype_id: ArchetypeId,
     bundle_info: &BundleInfo,
-) -> Option<ArchetypeId> {
-    // let remove_bundle_result = {
-    //     let current_archetype = &mut archetypes[archetype_id];
-    //     current_archetype.edges().get_remove_bundle(bundle_info.id)
-    // };
-    // let result = if let Some(result) = remove_bundle_result {
-    //     result
-    // } else {
-    //     let mut next_table_components;
-    //     let mut next_sparse_set_components;
-    //     let next_table_id;
-    //     {
-    //         let current_archetype = &mut archetypes[archetype_id];
-    //         let mut removed_table_components = Vec::new();
-    //         let mut removed_sparse_set_components = Vec::new();
-    //         for component_id in bundle_info.component_ids.iter().cloned() {
-    //             if current_archetype.contains(component_id) {
-    //                 let component_info = components.get_info_unchecked(component_id);
-    //                 removed_table_components.push(component_id)
-    //             } else {
-    //                 // a component in the bundle was not present in the entity's archetype, so this
-    //                 // removal is invalid cache the result in the archetype
-    //                 // graph
-    //                 current_archetype
-    //                     .edges_mut()
-    //                     .set_remove_bundle(bundle_info.id, None);
-    //                 return None;
-    //             }
-    //         }
+) -> ArchetypeId {
+    let current_archetype = &mut archetypes[archetype_id];
 
-    //         // sort removed components so we can do an efficient "sorted remove". archetype
-    //         // components are already sorted
-    //         removed_table_components.sort();
-    //         next_table_components = current_archetype.table_components().to_vec();
-    //         sorted_remove(&mut next_table_components, &removed_table_components);
+    let remove_bundle_result = current_archetype.edges().get_remove_bundle(bundle_info.id);
+    if let Some(result) = remove_bundle_result {
+        return result;
+    }
 
-    //         next_table_id = if removed_table_components.is_empty() {
-    //             current_archetype.table_id()
-    //         } else {
-    //             // SAFE: all components in next_table_components exist
-    //             storages
-    //                 .tables
-    //                 .get_id_or_insert(&next_table_components, components)
-    //         };
-    //     }
+    let mut removed_components = bundle_info.component_ids.clone();
+    removed_components.sort();
+    let mut next_components = current_archetype.components().collect::<Vec<_>>();
+    sorted_remove(&mut next_components, &removed_components);
 
-    //     let new_archetype_id = archetypes.get_id_or_insert(
-    //         next_table_id,
-    //         next_table_components,
-    //         next_sparse_set_components,
-    //     );
-    //     Some(new_archetype_id)
-    // };
-    // let current_archetype = &mut archetypes[archetype_id];
-    // // cache the result in an edge
-    // if intersection {
-    //     current_archetype
-    //         .edges_mut()
-    //         .set_remove_bundle_intersection(bundle_info.id, result);
-    // } else {
-    //     current_archetype
-    //         .edges_mut()
-    //         .set_remove_bundle(bundle_info.id, result);
-    // }
-    // result
+    let next_table_id = if removed_components.is_empty() {
+        current_archetype.table_id()
+    } else {
+        storages
+            .tables
+            .get_id_or_insert(&next_components, components)
+    };
 
-    None
+    let new_archetype_id = archetypes.get_id_or_insert(next_table_id, &next_components);
+
+    archetypes[archetype_id]
+        .edges_mut()
+        .set_remove_bundle(bundle_info.id, new_archetype_id);
+
+    new_archetype_id
 }
 
 fn sorted_remove<T: Eq + Ord + Copy>(source: &mut Vec<T>, remove: &[T]) {
