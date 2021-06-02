@@ -118,16 +118,11 @@ impl BlobVec {
         debug_assert!(index < self.len);
         let last = self.len - 1;
         let swap_scratch = self.swap_scratch.as_ptr();
-        std::ptr::copy_nonoverlapping(
-            self.get_unchecked(index),
-            swap_scratch,
-            self.item_layout.size(),
-        );
-        std::ptr::copy(
-            self.get_unchecked(last),
-            self.get_unchecked(index),
-            self.item_layout.size(),
-        );
+        let src = self.get_unchecked(index);
+        std::ptr::copy_nonoverlapping(src, swap_scratch, self.item_layout.size());
+        if last != index {
+            std::ptr::copy_nonoverlapping(self.get_unchecked(last), src, self.item_layout.size());
+        }
         self.len -= 1;
         swap_scratch
     }

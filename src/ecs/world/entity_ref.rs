@@ -177,7 +177,9 @@ impl<'w> EntityMut<'w> {
             T::from_components(|| {
                 let component_id = bundle_components.next().unwrap();
                 let table = &storages.tables[old_archetype.table_id()];
-                let column = table.get_column(component_id).expect("The entity does not contain given component");
+                let column = table
+                    .get_column(component_id)
+                    .expect("The entity does not contain given component");
                 column.get_unchecked(old_location.row)
             })
         };

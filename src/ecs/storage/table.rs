@@ -138,6 +138,7 @@ impl Table {
             let data = column.swap_remove_and_forget_unchecked(row);
             new_column.set_unchecked(new_row, data);
         }
+        self.len -= 1;
     }
 
     pub unsafe fn move_to_and_forget_missing_unchecked(
@@ -153,6 +154,7 @@ impl Table {
                 new_column.set_unchecked(new_row, data);
             }
         }
+        self.len -= 1;
     }
 }
 
