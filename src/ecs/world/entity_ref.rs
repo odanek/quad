@@ -1,7 +1,7 @@
 use std::any::TypeId;
 
 use crate::ecs::{
-    archetype::{Archetype, ArchetypeId, Archetypes},
+    archetype::{Archetype, ArchetypeId, Archetypes, ComponentStatus},
     bundle::{Bundle, BundleInfo},
     component::{Component, Components},
     entity::EntityLocation,
@@ -138,11 +138,17 @@ impl<'w> EntityMut<'w> {
         };
         self.location = new_location;
 
+        let edge = archetypes[current_location.archetype_id]
+            .edges()
+            .get_add_bundle(bundle_info.id)
+            .unwrap();
         let archetype = &archetypes[new_location.archetype_id];
-        let table = &storages.tables[archetype.table_id()];
+        let table = &mut storages.tables[archetype.table_id()];
 
         // TODO: If we overwrite, where are old components dropped?
-        unsafe { bundle_info.write_components(table, new_location.row, bundle) };
+        unsafe {
+            bundle_info.write_components(table, new_location.row, bundle, &edge.bundle_status)
+        };
 
         self
     }
@@ -284,20 +290,24 @@ unsafe fn add_bundle_to_archetype(
         .edges()
         .get_add_bundle(bundle_info.id)
     {
-        return *add_bundle;
+        return add_bundle.archetype_id;
     }
     let mut new_components = Vec::new();
+    let mut bundle_status = Vec::with_capacity(bundle_info.component_ids.len());
 
     let current_archetype = &mut archetypes[archetype_id];
     for component_id in bundle_info.component_ids.iter().cloned() {
-        if !current_archetype.contains(component_id) {
-            new_components.push(component_id)
+        if current_archetype.contains(component_id) {
+            bundle_status.push(ComponentStatus::Mutated);
+        } else {
+            bundle_status.push(ComponentStatus::Added);
+            new_components.push(component_id);
         }
     }
 
     if new_components.is_empty() {
         let edges = current_archetype.edges_mut();
-        edges.set_add_bundle(bundle_info.id, archetype_id);
+        edges.set_add_bundle(bundle_info.id, archetype_id, bundle_status);
         archetype_id
     } else {
         let current_archetype = &archetypes[archetype_id];
@@ -310,9 +320,11 @@ unsafe fn add_bundle_to_archetype(
 
         let new_archetype_id = archetypes.get_id_or_insert(table_id, &new_components);
 
-        archetypes[archetype_id]
-            .edges_mut()
-            .set_add_bundle(bundle_info.id, new_archetype_id);
+        archetypes[archetype_id].edges_mut().set_add_bundle(
+            bundle_info.id,
+            new_archetype_id,
+            bundle_status,
+        );
         new_archetype_id
     }
 }

@@ -27,8 +27,13 @@ impl Column {
     }
 
     #[inline]
-    pub unsafe fn set_unchecked(&self, row: usize, data: *mut u8) {
-        self.data.set_unchecked(row, data);
+    pub unsafe fn initialize(&mut self, row: usize, data: *mut u8) {
+        self.data.initialize_unchecked(row, data);
+    }
+
+    #[inline]
+    pub unsafe fn replace(&mut self, row: usize, data: *mut u8) {
+        self.data.replace_unchecked(row, data);
     }
 
     #[inline]
@@ -136,7 +141,7 @@ impl Table {
         for column in self.columns.values_mut() {
             let new_column = new_table.get_column_mut(column.component_id).unwrap();
             let data = column.swap_remove_and_forget_unchecked(row);
-            new_column.set_unchecked(new_row, data);
+            new_column.initialize(new_row, data);
         }
         self.len -= 1;
     }
@@ -151,7 +156,7 @@ impl Table {
         for column in self.columns.values_mut() {
             let data = column.swap_remove_and_forget_unchecked(row);
             if let Some(new_column) = new_table.get_column_mut(column.component_id) {
-                new_column.set_unchecked(new_row, data);
+                new_column.initialize(new_row, data);
             }
         }
         self.len -= 1;

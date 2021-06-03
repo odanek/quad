@@ -7,21 +7,31 @@ use super::{
     bundle::BundleId, component::ComponentId, entity::EntityLocation, storage::TableId, Entity,
 };
 
+pub enum ComponentStatus {
+    Added,
+    Mutated,
+}
+
+pub struct AddBundle {
+    pub archetype_id: ArchetypeId,
+    pub bundle_status: Vec<ComponentStatus>,
+}
+
 #[derive(Default)]
 pub struct Edges {
-    pub add_bundle: HashMap<BundleId, ArchetypeId>,
+    pub add_bundle: HashMap<BundleId, AddBundle>,
     pub remove_bundle: HashMap<BundleId, ArchetypeId>,
 }
 
 impl Edges {
     #[inline]
-    pub fn get_add_bundle(&self, bundle_id: BundleId) -> Option<&ArchetypeId> {
+    pub fn get_add_bundle(&self, bundle_id: BundleId) -> Option<&AddBundle> {
         self.add_bundle.get(&bundle_id)
     }
 
     #[inline]
-    pub fn set_add_bundle(&mut self, bundle_id: BundleId, archetype_id: ArchetypeId) {
-        self.add_bundle.insert(bundle_id, archetype_id);
+    pub fn set_add_bundle(&mut self, bundle_id: BundleId, archetype_id: ArchetypeId, bundle_status: Vec<ComponentStatus>) {
+        self.add_bundle.insert(bundle_id, AddBundle { archetype_id, bundle_status });
     }
 
     #[inline]

@@ -3,10 +3,7 @@ use std::{
     collections::HashMap,
 };
 
-use super::{
-    component::{type_info::TypeInfo, Component, ComponentId, Components},
-    storage::Table,
-};
+use super::{archetype::ComponentStatus, component::{type_info::TypeInfo, Component, ComponentId, Components}, storage::Table};
 
 pub trait Bundle: Send + Sync + 'static {
     fn type_info() -> Vec<TypeInfo>;
@@ -68,15 +65,29 @@ impl BundleInfo {
     #[inline]
     pub(crate) unsafe fn write_components<T: Bundle>(
         &self,
-        table: &Table,
+        table: &mut Table,
         table_row: usize,
         bundle: T,
+        bundle_status: &[ComponentStatus]
     ) {
         let mut bundle_component = 0;
         bundle.get_components(|component_ptr| {
             let component_id = *self.component_ids.get_unchecked(bundle_component);
-            let column = table.get_column(component_id).unwrap();
-            column.set_unchecked(table_row, component_ptr);
+            let status = bundle_status.get_unchecked(bundle_component);
+            let column = table.get_column_mut(component_id).unwrap();
+            
+            match status {
+                ComponentStatus::Added => {
+                    column.initialize(
+                        table_row,
+                        component_ptr
+                    );
+                }
+                ComponentStatus::Mutated => {
+                    column.replace(table_row, component_ptr);
+                }
+            }
+
             bundle_component += 1;
         });
     }
