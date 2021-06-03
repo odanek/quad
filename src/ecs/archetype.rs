@@ -30,8 +30,19 @@ impl Edges {
     }
 
     #[inline]
-    pub fn set_add_bundle(&mut self, bundle_id: BundleId, archetype_id: ArchetypeId, bundle_status: Vec<ComponentStatus>) {
-        self.add_bundle.insert(bundle_id, AddBundle { archetype_id, bundle_status });
+    pub fn set_add_bundle(
+        &mut self,
+        bundle_id: BundleId,
+        archetype_id: ArchetypeId,
+        bundle_status: Vec<ComponentStatus>,
+    ) {
+        self.add_bundle.insert(
+            bundle_id,
+            AddBundle {
+                archetype_id,
+                bundle_status,
+            },
+        );
     }
 
     #[inline]
