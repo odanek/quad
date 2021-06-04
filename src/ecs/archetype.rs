@@ -152,7 +152,7 @@ impl Archetype {
     pub fn next_location(&self) -> EntityLocation {
         EntityLocation {
             archetype_id: self.id,
-            row: self.entities.len(),
+            index: self.entities.len(),
         }
     }
 

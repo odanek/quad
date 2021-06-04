@@ -98,11 +98,19 @@ impl BlobVec {
         std::ptr::copy_nonoverlapping(value, ptr, self.item_layout.size());
     }
 
+    #[inline]
     pub unsafe fn replace_unchecked(&mut self, index: usize, value: *mut u8) {
         debug_assert!(index < self.len);
         let ptr = self.get_unchecked(index);
         (self.drop)(ptr);
         std::ptr::copy_nonoverlapping(value, ptr, self.item_layout.size());
+    }
+
+    #[inline]
+    pub unsafe fn swap_remove_and_drop_unchecked(&mut self, index: usize) {
+        debug_assert!(index < self.len);
+        let value = self.swap_remove_and_forget_unchecked(index);
+        (self.drop)(value)
     }
 
     pub fn clear(&mut self) {

@@ -37,6 +37,11 @@ impl Column {
     }
 
     #[inline]
+    pub(crate) unsafe fn swap_remove_unchecked(&mut self, row: usize) {
+        self.data.swap_remove_and_drop_unchecked(row);
+    }
+
+    #[inline]
     pub(crate) unsafe fn swap_remove_and_forget_unchecked(&mut self, row: usize) -> *mut u8 {
         self.data.swap_remove_and_forget_unchecked(row)
     }
@@ -134,6 +139,13 @@ impl Table {
             column.data.set_len(self.len);
         }
         self.len - 1
+    }
+
+    pub unsafe fn swap_remove_unchecked(&mut self, row: usize) {
+        for column in self.columns.values_mut() {
+            column.swap_remove_unchecked(row);
+        }
+        self.len -= 1;
     }
 
     pub unsafe fn move_to_superset_unchecked(&mut self, row: usize, new_table: &mut Table) {

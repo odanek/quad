@@ -147,13 +147,13 @@ impl<'w> EntityMut<'w> {
 
         // TODO: If we overwrite, where are old components dropped?
         unsafe {
-            bundle_info.write_components(table, new_location.row, bundle, &edge.bundle_status)
+            bundle_info.write_components(table, new_location.index, bundle, &edge.bundle_status)
         };
 
         self
     }
 
-    pub fn insert<T: Component>(&mut self, value: T) -> &mut Self {
+    pub fn insert(&mut self, value: impl Component) -> &mut Self {
         self.insert_bundle((value,))
     }
 
@@ -186,7 +186,7 @@ impl<'w> EntityMut<'w> {
                 let column = table
                     .get_column(component_id)
                     .expect("The entity does not contain given component");
-                column.get_unchecked(old_location.row)
+                column.get_unchecked(old_location.index)
             })
         };
 
@@ -194,11 +194,11 @@ impl<'w> EntityMut<'w> {
             return result;
         }
 
-        let remove_result = old_archetype.swap_remove(old_location.row);
+        let remove_result = old_archetype.swap_remove(old_location.index);
         if let Some(swapped_entity) = remove_result {
             entities.update_location(swapped_entity, old_location);
         }
-        let old_table_row = old_location.row;
+        let old_table_row = old_location.index;
         let old_table_id = old_archetype.table_id();
         let new_archetype = &mut archetypes[new_archetype_id];
 
@@ -222,7 +222,20 @@ impl<'w> EntityMut<'w> {
     }
 
     pub fn despawn(self) {
-        todo!()
+        let world = self.world;
+        let location = world
+            .entities
+            .free(self.entity)
+            .expect("Despawned entity does not exist");
+
+        let archetype = &mut world.archetypes[location.archetype_id];
+        let remove_result = archetype.swap_remove(location.index);
+        if let Some(swapped_entity) = remove_result {
+            world.entities.update_location(swapped_entity, location);
+        }
+
+        let table_row = location.index;
+        unsafe { world.storages.tables[archetype.table_id()].swap_remove_unchecked(table_row) };
     }
 }
 
@@ -235,7 +248,7 @@ unsafe fn get_component(
     let archetype = &world.archetypes[location.archetype_id];
     let table = &world.storages.tables[archetype.table_id()];
     let column = table.get_column(component_id)?;
-    Some(column.get_unchecked(location.row))
+    Some(column.get_unchecked(location.index))
 }
 
 unsafe fn get_insert_bundle_info(
@@ -259,7 +272,7 @@ unsafe fn get_insert_bundle_info(
         current_location
     } else {
         let old_archetype = &mut archetypes[current_location.archetype_id];
-        let result = old_archetype.swap_remove(current_location.row);
+        let result = old_archetype.swap_remove(current_location.index);
         if let Some(swapped_entity) = result {
             entities.update_location(swapped_entity, current_location)
         }
@@ -267,7 +280,7 @@ unsafe fn get_insert_bundle_info(
         let old_table_id = old_archetype.table_id();
         let new_table_id = archetypes[new_archetype_id].table_id();
         let (old_table, new_table) = storages.tables.get_2_mut(old_table_id, new_table_id);
-        old_table.move_to_superset_unchecked(current_location.row, new_table);
+        old_table.move_to_superset_unchecked(current_location.index, new_table);
 
         let new_archetype = &mut archetypes[new_archetype_id];
         let new_location = new_archetype.next_location();

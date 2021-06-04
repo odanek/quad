@@ -97,6 +97,16 @@ impl World {
     }
 
     #[inline]
+    pub fn despawn(&mut self, entity: Entity) -> bool {
+        self.get_entity_mut(entity)
+            .map(|e| {
+                e.despawn();
+                true
+            })
+            .unwrap_or(false)
+    }
+
+    #[inline]
     pub fn get_entity(&self, entity: Entity) -> Option<EntityRef> {
         let location = self.entities.get(entity)?;
         Some(EntityRef::new(self, entity, location))

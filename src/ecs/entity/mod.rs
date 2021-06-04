@@ -39,7 +39,7 @@ struct EntityEntry {
 #[derive(Copy, Clone, Debug)]
 pub struct EntityLocation {
     pub archetype_id: ArchetypeId,
-    pub row: usize,
+    pub index: usize,
 }
 
 impl Entities {
@@ -72,11 +72,11 @@ impl Entities {
         }
         entry.generation += 1;
 
-        let loccation = entry.location; // TODO: Reset location to some empty value?
+        let location = entry.location; // TODO: Reset location to some empty value?
 
         self.free.push(entity.id);
         self.len -= 1;
-        Some(loccation)
+        Some(location)
     }
 
     pub fn clear(&mut self) {
