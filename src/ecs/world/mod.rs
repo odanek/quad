@@ -55,12 +55,12 @@ impl World {
     }
 
     #[inline]
-    pub fn add_resource<T: Resource>(&mut self, resource: Box<T>) {
+    pub fn add_resource<T: Resource>(&mut self, resource: T) {
         self.resources.add(resource);
     }
 
     #[inline]
-    pub fn remove_resource<T: Resource>(&mut self) -> Option<Box<T>> {
+    pub fn remove_resource<T: Resource>(&mut self) -> Option<T> {
         self.resources.remove()
     }
 

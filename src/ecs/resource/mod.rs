@@ -12,22 +12,25 @@ pub struct Resources {
 }
 
 impl Resources {
-    pub fn add<T: Resource>(&mut self, resource: Box<T>) {
-        let type_id = TypeId::of::<T>();
-        self.map.insert(type_id, resource);
+    #[inline]
+    pub fn add<T: Resource>(&mut self, resource: T) {
+        self.map.insert(resource.type_id(), Box::new(resource));
         // .expect_none("Resource already exists"); // TODO
     }
 
-    pub fn remove<T: Resource>(&mut self) -> Option<Box<T>> {
+    #[inline]
+    pub fn remove<T: Resource>(&mut self) -> Option<T> {
         let type_id = TypeId::of::<T>();
-        self.map.remove(&type_id)?.downcast().ok()
+        self.map.remove(&type_id)?.downcast().ok().map(|v| *v)
     }
 
+    #[inline]
     pub fn get<T: Resource>(&self) -> Option<&T> {
         let type_id = TypeId::of::<T>();
         self.map.get(&type_id)?.downcast_ref()
     }
 
+    #[inline]
     pub fn get_mut<T: Resource>(&mut self) -> Option<&mut T> {
         let type_id = TypeId::of::<T>();
         self.map.get_mut(&type_id)?.downcast_mut()

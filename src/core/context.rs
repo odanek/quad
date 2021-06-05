@@ -16,7 +16,7 @@ impl Context {
     }
 
     pub fn register_resources(&mut self) {
-        self.world.add_resource(Box::new(KeyboardInput::default()))
+        self.world.add_resource(KeyboardInput::default())
     }
 
     pub fn start_scene(&mut self) {
