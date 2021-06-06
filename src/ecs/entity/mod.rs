@@ -25,13 +25,13 @@ impl Entity {
 
 #[derive(Default)]
 pub struct Entities {
-    entries: Vec<EntityEntry>,
+    meta: Vec<EntityMeta>,
     free: Vec<u32>, // TODO: use the same pattern as in Arena or Bevy
     len: u32,
 }
 
 #[derive(Copy, Clone, Debug)]
-struct EntityEntry {
+struct EntityMeta {
     pub generation: u32,
     pub location: EntityLocation,
 }
@@ -46,33 +46,33 @@ impl Entities {
     pub fn alloc(&mut self, location: EntityLocation) -> Entity {
         if let Some(id) = self.free.pop() {
             self.len += 1;
-            let entry = &mut self.entries[id as usize];
-            entry.location = location;
+            let meta = &mut self.meta[id as usize];
+            meta.location = location;
 
             Entity {
-                generation: entry.generation,
+                generation: meta.generation,
                 id,
             }
         } else {
             let id = self.len;
             self.len = self.len.checked_add(1).expect("Too many entities");
-            let entry = EntityEntry {
+            let meta = EntityMeta {
                 generation: 0,
                 location,
             };
-            self.entries.push(entry);
+            self.meta.push(meta);
             Entity::new(id)
         }
     }
 
     pub fn free(&mut self, entity: Entity) -> Option<EntityLocation> {
-        let entry = &mut self.entries[entity.id as usize];
-        if entry.generation != entity.generation {
+        let meta = &mut self.meta[entity.id as usize];
+        if meta.generation != entity.generation {
             return None;
         }
-        entry.generation += 1;
+        meta.generation += 1;
 
-        let location = entry.location; // TODO: Reset location to some empty value?
+        let location = meta.location; // TODO: Reset location to some empty value?
 
         self.free.push(entity.id);
         self.len -= 1;
@@ -80,42 +80,42 @@ impl Entities {
     }
 
     pub fn clear(&mut self) {
-        self.entries.clear();
+        self.meta.clear();
         self.free.clear();
         self.len = 0;
     }
 
     pub fn get(&self, entity: Entity) -> Option<EntityLocation> {
-        if (entity.id as usize) < self.entries.len() {
-            let entry = &self.entries[entity.id as usize];
-            if entry.generation != entity.generation {
+        if (entity.id as usize) < self.meta.len() {
+            let meta = &self.meta[entity.id as usize];
+            if meta.generation != entity.generation {
                 return None;
             }
-            Some(entry.location)
+            Some(meta.location)
         } else {
             None
         }
     }
 
     pub fn get_mut(&mut self, entity: Entity) -> Option<&mut EntityLocation> {
-        if (entity.id as usize) < self.entries.len() {
-            let entry = &mut self.entries[entity.id as usize];
-            if entry.generation != entity.generation {
+        if (entity.id as usize) < self.meta.len() {
+            let meta = &mut self.meta[entity.id as usize];
+            if meta.generation != entity.generation {
                 return None;
             }
-            Some(&mut entry.location)
+            Some(&mut meta.location)
         } else {
             None
         }
     }
 
     pub fn contains(&self, entity: Entity) -> bool {
-        self.entries
+        self.meta
             .get(entity.id as usize)
-            .map_or(true, |entry| entry.generation == entity.generation)
+            .map_or(true, |meta| meta.generation == entity.generation)
     }
 
     pub(crate) fn update_location(&mut self, entity: Entity, location: EntityLocation) {
-        self.entries[entity.id as usize].location = location;
+        self.meta[entity.id as usize].location = location;
     }
 }
