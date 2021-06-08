@@ -7,6 +7,7 @@ mod component;
 mod entity;
 mod resource;
 mod storage;
+mod system;
 mod world;
 
 pub use entity::{Entities, Entity};
