@@ -1,5 +1,7 @@
 mod entity_ref;
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use self::entity_ref::{EntityMut, EntityRef};
 
 use super::{
@@ -7,9 +9,21 @@ use super::{
     storage::Storages, Entities, Entity, Resources,
 };
 
+static LAST_ID: AtomicUsize = AtomicUsize::new(0);
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub struct WorldId(usize);
+
+impl Default for WorldId {
+    fn default() -> Self {
+        WorldId(LAST_ID.fetch_add(1, Ordering::Relaxed))
+    }
+}
+
 // Struct of arrays
 #[derive(Default)]
 pub struct World {
+    id: WorldId,
     resources: Resources,
     archetypes: Archetypes,
     entities: Entities,
@@ -19,6 +33,11 @@ pub struct World {
 }
 
 impl World {
+    #[inline]
+    pub fn id(&self) -> WorldId {
+        self.id
+    }
+
     #[inline]
     pub fn new() -> World {
         World::default()

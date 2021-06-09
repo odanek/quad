@@ -177,16 +177,21 @@ impl Archetype {
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub struct ArchetypeGeneration(u32);
+pub struct ArchetypeGeneration(usize);
 
 impl ArchetypeGeneration {
     #[inline]
-    pub fn new(generation: u32) -> Self {
+    pub fn new(generation: usize) -> Self {
         ArchetypeGeneration(generation)
     }
 
     #[inline]
-    pub fn value(self) -> u32 {
+    pub const fn initial() -> Self {
+        ArchetypeGeneration(0)
+    }
+
+    #[inline]
+    pub fn value(self) -> usize {
         self.0
     }
 }
@@ -211,7 +216,7 @@ impl Default for Archetypes {
 impl Archetypes {
     #[inline]
     pub fn generation(&self) -> ArchetypeGeneration {
-        ArchetypeGeneration::new(self.archetypes.len() as u32)
+        ArchetypeGeneration::new(self.archetypes.len())
     }
 
     #[inline]

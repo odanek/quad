@@ -2,7 +2,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use super::World;
 
-pub mod function_system;
+mod function_system;
+mod system_param;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct SystemId(pub usize);
