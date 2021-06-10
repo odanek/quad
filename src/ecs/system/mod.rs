@@ -23,9 +23,7 @@ pub trait System: Send + Sync + 'static {
     fn name(&self) -> &'static str;    
     fn id(&self) -> SystemId;
 
-    // fn new_archetype(&mut self, archetype: &Archetype);
-    // fn component_access(&self) -> &Access<ComponentId>;
-    // fn archetype_component_access(&self) -> &Access<ArchetypeComponentId>;
+    fn initialize(&mut self, _world: &mut World);
 
     unsafe fn run_unsafe(&mut self, input: Self::In, world: &World) -> Self::Out;
     fn run(&mut self, input: Self::In, world: &mut World) -> Self::Out {        
@@ -33,7 +31,10 @@ pub trait System: Send + Sync + 'static {
     }
 
     fn apply_buffers(&mut self, world: &mut World);
-    fn initialize(&mut self, _world: &mut World);
+
+    // fn new_archetype(&mut self, archetype: &Archetype);
+    // fn component_access(&self) -> &Access<ComponentId>;
+    // fn archetype_component_access(&self) -> &Access<ArchetypeComponentId>;    
 }
 
 /// A convenience type alias for a boxed [`System`] trait object.
