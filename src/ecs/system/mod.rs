@@ -11,7 +11,7 @@ pub struct SystemId(pub usize);
 static LAST_ID: AtomicUsize = AtomicUsize::new(0);
 
 impl SystemId {
-    pub fn new() -> Self {                
+    pub fn new() -> Self {
         SystemId(LAST_ID.fetch_add(1, Ordering::Relaxed))
     }
 }
@@ -19,14 +19,14 @@ impl SystemId {
 pub trait System: Send + Sync + 'static {
     type In;
     type Out;
-    
-    fn name(&self) -> &'static str;    
+
+    fn name(&self) -> &'static str;
     fn id(&self) -> SystemId;
 
     fn initialize(&mut self, _world: &mut World);
 
     unsafe fn run_unsafe(&mut self, input: Self::In, world: &World) -> Self::Out;
-    fn run(&mut self, input: Self::In, world: &mut World) -> Self::Out {        
+    fn run(&mut self, input: Self::In, world: &mut World) -> Self::Out {
         unsafe { self.run_unsafe(input, world) }
     }
 
@@ -34,7 +34,7 @@ pub trait System: Send + Sync + 'static {
 
     // fn new_archetype(&mut self, archetype: &Archetype);
     // fn component_access(&self) -> &Access<ComponentId>;
-    // fn archetype_component_access(&self) -> &Access<ArchetypeComponentId>;    
+    // fn archetype_component_access(&self) -> &Access<ArchetypeComponentId>;
 }
 
 /// A convenience type alias for a boxed [`System`] trait object.

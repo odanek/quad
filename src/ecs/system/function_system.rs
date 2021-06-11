@@ -1,8 +1,15 @@
 use std::marker::PhantomData;
 
-use crate::ecs::{World, archetype::{ArchetypeGeneration, ArchetypeId}, world::WorldId};
+use crate::ecs::{
+    archetype::{ArchetypeGeneration, ArchetypeId},
+    world::WorldId,
+    World,
+};
 
-use super::{System, SystemId, system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState}};
+use super::{
+    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
+    System, SystemId,
+};
 
 pub struct SystemMeta {
     pub(crate) id: SystemId,
@@ -102,11 +109,8 @@ impl<Param: SystemParam> SystemState<Param> {
         &'a mut self,
         world: &'a World,
     ) -> <Param::Fetch as SystemParamFetch<'a>>::Item {
-        let param = <Param::Fetch as SystemParamFetch>::get_param(
-            &mut self.param_state,
-            &self.meta,
-            world,
-        );
+        let param =
+            <Param::Fetch as SystemParamFetch>::get_param(&mut self.param_state, &self.meta, world);
         param
     }
 }
@@ -133,7 +137,7 @@ where
     param_state: Option<Param::Fetch>,
     system_meta: SystemMeta,
     config: Option<<Param::Fetch as SystemParamState>::Config>,
-    
+
     // NOTE: PhantomData<fn()-> T> gives this safe Send/Sync impls
     // #[allow(clippy::type_complexity)]
     marker: PhantomData<fn() -> (In, Out, Marker)>,
@@ -206,13 +210,13 @@ where
     // }
 
     #[inline]
-    unsafe fn run_unsafe(&mut self, input: Self::In, world: &World) -> Self::Out {        
+    unsafe fn run_unsafe(&mut self, input: Self::In, world: &World) -> Self::Out {
         let out = self.func.run(
             input,
             self.param_state.as_mut().unwrap(),
             &self.system_meta,
-            world
-        );        
+            world,
+        );
         out
     }
 
@@ -238,7 +242,7 @@ pub trait SystemParamFunction<In, Out, Param: SystemParam, Marker>: Send + Sync 
         input: In,
         state: &mut Param::Fetch,
         system_meta: &SystemMeta,
-        world: &World
+        world: &World,
     ) -> Out;
 }
 

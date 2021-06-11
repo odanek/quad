@@ -1,4 +1,4 @@
-use crate::ecs::{World, archetype::Archetype};
+use crate::ecs::{archetype::Archetype, World};
 
 use super::function_system::SystemMeta;
 
@@ -10,13 +10,13 @@ pub unsafe trait SystemParamState: Send + Sync + 'static {
     type Config: Send + Sync;
 
     fn init(world: &mut World, system_meta: &mut SystemMeta, config: Self::Config) -> Self;
-    
+
     #[inline]
     fn new_archetype(&mut self, _archetype: &Archetype, _system_meta: &mut SystemMeta) {}
-    
+
     #[inline]
     fn apply(&mut self, _world: &mut World) {}
-    
+
     fn default_config() -> Self::Config;
 }
 
