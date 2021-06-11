@@ -109,9 +109,7 @@ impl<Param: SystemParam> SystemState<Param> {
         &'a mut self,
         world: &'a World,
     ) -> <Param::Fetch as SystemParamFetch<'a>>::Item {
-        let param =
-            <Param::Fetch as SystemParamFetch>::get_param(&mut self.param_state, &self.meta, world);
-        param
+        <Param::Fetch as SystemParamFetch>::get_param(&mut self.param_state, &self.meta, world)
     }
 }
 
@@ -139,7 +137,7 @@ where
     config: Option<<Param::Fetch as SystemParamState>::Config>,
 
     // NOTE: PhantomData<fn()-> T> gives this safe Send/Sync impls
-    // #[allow(clippy::type_complexity)]
+    #[allow(clippy::type_complexity)]
     marker: PhantomData<fn() -> (In, Out, Marker)>,
 }
 
