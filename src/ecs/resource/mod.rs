@@ -6,6 +6,8 @@ use std::{
 pub trait Resource: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Resource for T {}
 
+// TODO: ResourceId
+
 #[derive(Default)]
 pub struct Resources {
     map: HashMap<TypeId, Box<dyn Any>>,
@@ -31,8 +33,22 @@ impl Resources {
     }
 
     #[inline]
+    pub unsafe fn get_unchecked<T: Resource>(&self) -> Option<*const T> {
+        let type_id = TypeId::of::<T>();
+        let reference = self.map.get(&type_id)?.downcast_mut()?;
+        Some(reference as _)
+    }
+
+    #[inline]
     pub fn get_mut<T: Resource>(&mut self) -> Option<&mut T> {
         let type_id = TypeId::of::<T>();
         self.map.get_mut(&type_id)?.downcast_mut()
+    }
+
+    #[inline]
+    pub unsafe fn get_unchecked_mut<T: Resource>(&self) -> Option<*mut T> {
+        let type_id = TypeId::of::<T>();
+        let reference = self.map.get_mut(&type_id)?.downcast_mut()?;
+        unsafe { Some(reference as _) }
     }
 }

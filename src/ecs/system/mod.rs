@@ -36,6 +36,3 @@ pub trait System: Send + Sync + 'static {
     // fn component_access(&self) -> &Access<ComponentId>;
     // fn archetype_component_access(&self) -> &Access<ArchetypeComponentId>;
 }
-
-/// A convenience type alias for a boxed [`System`] trait object.
-pub type BoxedSystem<In = (), Out = ()> = Box<dyn System<In = In, Out = Out>>;

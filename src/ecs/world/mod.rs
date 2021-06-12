@@ -101,7 +101,7 @@ impl World {
     #[inline]
     pub fn resource_mut<T: Resource>(&mut self) -> &mut T {
         self.get_resource_mut().expect("Resource not found")
-    }
+    }    
 
     pub fn spawn(&mut self) -> EntityMut {
         let archetype = self.archetypes.empty_mut();
