@@ -4,10 +4,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{
-    archetype::Archetypes, bundle::Bundles, component::Components, resource::Resource,
-    storage::Storages, Entities, Entity, Resources,
-};
+use super::{Entities, Entity, Resources, archetype::Archetypes, bundle::Bundles, component::Components, resource::{Resource, ResourceId}, storage::Storages};
 
 static LAST_ID: AtomicUsize = AtomicUsize::new(0);
 
@@ -74,8 +71,13 @@ impl World {
     }
 
     #[inline]
-    pub fn add_resource<T: Resource>(&mut self, resource: T) {
-        self.resources.add(resource);
+    pub fn resource_id<T: Resource>(&self) -> Option<ResourceId> {
+        self.resources.get_id::<T>()
+    }
+
+    #[inline]
+    pub fn add_resource<T: Resource>(&mut self, resource: T) -> Option<T> {
+        self.resources.add(resource)
     }
 
     #[inline]

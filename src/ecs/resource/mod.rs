@@ -1,4 +1,7 @@
-use std::{any::{Any, TypeId, type_name}, collections::HashMap};
+use std::{
+    any::{type_name, Any, TypeId},
+    collections::HashMap,
+};
 
 pub trait Resource: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Resource for T {}
@@ -50,18 +53,21 @@ impl Resources {
             let info = ResourceInfo {
                 id,
                 type_id,
-                name: type_name::<T>()
+                name: type_name::<T>(),
             };
-            self.resources.push(info);            
-            id    
-        })        
+            self.resources.push(info);
+            id
+        })
     }
 
     #[inline]
-    pub fn add<T: Resource>(&mut self, resource: T) -> ResourceId {
-        let id = self.get_or_insert_id();
-        self.map.insert(id, Box::new(resource));
-        id        
+    pub fn add<T: Resource>(&mut self, resource: T) -> Option<T> {
+        let id = self.get_or_insert_id::<T>();
+        self.map
+            .insert(id, Box::new(resource))?
+            .downcast()
+            .ok()
+            .map(|v| *v)
     }
 
     #[inline]
