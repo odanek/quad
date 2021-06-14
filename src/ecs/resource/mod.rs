@@ -43,22 +43,23 @@ impl Resources {
         self.id_map.get(&TypeId::of()).copied()
     }
 
-    fn insert_id<T: Resource>(&mut self) -> ResourceId {
+    fn get_or_insert_id<T: Resource>(&mut self) -> ResourceId {
         let type_id = TypeId::of::<T>();
-        let id = ResourceId(self.resources.len());
-        let info = ResourceInfo {
-            id,
-            type_id,
-            name: type_name::<T>()
-        };
-        self.resources.push(info);
-        self.id_map.insert(type_id, id); // .expect_none("Resource already exists"); // TODO
-        id
+        *self.id_map.entry(type_id).or_insert_with(|| {
+            let id = ResourceId(self.resources.len());
+            let info = ResourceInfo {
+                id,
+                type_id,
+                name: type_name::<T>()
+            };
+            self.resources.push(info);            
+            id    
+        })        
     }
 
     #[inline]
     pub fn add<T: Resource>(&mut self, resource: T) -> ResourceId {
-        let id = self.insert_id::<T>();
+        let id = self.get_or_insert_id();
         self.map.insert(id, Box::new(resource));
         id        
     }
