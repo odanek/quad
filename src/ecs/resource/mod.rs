@@ -3,11 +3,19 @@ use std::{
     collections::HashMap,
 };
 
+use super::query::access::AccessIndex;
+
 pub trait Resource: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Resource for T {}
 
 #[derive(Debug, Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
 pub struct ResourceId(usize);
+
+impl AccessIndex for ResourceId {
+    fn index(&self) -> usize {
+        self.0
+    }
+}
 
 #[derive(Debug)]
 pub struct ResourceInfo {

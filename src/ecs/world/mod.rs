@@ -4,7 +4,14 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{Entities, Entity, Resources, archetype::Archetypes, bundle::Bundles, component::Components, resource::{Resource, ResourceId}, storage::Storages};
+use super::{
+    archetype::Archetypes,
+    bundle::Bundles,
+    component::Components,
+    resource::{Resource, ResourceId},
+    storage::Storages,
+    Entities, Entity, Resources,
+};
 
 static LAST_ID: AtomicUsize = AtomicUsize::new(0);
 
@@ -103,7 +110,7 @@ impl World {
     #[inline]
     pub fn resource_mut<T: Resource>(&mut self) -> &mut T {
         self.get_resource_mut().expect("Resource not found")
-    }    
+    }
 
     pub fn spawn(&mut self) -> EntityMut {
         let archetype = self.archetypes.empty_mut();

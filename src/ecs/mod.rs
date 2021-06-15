@@ -5,6 +5,7 @@ mod archetype;
 mod bundle;
 mod component;
 mod entity;
+mod query;
 mod resource;
 mod storage;
 mod system;

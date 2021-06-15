@@ -2,6 +2,8 @@ use std::marker::PhantomData;
 
 use crate::ecs::{
     archetype::{ArchetypeGeneration, ArchetypeId},
+    query::access::Access,
+    resource::ResourceId,
     world::WorldId,
     World,
 };
@@ -14,6 +16,7 @@ use super::{
 pub struct SystemMeta {
     pub(crate) id: SystemId,
     pub(crate) name: &'static str,
+    pub(crate) resource_access: Access<ResourceId>,
     // pub(crate) component_access_set: FilteredAccessSet<ComponentId>,
     // pub(crate) archetype_component_access: Access<ArchetypeComponentId>,
 }
@@ -23,8 +26,8 @@ impl SystemMeta {
         Self {
             id: SystemId::new(),
             name: std::any::type_name::<T>(),
+            resource_access: Default::default(),
             // archetype_component_access: Access::default(),
-            // component_access_set: FilteredAccessSet::default(),
         }
     }
 }

@@ -1,6 +1,7 @@
 use crate::ecs::{
     archetype::Archetype,
     component::{Component, ComponentId},
+    resource::Resource,
     World,
 };
 use std::{fmt::Debug, marker::PhantomData, ops::Deref};
@@ -37,13 +38,13 @@ pub trait SystemParamFetch<'a>: SystemParamState {
     ) -> Self::Item;
 }
 
-pub struct Res<'w, T: Component> {
+pub struct Res<'w, T: Resource> {
     value: &'w T,
 }
 
-unsafe impl<T: Component> ReadOnlySystemParamFetch for ResState<T> {}
+unsafe impl<T: Resource> ReadOnlySystemParamFetch for ResState<T> {}
 
-impl<'w, T: Component> Debug for Res<'w, T>
+impl<'w, T: Resource> Debug for Res<'w, T>
 where
     T: Debug,
 {
@@ -52,7 +53,7 @@ where
     }
 }
 
-impl<'w, T: Component> Deref for Res<'w, T> {
+impl<'w, T: Resource> Deref for Res<'w, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -60,7 +61,7 @@ impl<'w, T: Component> Deref for Res<'w, T> {
     }
 }
 
-impl<'w, T: Component> AsRef<T> for Res<'w, T> {
+impl<'w, T: Resource> AsRef<T> for Res<'w, T> {
     #[inline]
     fn as_ref(&self) -> &T {
         self.deref()
@@ -71,21 +72,22 @@ pub struct ResState<T> {
     marker: PhantomData<T>,
 }
 
-impl<'a, T: Component> SystemParam for Res<'a, T> {
+impl<'a, T: Resource> SystemParam for Res<'a, T> {
     type Fetch = ResState<T>;
 }
 
-unsafe impl<T: Component> SystemParamState for ResState<T> {
+unsafe impl<T: Resource> SystemParamState for ResState<T> {
     type Config = ();
 
-    fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {        
-        let combined_access = system_meta.component_access_set.combined_access_mut();
-        if combined_access.has_write(component_id) {
-            panic!(
-                "Res<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
-                std::any::type_name::<T>(), system_meta.name);
-        }
-        combined_access.add_read(component_id);
+    fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
+        let resource_id = world.resource_id::<T>();
+        // let combined_access = system_meta.component_access_set.combined_access_mut();
+        // if combined_access.has_write(component_id) {
+        //     panic!(
+        //         "Res<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
+        //         std::any::type_name::<T>(), system_meta.name);
+        // }
+        // combined_access.add_read(component_id);
 
         Self {
             marker: PhantomData,
@@ -95,7 +97,7 @@ unsafe impl<T: Component> SystemParamState for ResState<T> {
     fn default_config() {}
 }
 
-impl<'a, T: Component> SystemParamFetch<'a> for ResState<T> {
+impl<'a, T: Resource> SystemParamFetch<'a> for ResState<T> {
     type Item = Res<'a, T>;
 
     #[inline]
