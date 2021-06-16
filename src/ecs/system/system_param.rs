@@ -4,7 +4,7 @@ use crate::ecs::{
     resource::Resource,
     World,
 };
-use std::{fmt::Debug, marker::PhantomData, ops::Deref};
+use std::{any::type_name, fmt::Debug, marker::PhantomData, ops::Deref};
 
 use super::function_system::SystemMeta;
 
@@ -80,14 +80,14 @@ unsafe impl<T: Resource> SystemParamState for ResState<T> {
     type Config = ();
 
     fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
-        let resource_id = world.resource_id::<T>();
-        // let combined_access = system_meta.component_access_set.combined_access_mut();
-        // if combined_access.has_write(component_id) {
-        //     panic!(
-        //         "Res<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
-        //         std::any::type_name::<T>(), system_meta.name);
-        // }
-        // combined_access.add_read(component_id);
+        let resource_id = world.resource_id::<T>().unwrap();
+        let access = system_meta.resource_access;
+        if access.has_write(resource_id) {
+            panic!(
+                "Res<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
+                type_name::<T>(), system_meta.name);
+        }
+        access.add_read(resource_id);
 
         Self {
             marker: PhantomData,
