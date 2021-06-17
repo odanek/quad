@@ -1,6 +1,5 @@
 use crate::ecs::{
     archetype::Archetype,
-    component::{Component, ComponentId},
     resource::Resource,
     World,
 };
@@ -81,7 +80,7 @@ unsafe impl<T: Resource> SystemParamState for ResState<T> {
 
     fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
         let resource_id = world.resource_id::<T>().unwrap();
-        let access = system_meta.resource_access;
+        let access = &mut system_meta.resource_access;
         if access.has_write(resource_id) {
             panic!(
                 "Res<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
@@ -102,7 +101,7 @@ impl<'a, T: Resource> SystemParamFetch<'a> for ResState<T> {
 
     #[inline]
     unsafe fn get_param(
-        state: &'a mut Self,
+        _state: &'a mut Self,
         system_meta: &SystemMeta,
         world: &'a World,
     ) -> Self::Item {

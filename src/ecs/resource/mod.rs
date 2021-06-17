@@ -51,19 +51,21 @@ pub struct Resources {
 impl Resources {
     #[inline]
     pub fn get_id<T: Resource>(&self) -> Option<ResourceId> {
-        self.id_map.get(&TypeId::of()).copied()
+        let type_id = TypeId::of::<T>();
+        self.id_map.get(&type_id).copied()
     }
 
     fn get_or_insert_id<T: Resource>(&mut self) -> ResourceId {
         let type_id = TypeId::of::<T>();
+        let resources = &mut self.resources;
         *self.id_map.entry(type_id).or_insert_with(|| {
-            let id = ResourceId(self.resources.len());
+            let id = ResourceId(resources.len());
             let info = ResourceInfo {
                 id,
                 type_id,
                 name: type_name::<T>(),
             };
-            self.resources.push(info);
+            resources.push(info);
             id
         })
     }
@@ -91,7 +93,7 @@ impl Resources {
     }
 
     #[inline]
-    pub unsafe fn get_unchecked<T: Resource>(&self) -> Option<*const T> {
+    pub fn get_unchecked<T: Resource>(&self) -> Option<*const T> {
         self.get::<T>().map(|r| r as _)
     }
 
@@ -102,7 +104,7 @@ impl Resources {
     }
 
     #[inline]
-    pub unsafe fn get_unchecked_mut<T: Resource>(&self) -> Option<*mut T> {
+    pub fn get_unchecked_mut<T: Resource>(&mut self) -> Option<*mut T> {
         self.get_mut::<T>().map(|r| r as _)
     }
 }
