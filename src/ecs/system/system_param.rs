@@ -1,11 +1,7 @@
-use crate::ecs::{
-    archetype::Archetype,
-    resource::Resource,
-    World,
-};
-use std::{any::type_name, fmt::Debug, marker::PhantomData, ops::Deref};
+use crate::ecs::{World, archetype::Archetype, resource::{Resource, ResourceId}};
+use std::{any::type_name, marker::PhantomData};
 
-use super::function_system::SystemMeta;
+use super::{function_system::SystemMeta, resource_param::{Res, ResMut}};
 
 pub trait SystemParam: Sized {
     type Fetch: for<'a> SystemParamFetch<'a>;
@@ -37,37 +33,11 @@ pub trait SystemParamFetch<'a>: SystemParamState {
     ) -> Self::Item;
 }
 
-pub struct Res<'w, T: Resource> {
-    value: &'w T,
-}
 
 unsafe impl<T: Resource> ReadOnlySystemParamFetch for ResState<T> {}
 
-impl<'w, T: Resource> Debug for Res<'w, T>
-where
-    T: Debug,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("Res").field(&self.value).finish()
-    }
-}
-
-impl<'w, T: Resource> Deref for Res<'w, T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        self.value
-    }
-}
-
-impl<'w, T: Resource> AsRef<T> for Res<'w, T> {
-    #[inline]
-    fn as_ref(&self) -> &T {
-        self.deref()
-    }
-}
-
 pub struct ResState<T> {
+    resource_id: ResourceId,
     marker: PhantomData<T>,
 }
 
@@ -89,6 +59,7 @@ unsafe impl<T: Resource> SystemParamState for ResState<T> {
         access.add_read(resource_id);
 
         Self {
+            resource_id,
             marker: PhantomData,
         }
     }
@@ -115,6 +86,78 @@ impl<'a, T: Resource> SystemParamFetch<'a> for ResState<T> {
         Res { value: &*resource }
     }
 }
+
+pub struct ResMutState<T> {
+    component_id: ResourceId,
+    marker: PhantomData<T>,
+}
+
+// impl<'a, T: Resource> SystemParam for ResMut<'a, T> {
+//     type Fetch = ResMutState<T>;
+// }
+
+// unsafe impl<T: ResourceId> SystemParamState for ResMutState<T> {
+//     type Config = ();
+
+//     fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
+//         let component_id = world.initialize_resource::<T>();
+//         let combined_access = system_meta.component_access_set.combined_access_mut();
+//         if combined_access.has_write(component_id) {
+//             panic!(
+//                 "ResMut<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
+//                 std::any::type_name::<T>(), system_meta.name);
+//         } else if combined_access.has_read(component_id) {
+//             panic!(
+//                 "ResMut<{}> in system {} conflicts with a previous Res<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
+//                 std::any::type_name::<T>(), system_meta.name);
+//         }
+//         combined_access.add_write(component_id);
+
+//         let resource_archetype = world.archetypes.resource();
+//         let archetype_component_id = resource_archetype
+//             .get_archetype_component_id(component_id)
+//             .unwrap();
+//         system_meta
+//             .archetype_component_access
+//             .add_write(archetype_component_id);
+//         Self {
+//             component_id,
+//             marker: PhantomData,
+//         }
+//     }
+
+//     fn default_config() {}
+// }
+
+// impl<'a, T: Component> SystemParamFetch<'a> for ResMutState<T> {
+//     type Item = ResMut<'a, T>;
+
+//     #[inline]
+//     unsafe fn get_param(
+//         state: &'a mut Self,
+//         system_meta: &SystemMeta,
+//         world: &'a World,
+//         change_tick: u32,
+//     ) -> Self::Item {
+//         let value = world
+//             .get_resource_unchecked_mut_with_id(state.component_id)
+//             .unwrap_or_else(|| {
+//                 panic!(
+//                     "Resource requested by {} does not exist: {}",
+//                     system_meta.name,
+//                     std::any::type_name::<T>()
+//                 )
+//             });
+//         ResMut {
+//             value: value.value,
+//             ticks: Ticks {
+//                 component_ticks: value.ticks.component_ticks,
+//                 last_change_tick: system_meta.last_change_tick,
+//                 change_tick,
+//             },
+//         }
+//     }
+// }
 
 macro_rules! impl_system_param_tuple {
     ($($param: ident),*) => {

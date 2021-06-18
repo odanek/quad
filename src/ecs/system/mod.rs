@@ -3,6 +3,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use super::World;
 
 mod function_system;
+mod resource_param;
 mod system_param;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
