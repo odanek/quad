@@ -1,5 +1,8 @@
 use crate::ecs::resource::Resource;
-use std::{fmt::Debug, ops::Deref};
+use std::{
+    fmt::Debug,
+    ops::{Deref, DerefMut},
+};
 
 pub struct Res<'w, T: Resource> {
     pub(crate) value: &'w T,
@@ -33,33 +36,32 @@ pub struct ResMut<'a, T: Resource> {
     pub(crate) value: &'a mut T,
 }
 
-// impl<$($generics),* $(: $traits)?> Deref for $name<$($generics),*> {
-//     type Target = $target;
+impl<'w, T: Resource> Deref for ResMut<'w, T> {
+    type Target = T;
 
-//     #[inline]
-//     fn deref(&self) -> &Self::Target {
-//         self.value
-//     }
-// }
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        self.value
+    }
+}
 
-// impl<$($generics),* $(: $traits)?> DerefMut for $name<$($generics),*> {
-//     #[inline]
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         self.set_changed();
-//         self.value
-//     }
-// }
+impl<'w, T: Resource> DerefMut for ResMut<'w, T> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.value
+    }
+}
 
-// impl<$($generics),* $(: $traits)?> AsRef<$target> for $name<$($generics),*> {
-//     #[inline]
-//     fn as_ref(&self) -> &$target {
-//         self.deref()
-//     }
-// }
+impl<'w, T: Resource> AsRef<T> for ResMut<'w, T> {
+    #[inline]
+    fn as_ref(&self) -> &T {
+        self.deref()
+    }
+}
 
-// impl<$($generics),* $(: $traits)?> AsMut<$target> for $name<$($generics),*> {
-//     #[inline]
-//     fn as_mut(&mut self) -> &mut $target {
-//         self.deref_mut()
-//     }
-// }
+impl<'w, T: Resource> AsMut<T> for ResMut<'w, T> {
+    #[inline]
+    fn as_mut(&mut self) -> &mut T {
+        self.deref_mut()
+    }
+}
