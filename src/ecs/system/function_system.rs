@@ -8,10 +8,7 @@ use crate::ecs::{
     World,
 };
 
-use super::{
-    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
-    System, SystemId,
-};
+use super::{IntoSystem, System, SystemId, system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState}};
 
 pub struct SystemMeta {
     pub(crate) id: SystemId,
@@ -113,16 +110,6 @@ impl<Param: SystemParam> SystemState<Param> {
         world: &'a World,
     ) -> <Param::Fetch as SystemParamFetch<'a>>::Item {
         <Param::Fetch as SystemParamFetch>::get_param(&mut self.param_state, &self.meta, world)
-    }
-}
-
-pub trait IntoSystem<Params, SystemType: System> {
-    fn system(self) -> SystemType;
-}
-
-impl<Sys: System> IntoSystem<(), Sys> for Sys {
-    fn system(self) -> Sys {
-        self
     }
 }
 

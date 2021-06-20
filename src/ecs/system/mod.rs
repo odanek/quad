@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use super::World;
 
 mod function_system;
-mod resource_param;
+pub mod resource_param;
 mod system_param;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -36,4 +36,15 @@ pub trait System: Send + Sync + 'static {
     // fn new_archetype(&mut self, archetype: &Archetype);
     // fn component_access(&self) -> &Access<ComponentId>;
     // fn archetype_component_access(&self) -> &Access<ArchetypeComponentId>;
+}
+
+// TODO: Why Params is needed?
+pub trait IntoSystem<Params, SystemType: System> {
+    fn system(self) -> SystemType;
+}
+
+impl<Sys: System> IntoSystem<(), Sys> for Sys {
+    fn system(self) -> Sys {
+        self
+    }
 }
