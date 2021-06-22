@@ -39,11 +39,11 @@ pub trait System: Send + Sync + 'static {
 }
 
 // TODO: Why Params is needed?
-pub trait IntoSystem<Params, SystemType: System> {
+pub trait IntoSystem<SystemType: System> {
     fn system(self) -> SystemType;
 }
 
-impl<Sys: System> IntoSystem<(), Sys> for Sys {
+impl<Sys: System> IntoSystem<Sys> for Sys {
     fn system(self) -> Sys {
         self
     }

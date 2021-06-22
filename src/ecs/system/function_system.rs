@@ -8,7 +8,10 @@ use crate::ecs::{
     World,
 };
 
-use super::{IntoSystem, System, SystemId, system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState}};
+use super::{
+    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
+    IntoSystem, System, SystemId,
+};
 
 pub struct SystemMeta {
     pub(crate) id: SystemId,
@@ -141,7 +144,7 @@ impl<In, Out, Param: SystemParam, Marker, F> FunctionSystem<In, Out, Param, Mark
     }
 }
 
-impl<In, Out, Param, Marker, F> IntoSystem<Param, FunctionSystem<In, Out, Param, Marker, F>> for F
+impl<In, Out, Param, Marker, F> IntoSystem<FunctionSystem<In, Out, Param, Marker, F>> for F
 where
     In: 'static,
     Out: 'static,
