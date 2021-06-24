@@ -1,15 +1,16 @@
 use crate::ecs::World;
 
+// TODO: Use commands instead of mutable world?
+pub type SceneTransition = Box<dyn FnOnce(&mut World) -> Box<dyn Scene>>;
+
 pub enum SceneResult {
     Ok,
     Quit,
     Pop,
-    Push(Box<dyn Scene>),
-    Replace(Box<dyn Scene>),
+    Push(SceneTransition),
+    Replace(SceneTransition),
 }
 
 pub trait Scene {
-    fn begin(&mut self, world: &mut World);
     fn update(&mut self, world: &mut World) -> SceneResult;
-    fn end(&mut self);
 }

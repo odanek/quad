@@ -1,6 +1,6 @@
 use crate::{ecs::World, input::KeyboardInput};
 
-use super::{Scene, SceneResult};
+use super::{Scene, SceneResult, scene::SceneTransition};
 
 pub struct Context {
     pub world: Box<World>,
@@ -8,9 +8,11 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(scene: Box<dyn Scene>) -> Self {
+    pub fn new(provider: SceneTransition) -> Self {
+        let mut world = Box::new(Default::default()); 
+        let scene = provider(&mut world);
         Context {
-            world: Box::new(Default::default()),
+            world,
             scene,
         }
     }
@@ -19,17 +21,9 @@ impl Context {
         self.world.add_resource(KeyboardInput::default());
     }
 
-    pub fn start_scene(&mut self) {
-        self.scene.begin(&mut self.world);
-    }
-
     pub fn update_scene(&mut self) -> SceneResult {
         self.scene.update(&mut self.world)
     }
-
-    // pub fn end_scene(&mut self) {
-    //     self.scene.end();
-    // }
 
     pub fn handle_scene_update(&mut self) -> bool {
         // Update

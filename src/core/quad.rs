@@ -1,6 +1,6 @@
 use crate::window::Window;
 
-use super::{builder::QuadBuilder, context::Context, Scene};
+use super::{Scene, builder::QuadBuilder, context::Context, scene::SceneTransition};
 
 pub struct Quad {
     pub(crate) main_window: Window,
@@ -11,14 +11,13 @@ impl Quad {
         QuadBuilder::default()
     }
 
-    pub fn run(self, scene: Box<dyn Scene>) {
+    pub fn run(self, scene: SceneTransition) {
         let window = self.main_window;
         let event_loop = window.event_loop;
         let mut exit = false;
 
         let mut context = Context::new(scene);
         context.register_resources();
-        context.start_scene();
 
         event_loop.run(move |event, _, control_flow| {
             use winit::{
