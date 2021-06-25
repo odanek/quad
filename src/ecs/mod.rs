@@ -8,6 +8,7 @@ mod entity;
 mod query;
 mod resource;
 mod storage;
+mod schedule;
 mod system;
 mod world;
 

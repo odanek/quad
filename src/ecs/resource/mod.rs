@@ -55,21 +55,6 @@ impl Resources {
         self.id_map.get(&type_id).copied()
     }
 
-    fn get_or_insert_id<T: Resource>(&mut self) -> ResourceId {
-        let type_id = TypeId::of::<T>();
-        let resources = &mut self.resources;
-        *self.id_map.entry(type_id).or_insert_with(|| {
-            let id = ResourceId(resources.len());
-            let info = ResourceInfo {
-                id,
-                type_id,
-                name: type_name::<T>(),
-            };
-            resources.push(info);
-            id
-        })
-    }
-
     #[inline]
     pub fn add<T: Resource>(&mut self, resource: T) -> Option<T> {
         let id = self.get_or_insert_id::<T>();
@@ -93,7 +78,7 @@ impl Resources {
     }
 
     #[inline]
-    pub fn get_unchecked<T: Resource>(&self) -> Option<*const T> {
+    pub(crate) fn get_unchecked<T: Resource>(&self) -> Option<*const T> {
         self.get::<T>().map(|r| r as _)
     }
 
@@ -104,7 +89,22 @@ impl Resources {
     }
 
     #[inline]
-    pub fn get_mut_unchecked<T: Resource>(&self) -> Option<*mut T> {
+    pub(crate) fn get_mut_unchecked<T: Resource>(&self) -> Option<*mut T> {
         self.get::<T>().map(|r| r as *const T as _)
+    }
+
+    fn get_or_insert_id<T: Resource>(&mut self) -> ResourceId {
+        let type_id = TypeId::of::<T>();
+        let resources = &mut self.resources;
+        *self.id_map.entry(type_id).or_insert_with(|| {
+            let id = ResourceId(resources.len());
+            let info = ResourceInfo {
+                id,
+                type_id,
+                name: type_name::<T>(),
+            };
+            resources.push(info);
+            id
+        })
     }
 }

@@ -22,9 +22,9 @@ pub struct SystemMeta {
 }
 
 impl SystemMeta {
-    fn new<T>() -> Self {
+    fn new<T>(id: SystemId) -> Self {
         Self {
-            id: SystemId::new(),
+            id,
             name: std::any::type_name::<T>(),
             resource_access: Default::default(),
             // archetype_component_access: Access::default(),
@@ -32,89 +32,89 @@ impl SystemMeta {
     }
 }
 
-pub struct SystemState<Param: SystemParam> {
-    meta: SystemMeta,
-    param_state: <Param as SystemParam>::Fetch,
-    world_id: WorldId,
-    archetype_generation: ArchetypeGeneration,
-}
+// pub struct SystemState<Param: SystemParam> {
+//     meta: SystemMeta,
+//     param_state: <Param as SystemParam>::Fetch,
+//     world_id: WorldId,
+//     archetype_generation: ArchetypeGeneration,
+// }
 
-impl<Param: SystemParam> SystemState<Param> {
-    pub fn new(world: &mut World) -> Self {
-        let config = <Param::Fetch as SystemParamState>::default_config();
-        Self::with_config(world, config)
-    }
+// impl<Param: SystemParam> SystemState<Param> {
+//     pub fn new(world: &mut World) -> Self {
+//         let config = <Param::Fetch as SystemParamState>::default_config();
+//         Self::with_config(world, config)
+//     }
 
-    pub fn with_config(
-        world: &mut World,
-        config: <Param::Fetch as SystemParamState>::Config,
-    ) -> Self {
-        let mut meta = SystemMeta::new::<Param>();
-        let param_state = <Param::Fetch as SystemParamState>::init(world, &mut meta, config);
-        Self {
-            meta,
-            param_state,
-            world_id: world.id(),
-            archetype_generation: ArchetypeGeneration::initial(),
-        }
-    }
+//     pub fn with_config(
+//         world: &mut World,
+//         config: <Param::Fetch as SystemParamState>::Config,
+//     ) -> Self {
+//         let mut meta = SystemMeta::new::<Param>();
+//         let param_state = <Param::Fetch as SystemParamState>::init(world, &mut meta, config);
+//         Self {
+//             meta,
+//             param_state,
+//             world_id: world.id(),
+//             archetype_generation: ArchetypeGeneration::initial(),
+//         }
+//     }
 
-    #[inline]
-    pub fn meta(&self) -> &SystemMeta {
-        &self.meta
-    }
+//     #[inline]
+//     pub fn meta(&self) -> &SystemMeta {
+//         &self.meta
+//     }
 
-    /// Retrieve the [`SystemParam`] values. This can only be called when all parameters are read-only.
-    #[inline]
-    pub fn get<'a>(&'a mut self, world: &'a World) -> <Param::Fetch as SystemParamFetch<'a>>::Item
-    where
-        Param::Fetch: ReadOnlySystemParamFetch,
-    {
-        self.validate_world_and_update_archetypes(world);
-        unsafe { self.get_unchecked_manual(world) }
-    }
+//     /// Retrieve the [`SystemParam`] values. This can only be called when all parameters are read-only.
+//     #[inline]
+//     pub fn get<'a>(&'a mut self, world: &'a World) -> <Param::Fetch as SystemParamFetch<'a>>::Item
+//     where
+//         Param::Fetch: ReadOnlySystemParamFetch,
+//     {
+//         self.validate_world_and_update_archetypes(world);
+//         unsafe { self.get_unchecked_manual(world) }
+//     }
 
-    #[inline]
-    pub fn get_mut<'a>(
-        &'a mut self,
-        world: &'a mut World,
-    ) -> <Param::Fetch as SystemParamFetch<'a>>::Item {
-        self.validate_world_and_update_archetypes(world);
-        unsafe { self.get_unchecked_manual(world) }
-    }
+//     #[inline]
+//     pub fn get_mut<'a>(
+//         &'a mut self,
+//         world: &'a mut World,
+//     ) -> <Param::Fetch as SystemParamFetch<'a>>::Item {
+//         self.validate_world_and_update_archetypes(world);
+//         unsafe { self.get_unchecked_manual(world) }
+//     }
 
-    pub fn apply(&mut self, world: &mut World) {
-        self.param_state.apply(world);
-    }
+//     pub fn apply(&mut self, world: &mut World) {
+//         self.param_state.apply(world);
+//     }
 
-    #[inline]
-    pub fn matches_world(&self, world: &World) -> bool {
-        self.world_id == world.id()
-    }
+//     #[inline]
+//     pub fn matches_world(&self, world: &World) -> bool {
+//         self.world_id == world.id()
+//     }
 
-    fn validate_world_and_update_archetypes(&mut self, world: &World) {
-        assert!(self.matches_world(world), "Encountered a mismatched World. A SystemState cannot be used with Worlds other than the one it was created with.");
-        let archetypes = world.archetypes();
-        let new_generation = archetypes.generation();
-        let old_generation = std::mem::replace(&mut self.archetype_generation, new_generation);
-        let archetype_index_range = old_generation.value()..new_generation.value();
+//     fn validate_world_and_update_archetypes(&mut self, world: &World) {
+//         assert!(self.matches_world(world), "Encountered a mismatched World. A SystemState cannot be used with Worlds other than the one it was created with.");
+//         let archetypes = world.archetypes();
+//         let new_generation = archetypes.generation();
+//         let old_generation = std::mem::replace(&mut self.archetype_generation, new_generation);
+//         let archetype_index_range = old_generation.value()..new_generation.value();
 
-        for archetype_index in archetype_index_range {
-            self.param_state.new_archetype(
-                &archetypes[ArchetypeId::new(archetype_index)],
-                &mut self.meta,
-            );
-        }
-    }
+//         for archetype_index in archetype_index_range {
+//             self.param_state.new_archetype(
+//                 &archetypes[ArchetypeId::new(archetype_index)],
+//                 &mut self.meta,
+//             );
+//         }
+//     }
 
-    #[inline]
-    pub unsafe fn get_unchecked_manual<'a>(
-        &'a mut self,
-        world: &'a World,
-    ) -> <Param::Fetch as SystemParamFetch<'a>>::Item {
-        <Param::Fetch as SystemParamFetch>::get_param(&mut self.param_state, &self.meta, world)
-    }
-}
+//     #[inline]
+//     pub unsafe fn get_unchecked_manual<'a>(
+//         &'a mut self,
+//         world: &'a World,
+//     ) -> <Param::Fetch as SystemParamFetch<'a>>::Item {
+//         <Param::Fetch as SystemParamFetch>::get_param(&mut self.param_state, &self.meta, world)
+//     }
+// }
 
 pub struct In<In>(pub In);
 
@@ -152,12 +152,12 @@ where
     Marker: 'static,
     F: SystemParamFunction<In, Out, Param, Marker> + Send + Sync + 'static,
 {
-    fn system(self) -> FunctionSystem<In, Out, Param, Marker, F> {
+    fn system(self, id: SystemId) -> FunctionSystem<In, Out, Param, Marker, F> {
         FunctionSystem {
             func: self,
             param_state: None,
             config: Some(<Param::Fetch as SystemParamState>::default_config()),
-            system_meta: SystemMeta::new::<F>(),
+            system_meta: SystemMeta::new::<F>(id),
             marker: PhantomData,
         }
     }
