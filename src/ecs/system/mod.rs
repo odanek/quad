@@ -1,5 +1,3 @@
-use std::sync::atomic::{AtomicUsize, Ordering};
-
 use super::World;
 
 mod function_system;
@@ -9,11 +7,9 @@ mod system_param;
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct SystemId(pub usize);
 
-static LAST_ID: AtomicUsize = AtomicUsize::new(0);
-
 impl SystemId {
-    pub fn new() -> Self {
-        SystemId(LAST_ID.fetch_add(1, Ordering::Relaxed))
+    pub fn new(id: usize) -> Self {
+        SystemId(id)
     }
 }
 
@@ -38,7 +34,6 @@ pub trait System: Send + Sync + 'static {
     // fn archetype_component_access(&self) -> &Access<ArchetypeComponentId>;
 }
 
-// TODO: Why Params is needed?
 pub trait IntoSystem<SystemType: System> {
     fn system(self, id: SystemId) -> SystemType;
 }

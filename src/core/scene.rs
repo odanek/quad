@@ -1,4 +1,4 @@
-use crate::ecs::{World};
+use crate::ecs::World;
 
 pub enum SceneResult {
     Ok,

@@ -1,7 +1,5 @@
 mod entity_ref;
 
-use std::sync::atomic::{AtomicUsize, Ordering};
-
 use self::entity_ref::{EntityMut, EntityRef};
 
 use super::{
@@ -9,39 +7,23 @@ use super::{
     bundle::Bundles,
     component::Components,
     resource::{Resource, ResourceId},
+    schedule::Executor,
     storage::Storages,
-    Entities, Entity, Resources,
+    Entities, Entity, IntoSystem, Resources, System,
 };
 
-static LAST_ID: AtomicUsize = AtomicUsize::new(0);
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct WorldId(usize);
-
-impl Default for WorldId {
-    fn default() -> Self {
-        WorldId(LAST_ID.fetch_add(1, Ordering::Relaxed))
-    }
-}
-
-// Struct of arrays
 #[derive(Default)]
 pub struct World {
-    id: WorldId,
     resources: Resources,
     archetypes: Archetypes,
     entities: Entities,
     components: Components,
     storages: Storages,
     bundles: Bundles,
+    executor: Executor,
 }
 
 impl World {
-    #[inline]
-    pub fn id(&self) -> WorldId {
-        self.id
-    }
-
     #[inline]
     pub fn new() -> World {
         World::default()
@@ -154,5 +136,30 @@ impl World {
     #[inline]
     pub fn entity_mut(&mut self, entity: Entity) -> EntityMut {
         self.get_entity_mut(entity).expect("Entity does not exist")
+    }
+
+    #[inline]
+    pub fn system<T, S>(&mut self, system: S) -> T
+    where
+        T: System,
+        S: IntoSystem<T>,
+    {
+        self.executor.system(system)
+    }
+
+    #[inline]
+    pub fn run<S, T>(&mut self, system: &mut S) -> T
+    where    
+        S: System<In = (), Out = T> + ?Sized,
+    {
+        system.run((), self)
+    }
+
+    #[inline]
+    pub fn run_with<S, T, I>(&mut self, system: &mut S, param: I) -> T
+    where
+        S: System<In = I, Out = T> + ?Sized,
+    {
+        system.run(param, self)
     }
 }

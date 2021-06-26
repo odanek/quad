@@ -4,7 +4,6 @@ use crate::ecs::{
     archetype::{ArchetypeGeneration, ArchetypeId},
     query::access::Access,
     resource::ResourceId,
-    world::WorldId,
     World,
 };
 

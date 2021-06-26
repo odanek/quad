@@ -1,6 +1,6 @@
 use crate::window::Window;
 
-use super::{Scene, builder::QuadBuilder, context::Context};
+use super::{builder::QuadBuilder, context::Context, Scene};
 
 pub struct Quad {
     pub(crate) main_window: Window,
