@@ -16,6 +16,6 @@ pub use entity::{Entities, Entity};
 pub use resource::Resources;
 pub use system::{
     resource_param::{Res, ResMut},
-    IntoSystem, System,
+    IntoSystem, System, BoxedSystem,
 };
 pub use world::World;

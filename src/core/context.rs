@@ -19,6 +19,10 @@ impl Context {
         self.world.add_resource(KeyboardInput::default());
     }
 
+    pub fn start_scene(&mut self) {
+        self.scene.on_start(&mut self.world);
+    }
+
     pub fn update_scene(&mut self) -> SceneResult {
         self.scene.update(&mut self.world)
     }

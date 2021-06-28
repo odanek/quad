@@ -9,7 +9,7 @@ use super::{
     resource::{Resource, ResourceId},
     schedule::Executor,
     storage::Storages,
-    Entities, Entity, IntoSystem, Resources, System,
+    BoxedSystem, Entities, Entity, IntoSystem, Resources, System,
 };
 
 #[derive(Default)]
@@ -144,22 +144,19 @@ impl World {
         T: System,
         S: IntoSystem<T>,
     {
-        self.executor.system(system)
+        let mut system = self.executor.system(system);
+        system.initialize(self);
+        system
     }
 
     #[inline]
-    pub fn run<S, T>(&mut self, system: &mut S) -> T
-    where    
-        S: System<In = (), Out = T> + ?Sized,
+    pub fn run<Out: 'static>(&mut self, system: &mut BoxedSystem<(), Out>) -> Out
     {
         system.run((), self)
     }
 
     #[inline]
-    pub fn run_with<S, T, I>(&mut self, system: &mut S, param: I) -> T
-    where
-        S: System<In = I, Out = T> + ?Sized,
-    {
+    pub fn run_with<In: 'static, Out: 'static>(&mut self, system: &mut BoxedSystem<In, Out>, param: In) -> Out {
         system.run(param, self)
     }
 }
