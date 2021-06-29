@@ -150,13 +150,16 @@ impl World {
     }
 
     #[inline]
-    pub fn run<Out: 'static>(&mut self, system: &mut BoxedSystem<(), Out>) -> Out
-    {
+    pub fn run<Out: 'static>(&mut self, system: &mut BoxedSystem<(), Out>) -> Out {
         system.run((), self)
     }
 
     #[inline]
-    pub fn run_with<In: 'static, Out: 'static>(&mut self, system: &mut BoxedSystem<In, Out>, param: In) -> Out {
+    pub fn run_with<In: 'static, Out: 'static>(
+        &mut self,
+        system: &mut BoxedSystem<In, Out>,
+        param: In,
+    ) -> Out {
         system.run(param, self)
     }
 }

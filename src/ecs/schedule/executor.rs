@@ -1,4 +1,4 @@
-use crate::ecs::{IntoSystem, System, system::SystemId};
+use crate::ecs::{system::SystemId, IntoSystem, System};
 
 pub struct Executor {
     system_id: usize,
