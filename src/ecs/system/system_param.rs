@@ -43,7 +43,7 @@ pub trait SystemParamFetch<'a>: SystemParamState {
 unsafe impl<T: Resource> ReadOnlySystemParamFetch for ResState<T> {}
 
 pub struct ResState<T> {
-    resource_id: ResourceId,
+    _resource_id: ResourceId,
     marker: PhantomData<T>,
 }
 
@@ -65,7 +65,7 @@ unsafe impl<T: Resource> SystemParamState for ResState<T> {
         access.add_read(resource_id);
 
         Self {
-            resource_id,
+            _resource_id: resource_id,
             marker: PhantomData,
         }
     }
@@ -94,7 +94,7 @@ impl<'a, T: Resource> SystemParamFetch<'a> for ResState<T> {
 }
 
 pub struct ResMutState<T> {
-    resource_id: ResourceId,
+    _resource_id: ResourceId,
     marker: PhantomData<T>,
 }
 
@@ -120,7 +120,7 @@ unsafe impl<T: Resource> SystemParamState for ResMutState<T> {
         access.add_write(resource_id);
 
         Self {
-            resource_id,
+            _resource_id: resource_id,
             marker: PhantomData,
         }
     }
@@ -133,7 +133,7 @@ impl<'a, T: Resource> SystemParamFetch<'a> for ResMutState<T> {
 
     #[inline]
     unsafe fn get_param(
-        state: &'a mut Self,
+        _state: &'a mut Self,
         system_meta: &SystemMeta,
         world: &'a World,
     ) -> Self::Item {

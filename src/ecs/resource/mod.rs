@@ -56,6 +56,11 @@ impl Resources {
     }
 
     #[inline]
+    pub fn get_info(&self, id: ResourceId) -> Option<&ResourceInfo> {
+        self.resources.get(id.index())
+    }
+
+    #[inline]
     pub fn add<T: Resource>(&mut self, resource: T) -> Option<T> {
         let id = self.get_or_insert_id::<T>();
         self.map

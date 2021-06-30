@@ -1,16 +1,21 @@
-use crate::{ecs::World, input::KeyboardInput};
+use crate::{
+    ecs::{Executor, World},
+    input::KeyboardInput,
+};
 
-use super::{Scene, SceneResult};
+use super::{scene::BoxedScene, SceneResult};
 
 pub struct Context {
     pub world: Box<World>,
-    pub scene: Box<dyn Scene>,
+    pub executor: Executor,
+    pub scene: BoxedScene,
 }
 
 impl Context {
-    pub fn new(scene: Box<dyn Scene>) -> Self {
+    pub fn new(scene: BoxedScene) -> Self {
         Context {
             world: Box::new(Default::default()),
+            executor: Default::default(),
             scene,
         }
     }
@@ -20,11 +25,11 @@ impl Context {
     }
 
     pub fn start_scene(&mut self) {
-        self.scene.on_start(&mut self.world);
+        self.scene.on_start(&mut self.world, &mut self.executor);
     }
 
     pub fn update_scene(&mut self) -> SceneResult {
-        self.scene.update(&mut self.world)
+        self.scene.update(&mut self.world, &mut self.executor)
     }
 
     pub fn handle_scene_update(&mut self) -> bool {

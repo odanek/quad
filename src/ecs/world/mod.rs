@@ -7,9 +7,8 @@ use super::{
     bundle::Bundles,
     component::Components,
     resource::{Resource, ResourceId},
-    schedule::Executor,
     storage::Storages,
-    BoxedSystem, Entities, Entity, IntoSystem, Resources, System,
+    Entities, Entity, Resources,
 };
 
 #[derive(Default)]
@@ -20,7 +19,6 @@ pub struct World {
     components: Components,
     storages: Storages,
     bundles: Bundles,
-    executor: Executor,
 }
 
 impl World {
@@ -136,30 +134,5 @@ impl World {
     #[inline]
     pub fn entity_mut(&mut self, entity: Entity) -> EntityMut {
         self.get_entity_mut(entity).expect("Entity does not exist")
-    }
-
-    #[inline]
-    pub fn system<T, S>(&mut self, system: S) -> T
-    where
-        T: System,
-        S: IntoSystem<T>,
-    {
-        let mut system = self.executor.system(system);
-        system.initialize(self);
-        system
-    }
-
-    #[inline]
-    pub fn run<Out: 'static>(&mut self, system: &mut BoxedSystem<(), Out>) -> Out {
-        system.run((), self)
-    }
-
-    #[inline]
-    pub fn run_with<In: 'static, Out: 'static>(
-        &mut self,
-        system: &mut BoxedSystem<In, Out>,
-        param: In,
-    ) -> Out {
-        system.run(param, self)
     }
 }

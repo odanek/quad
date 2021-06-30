@@ -1,14 +1,9 @@
 use std::marker::PhantomData;
 
-use crate::ecs::{
-    archetype::{ArchetypeGeneration, ArchetypeId},
-    query::access::Access,
-    resource::ResourceId,
-    World,
-};
+use crate::ecs::{query::access::Access, resource::ResourceId, World};
 
 use super::{
-    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
+    system_param::{SystemParam, SystemParamFetch, SystemParamState},
     IntoSystem, System, SystemId,
 };
 
@@ -200,7 +195,7 @@ where
     // }
 
     #[inline]
-    unsafe fn run_unsafe(&mut self, input: Self::In, world: &World) -> Self::Out {
+    unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out {
         let out = self.func.run(
             input,
             self.param_state.as_mut().unwrap(),

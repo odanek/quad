@@ -22,10 +22,8 @@ pub trait System: Send + Sync + 'static {
 
     fn initialize(&mut self, _world: &mut World);
 
-    unsafe fn run_unsafe(&mut self, input: Self::In, world: &World) -> Self::Out;
-    fn run(&mut self, input: Self::In, world: &mut World) -> Self::Out {
-        unsafe { self.run_unsafe(input, world) }
-    }
+    #[allow(clippy::missing_safety_doc)]
+    unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out;
 
     fn apply_buffers(&mut self, world: &mut World);
 
@@ -39,7 +37,7 @@ pub trait IntoSystem<SystemType: System> {
 }
 
 impl<Sys: System> IntoSystem<Sys> for Sys {
-    fn system(self, id: SystemId) -> Sys {
+    fn system(self, _id: SystemId) -> Sys {
         self
     }
 }
