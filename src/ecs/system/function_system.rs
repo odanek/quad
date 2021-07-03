@@ -195,6 +195,15 @@ where
     // }
 
     #[inline]
+    fn initialize(&mut self, world: &mut World) {
+        self.param_state = Some(<Param::Fetch as SystemParamState>::init(
+            world,
+            &mut self.system_meta,
+            self.config.take().unwrap(),
+        ));
+    }
+
+    #[inline]
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out {
         let out = self.func.run(
             input,
@@ -209,15 +218,6 @@ where
     fn apply_buffers(&mut self, world: &mut World) {
         let param_state = self.param_state.as_mut().unwrap();
         param_state.apply(world);
-    }
-
-    #[inline]
-    fn initialize(&mut self, world: &mut World) {
-        self.param_state = Some(<Param::Fetch as SystemParamState>::init(
-            world,
-            &mut self.system_meta,
-            self.config.take().unwrap(),
-        ));
     }
 }
 

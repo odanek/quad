@@ -1,7 +1,17 @@
-use crate::ecs::resource::Resource;
+use crate::ecs::{
+    resource::{Resource, ResourceId},
+    World,
+};
 use std::{
+    any::type_name,
     fmt::Debug,
+    marker::PhantomData,
     ops::{Deref, DerefMut},
+};
+
+use super::{
+    function_system::SystemMeta,
+    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
 };
 
 pub struct Res<'w, T: Resource> {
@@ -29,6 +39,59 @@ impl<'w, T: Resource> AsRef<T> for Res<'w, T> {
     #[inline]
     fn as_ref(&self) -> &T {
         self.deref()
+    }
+}
+
+unsafe impl<T: Resource> ReadOnlySystemParamFetch for ResState<T> {}
+
+pub struct ResState<T> {
+    _resource_id: ResourceId,
+    marker: PhantomData<T>,
+}
+
+impl<'a, T: Resource> SystemParam for Res<'a, T> {
+    type Fetch = ResState<T>;
+}
+
+unsafe impl<T: Resource> SystemParamState for ResState<T> {
+    type Config = ();
+
+    fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
+        let resource_id = world.resource_id::<T>().unwrap();
+        let access = &mut system_meta.resource_access;
+        if access.has_write(resource_id) {
+            panic!(
+                "Res<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
+                type_name::<T>(), system_meta.name);
+        }
+        access.add_read(resource_id);
+
+        Self {
+            _resource_id: resource_id,
+            marker: PhantomData,
+        }
+    }
+
+    fn default_config() {}
+}
+
+impl<'a, T: Resource> SystemParamFetch<'a> for ResState<T> {
+    type Item = Res<'a, T>;
+
+    #[inline]
+    unsafe fn get_param(
+        _state: &'a mut Self,
+        system_meta: &SystemMeta,
+        world: &'a World,
+    ) -> Self::Item {
+        let resource = world.resources().get_unchecked().unwrap_or_else(|| {
+            panic!(
+                "Resource requested by {} does not exist: {}",
+                system_meta.name,
+                type_name::<T>()
+            )
+        });
+        Res { value: &*resource }
     }
 }
 
@@ -63,5 +126,62 @@ impl<'w, T: Resource> AsMut<T> for ResMut<'w, T> {
     #[inline]
     fn as_mut(&mut self) -> &mut T {
         self.deref_mut()
+    }
+}
+
+pub struct ResMutState<T> {
+    _resource_id: ResourceId,
+    marker: PhantomData<T>,
+}
+
+impl<'a, T: Resource> SystemParam for ResMut<'a, T> {
+    type Fetch = ResMutState<T>;
+}
+
+unsafe impl<T: Resource> SystemParamState for ResMutState<T> {
+    type Config = ();
+
+    fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
+        let resource_id = world.resource_id::<T>().unwrap();
+        let access = &mut system_meta.resource_access;
+        if access.has_write(resource_id) {
+            panic!(
+                "ResMut<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
+                type_name::<T>(), system_meta.name);
+        } else if access.has_read(resource_id) {
+            panic!(
+                "ResMut<{}> in system {} conflicts with a previous Res<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
+                type_name::<T>(), system_meta.name);
+        }
+        access.add_write(resource_id);
+
+        Self {
+            _resource_id: resource_id,
+            marker: PhantomData,
+        }
+    }
+
+    fn default_config() {}
+}
+
+impl<'a, T: Resource> SystemParamFetch<'a> for ResMutState<T> {
+    type Item = ResMut<'a, T>;
+
+    #[inline]
+    unsafe fn get_param(
+        _state: &'a mut Self,
+        system_meta: &SystemMeta,
+        world: &'a World,
+    ) -> Self::Item {
+        let resource = world.resources().get_mut_unchecked().unwrap_or_else(|| {
+            panic!(
+                "Resource requested by {} does not exist: {}",
+                system_meta.name,
+                type_name::<T>()
+            )
+        });
+        ResMut {
+            value: &mut *resource,
+        }
     }
 }

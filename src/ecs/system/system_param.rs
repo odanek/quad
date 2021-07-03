@@ -1,18 +1,6 @@
-use crate::ecs::{
-    archetype::Archetype,
-    resource::{Resource, ResourceId},
-    World,
-};
-use std::{any::type_name, marker::PhantomData};
+use crate::ecs::{archetype::Archetype, World};
 
-use super::{
-    function_system::SystemMeta,
-    resource_param::{Res, ResMut},
-};
-
-pub trait SystemParam: Sized {
-    type Fetch: for<'a> SystemParamFetch<'a>;
-}
+use super::function_system::SystemMeta;
 
 pub unsafe trait SystemParamState: Send + Sync + 'static {
     type Config: Send + Sync;
@@ -40,114 +28,8 @@ pub trait SystemParamFetch<'a>: SystemParamState {
     ) -> Self::Item;
 }
 
-unsafe impl<T: Resource> ReadOnlySystemParamFetch for ResState<T> {}
-
-pub struct ResState<T> {
-    _resource_id: ResourceId,
-    marker: PhantomData<T>,
-}
-
-impl<'a, T: Resource> SystemParam for Res<'a, T> {
-    type Fetch = ResState<T>;
-}
-
-unsafe impl<T: Resource> SystemParamState for ResState<T> {
-    type Config = ();
-
-    fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
-        let resource_id = world.resource_id::<T>().unwrap();
-        let access = &mut system_meta.resource_access;
-        if access.has_write(resource_id) {
-            panic!(
-                "Res<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
-                type_name::<T>(), system_meta.name);
-        }
-        access.add_read(resource_id);
-
-        Self {
-            _resource_id: resource_id,
-            marker: PhantomData,
-        }
-    }
-
-    fn default_config() {}
-}
-
-impl<'a, T: Resource> SystemParamFetch<'a> for ResState<T> {
-    type Item = Res<'a, T>;
-
-    #[inline]
-    unsafe fn get_param(
-        _state: &'a mut Self,
-        system_meta: &SystemMeta,
-        world: &'a World,
-    ) -> Self::Item {
-        let resource = world.resources().get_unchecked().unwrap_or_else(|| {
-            panic!(
-                "Resource requested by {} does not exist: {}",
-                system_meta.name,
-                std::any::type_name::<T>()
-            )
-        });
-        Res { value: &*resource }
-    }
-}
-
-pub struct ResMutState<T> {
-    _resource_id: ResourceId,
-    marker: PhantomData<T>,
-}
-
-impl<'a, T: Resource> SystemParam for ResMut<'a, T> {
-    type Fetch = ResMutState<T>;
-}
-
-unsafe impl<T: Resource> SystemParamState for ResMutState<T> {
-    type Config = ();
-
-    fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
-        let resource_id = world.resource_id::<T>().unwrap();
-        let access = &mut system_meta.resource_access;
-        if access.has_write(resource_id) {
-            panic!(
-                "ResMut<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
-                type_name::<T>(), system_meta.name);
-        } else if access.has_read(resource_id) {
-            panic!(
-                "ResMut<{}> in system {} conflicts with a previous Res<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
-                type_name::<T>(), system_meta.name);
-        }
-        access.add_write(resource_id);
-
-        Self {
-            _resource_id: resource_id,
-            marker: PhantomData,
-        }
-    }
-
-    fn default_config() {}
-}
-
-impl<'a, T: Resource> SystemParamFetch<'a> for ResMutState<T> {
-    type Item = ResMut<'a, T>;
-
-    #[inline]
-    unsafe fn get_param(
-        _state: &'a mut Self,
-        system_meta: &SystemMeta,
-        world: &'a World,
-    ) -> Self::Item {
-        let resource = world.resources().get_mut_unchecked().unwrap_or_else(|| {
-            panic!(
-                "Resource requested by {} does not exist: {}",
-                system_meta.name,
-                type_name::<T>()
-            )
-        });
-        ResMut {
-            value: &mut *resource,
-        }
-    }
+pub trait SystemParam: Sized {
+    type Fetch: for<'a> SystemParamFetch<'a>;
 }
 
 macro_rules! impl_system_param_tuple {

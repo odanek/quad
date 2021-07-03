@@ -4,4 +4,4 @@ mod quad;
 mod scene;
 
 pub use quad::Quad;
-pub use scene::{BoxedScene, Scene, SceneResult};
+pub use scene::{BoxedScene, Scene, SceneContext, SceneResult};

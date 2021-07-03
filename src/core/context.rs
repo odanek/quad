@@ -3,7 +3,10 @@ use crate::{
     input::KeyboardInput,
 };
 
-use super::{scene::BoxedScene, SceneResult};
+use super::{
+    scene::{BoxedScene, SceneContext},
+    SceneResult,
+};
 
 pub struct Context {
     pub world: Box<World>,
@@ -25,11 +28,13 @@ impl Context {
     }
 
     pub fn start_scene(&mut self) {
-        self.scene.on_start(&mut self.world, &mut self.executor);
+        self.scene
+            .on_start(SceneContext::new(&mut self.world, &mut self.executor));
     }
 
     pub fn update_scene(&mut self) -> SceneResult {
-        self.scene.update(&mut self.world, &mut self.executor)
+        self.scene
+            .update(SceneContext::new(&mut self.world, &mut self.executor))
     }
 
     pub fn handle_scene_update(&mut self) -> bool {
