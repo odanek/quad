@@ -3,14 +3,9 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use super::{
-    bundle::BundleId, component::ComponentId, entity::EntityLocation, storage::TableId, Entity,
-};
+use crate::ecs::{Entity, component::{ComponentId, ComponentStatus, bundle::BundleId}, storage::TableId};
 
-pub enum ComponentStatus {
-    Added,
-    Mutated,
-}
+use super::EntityLocation;
 
 pub struct AddBundle {
     pub archetype_id: ArchetypeId,
@@ -174,25 +169,9 @@ impl Archetype {
             Some(self.entities[index])
         }
     }
-}
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub struct ArchetypeGeneration(usize);
-
-impl ArchetypeGeneration {
-    #[inline]
-    pub fn new(generation: usize) -> Self {
-        ArchetypeGeneration(generation)
-    }
-
-    #[inline]
-    pub const fn initial() -> Self {
-        ArchetypeGeneration(0)
-    }
-
-    #[inline]
-    pub fn value(self) -> usize {
-        self.0
+    pub fn remove_all(&mut self) {
+        
     }
 }
 
@@ -214,11 +193,6 @@ impl Default for Archetypes {
 }
 
 impl Archetypes {
-    #[inline]
-    pub fn generation(&self) -> ArchetypeGeneration {
-        ArchetypeGeneration::new(self.archetypes.len())
-    }
-
     #[inline]
     pub fn len(&self) -> usize {
         self.archetypes.len()
@@ -271,6 +245,12 @@ impl Archetypes {
             archetypes.push(Archetype::new(id, components, table_id));
             id
         })
+    }
+
+    pub fn remove_all(&mut self) {
+        for archetype in &mut self.archetypes {
+            archetype.remove_all();
+        }
     }
 }
 

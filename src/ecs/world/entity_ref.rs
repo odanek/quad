@@ -1,10 +1,14 @@
 use std::any::TypeId;
 
 use crate::ecs::{
-    archetype::{Archetype, ArchetypeId, Archetypes, ComponentStatus},
-    bundle::{Bundle, BundleInfo},
-    component::{Component, Components},
-    entity::EntityLocation,
+    component::{
+        bundle::{Bundle, BundleInfo},
+        Component, ComponentStatus, Components,
+    },
+    entity::{
+        archetype::{Archetype, ArchetypeId, Archetypes},
+        EntityLocation,
+    },
     storage::Storages,
     Entities, Entity,
 };

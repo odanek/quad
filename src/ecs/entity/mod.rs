@@ -1,4 +1,7 @@
-use super::archetype::ArchetypeId;
+use self::archetype::ArchetypeId;
+
+pub mod archetype;
+
 
 #[derive(Clone, Copy, Hash, Eq, PartialEq)]
 pub struct Entity {
@@ -66,7 +69,11 @@ impl Entities {
     }
 
     pub fn free(&mut self, entity: Entity) -> Option<EntityLocation> {
-        let meta = &mut self.meta[entity.id as usize];
+        let index = entity.id as usize;
+        if index >= self.meta.len() {
+            return None;
+        }
+        let meta = &mut self.meta[index];
         if meta.generation != entity.generation {
             return None;
         }
@@ -80,6 +87,7 @@ impl Entities {
     }
 
     pub fn clear(&mut self) {
+        // TODO: If new entity is added it will have generation 0 again which can make some invalid entity ref valid again
         self.meta.clear();
         self.free.clear();
         self.len = 0;

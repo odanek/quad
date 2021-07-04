@@ -3,11 +3,9 @@ use std::{
     collections::HashMap,
 };
 
-use super::{
-    archetype::ComponentStatus,
-    component::{type_info::TypeInfo, Component, ComponentId, Components},
-    storage::Table,
-};
+use crate::ecs::storage::Table;
+
+use super::{type_info::TypeInfo, Component, ComponentId, ComponentStatus, Components};
 
 pub trait Bundle: Send + Sync + 'static {
     fn type_info() -> Vec<TypeInfo>;

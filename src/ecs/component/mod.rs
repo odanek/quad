@@ -1,3 +1,4 @@
+pub mod bundle;
 pub mod type_info;
 
 use std::{
@@ -24,6 +25,11 @@ impl ComponentId {
     pub fn index(self) -> usize {
         self.0
     }
+}
+
+pub enum ComponentStatus {
+    Added,
+    Mutated,
 }
 
 #[derive(Debug)]

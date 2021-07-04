@@ -3,9 +3,8 @@ mod entity_ref;
 use self::entity_ref::{EntityMut, EntityRef};
 
 use super::{
-    archetype::Archetypes,
-    bundle::Bundles,
-    component::Components,
+    component::{bundle::Bundles, Components},
+    entity::archetype::Archetypes,
     resource::{Resource, ResourceId},
     storage::Storages,
     Entities, Entity, Resources,
@@ -112,6 +111,11 @@ impl World {
                 true
             })
             .unwrap_or(false)
+    }
+
+    #[inline]
+    pub fn despawn_all(&mut self) {
+        self.archetypes.remove_all();
     }
 
     #[inline]

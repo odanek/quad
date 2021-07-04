@@ -1,8 +1,6 @@
 #[macro_use]
 mod macros;
 
-mod archetype;
-mod bundle;
 mod component;
 mod entity;
 mod query;
