@@ -2,7 +2,6 @@ use self::archetype::ArchetypeId;
 
 pub mod archetype;
 
-
 #[derive(Clone, Copy, Hash, Eq, PartialEq)]
 pub struct Entity {
     pub(crate) generation: u32, // TODO: Combine into single u64?
@@ -84,13 +83,6 @@ impl Entities {
         self.free.push(entity.id);
         self.len -= 1;
         Some(location)
-    }
-
-    pub fn clear(&mut self) {
-        // TODO: If new entity is added it will have generation 0 again which can make some invalid entity ref valid again
-        self.meta.clear();
-        self.free.clear();
-        self.len = 0;
     }
 
     pub fn get(&self, entity: Entity) -> Option<EntityLocation> {

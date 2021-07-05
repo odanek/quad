@@ -47,8 +47,13 @@ impl Column {
     }
 
     #[inline]
-    pub unsafe fn get_unchecked(&self, row: usize) -> *mut u8 {
+    pub(crate) unsafe fn get_unchecked(&self, row: usize) -> *mut u8 {
         self.data.get_unchecked(row)
+    }
+
+    #[inline]
+    pub(crate) unsafe fn clear(&mut self) {
+        self.data.clear();
     }
 }
 
@@ -172,6 +177,12 @@ impl Table {
             }
         }
         self.len -= 1;
+    }
+
+    pub(crate) unsafe fn clear(&mut self) {
+        for column in self.columns.values_mut() {
+            column.clear();
+        }
     }
 }
 

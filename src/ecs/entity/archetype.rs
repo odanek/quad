@@ -3,7 +3,11 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use crate::ecs::{Entity, component::{ComponentId, ComponentStatus, bundle::BundleId}, storage::TableId};
+use crate::ecs::{
+    component::{bundle::BundleId, ComponentId, ComponentStatus},
+    storage::TableId,
+    Entity,
+};
 
 use super::EntityLocation;
 
@@ -144,6 +148,11 @@ impl Archetype {
         self.components.iter().cloned()
     }
 
+    #[inline]
+    pub fn entities(&self) -> impl Iterator<Item = Entity> + '_ {
+        self.entities.iter().cloned()
+    }
+
     pub fn next_location(&self) -> EntityLocation {
         EntityLocation {
             archetype_id: self.id,
@@ -170,8 +179,8 @@ impl Archetype {
         }
     }
 
-    pub fn remove_all(&mut self) {
-        
+    pub(crate) fn clear(&mut self) {
+        self.entities.clear();
     }
 }
 
@@ -231,6 +240,11 @@ impl Archetypes {
         self.archetypes.iter()
     }
 
+    #[inline]
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Archetype> {
+        self.archetypes.iter_mut()
+    }
+
     pub fn get_id_or_insert(
         &mut self,
         table_id: TableId,
@@ -245,12 +259,6 @@ impl Archetypes {
             archetypes.push(Archetype::new(id, components, table_id));
             id
         })
-    }
-
-    pub fn remove_all(&mut self) {
-        for archetype in &mut self.archetypes {
-            archetype.remove_all();
-        }
     }
 }
 

@@ -126,6 +126,7 @@ impl BlobVec {
                 (self.drop)(ptr);
             }
         }
+        // TODO: Free reserved capacity to save mem?
     }
 
     #[inline]

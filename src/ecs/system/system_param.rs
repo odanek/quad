@@ -1,4 +1,4 @@
-use crate::ecs::{World, entity::archetype::Archetype};
+use crate::ecs::{entity::archetype::Archetype, World};
 
 use super::function_system::SystemMeta;
 

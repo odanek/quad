@@ -113,9 +113,16 @@ impl World {
             .unwrap_or(false)
     }
 
-    #[inline]
     pub fn despawn_all(&mut self) {
-        self.archetypes.remove_all();
+        for archetype in self.archetypes.iter_mut() {
+            for entity in archetype.entities() {
+                self.entities.free(entity);
+            }
+            archetype.clear();
+            unsafe {
+                self.storages.tables[archetype.table_id()].clear();
+            }
+        }
     }
 
     #[inline]
