@@ -1,4 +1,9 @@
-use std::{any::Any, collections::HashMap, marker::PhantomData, ops::{Deref, DerefMut}};
+use std::{
+    any::Any,
+    collections::HashMap,
+    marker::PhantomData,
+    ops::{Deref, DerefMut},
+};
 
 use crate::ecs::{system::SystemId, IntoSystem, System, World};
 
@@ -9,7 +14,10 @@ pub struct SystemKey<In, Out> {
 
 impl<In, Out> Clone for SystemKey<In, Out> {
     fn clone(&self) -> Self {
-        SystemKey { id: self.id, marker: PhantomData }
+        SystemKey {
+            id: self.id,
+            marker: PhantomData,
+        }
     }
 }
 
@@ -17,7 +25,10 @@ impl<In, Out> Copy for SystemKey<In, Out> {}
 
 impl<In, Out> SystemKey<In, Out> {
     pub fn new(id: SystemId) -> Self {
-        Self { id, marker: PhantomData }
+        Self {
+            id,
+            marker: PhantomData,
+        }
     }
 }
 
