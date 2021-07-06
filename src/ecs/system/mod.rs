@@ -41,5 +41,3 @@ impl<Sys: System> IntoSystem<Sys> for Sys {
         self
     }
 }
-
-pub type BoxedSystem<In = (), Out = ()> = Box<dyn System<In = In, Out = Out>>;

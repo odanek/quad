@@ -12,9 +12,9 @@ mod world;
 
 pub use entity::{Entities, Entity};
 pub use resource::Resources;
-pub use schedule::Executor;
+pub use schedule::{Executor, SystemKey};
 pub use system::{
     resource_param::{Res, ResMut},
-    BoxedSystem, IntoSystem, System,
+    IntoSystem, System,
 };
 pub use world::World;
