@@ -54,9 +54,7 @@ impl<'a, T: Resource> SystemParam for Res<'a, T> {
 }
 
 unsafe impl<T: Resource> SystemParamState for ResState<T> {
-    type Config = ();
-
-    fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
+    fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         let resource_id = world.resource_id::<T>().unwrap();
         let access = &mut system_meta.resource_access;
         if access.has_write(resource_id) {
@@ -71,8 +69,6 @@ unsafe impl<T: Resource> SystemParamState for ResState<T> {
             marker: PhantomData,
         }
     }
-
-    fn default_config() {}
 }
 
 impl<'a, T: Resource> SystemParamFetch<'a> for ResState<T> {
@@ -139,9 +135,7 @@ impl<'a, T: Resource> SystemParam for ResMut<'a, T> {
 }
 
 unsafe impl<T: Resource> SystemParamState for ResMutState<T> {
-    type Config = ();
-
-    fn init(world: &mut World, system_meta: &mut SystemMeta, _config: Self::Config) -> Self {
+    fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         let resource_id = world.resource_id::<T>().unwrap();
         let access = &mut system_meta.resource_access;
         if access.has_write(resource_id) {
@@ -160,8 +154,6 @@ unsafe impl<T: Resource> SystemParamState for ResMutState<T> {
             marker: PhantomData,
         }
     }
-
-    fn default_config() {}
 }
 
 impl<'a, T: Resource> SystemParamFetch<'a> for ResMutState<T> {

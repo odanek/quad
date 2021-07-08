@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::ecs::{query::access::Access, resource::ResourceId, World};
+use crate::ecs::{component::ComponentId, query::access::Access, resource::ResourceId, World};
 
 use super::{
     system_param::{SystemParam, SystemParamFetch, SystemParamState},
@@ -11,6 +11,7 @@ pub struct SystemMeta {
     pub(crate) id: SystemId,
     pub(crate) name: &'static str,
     pub(crate) resource_access: Access<ResourceId>,
+    pub(crate) component_access: Access<ComponentId>,
     // pub(crate) component_access_set: FilteredAccessSet<ComponentId>,
     // pub(crate) archetype_component_access: Access<ArchetypeComponentId>,
 }
@@ -21,6 +22,7 @@ impl SystemMeta {
             id,
             name: std::any::type_name::<T>(),
             resource_access: Default::default(),
+            component_access: Default::default(),
             // archetype_component_access: Access::default(),
         }
     }
@@ -119,23 +121,12 @@ where
     Param: SystemParam,
 {
     func: F,
-    param_state: Option<Param::Fetch>,
+    param_state: Param::Fetch,
     system_meta: SystemMeta,
-    config: Option<<Param::Fetch as SystemParamState>::Config>,
 
     // NOTE: PhantomData<fn()-> T> gives this safe Send/Sync impls
     #[allow(clippy::type_complexity)]
     marker: PhantomData<fn() -> (In, Out, Marker)>,
-}
-
-impl<In, Out, Param: SystemParam, Marker, F> FunctionSystem<In, Out, Param, Marker, F> {
-    pub fn config(
-        mut self,
-        f: impl FnOnce(&mut <Param::Fetch as SystemParamState>::Config),
-    ) -> Self {
-        f(self.config.as_mut().unwrap());
-        self
-    }
 }
 
 impl<In, Out, Param, Marker, F> IntoSystem<FunctionSystem<In, Out, Param, Marker, F>> for F
@@ -146,12 +137,12 @@ where
     Marker: 'static,
     F: SystemParamFunction<In, Out, Param, Marker> + Send + Sync + 'static,
 {
-    fn system(self, id: SystemId) -> FunctionSystem<In, Out, Param, Marker, F> {
+    fn system(self, id: SystemId, world: &mut World) -> FunctionSystem<In, Out, Param, Marker, F> {
+        let mut meta = SystemMeta::new::<F>(id);
         FunctionSystem {
             func: self,
-            param_state: None,
-            config: Some(<Param::Fetch as SystemParamState>::default_config()),
-            system_meta: SystemMeta::new::<F>(id),
+            param_state: <Param::Fetch as SystemParamState>::new(world, &mut meta),
+            system_meta: meta,
             marker: PhantomData,
         }
     }
@@ -178,15 +169,20 @@ where
         self.system_meta.id
     }
 
+    #[inline]
+    fn resource_access(&self) -> &Access<ResourceId> {
+        &self.system_meta.resource_access
+    }
+
+    #[inline]
+    fn component_access(&self) -> &Access<ComponentId> {
+        &self.system_meta.component_access
+    }
+
     // #[inline]
     // fn new_archetype(&mut self, archetype: &Archetype) {
     //     let param_state = self.param_state.as_mut().unwrap();
     //     param_state.new_archetype(archetype, &mut self.system_meta);
-    // }
-
-    // #[inline]
-    // fn component_access(&self) -> &Access<ComponentId> {
-    //     &self.system_meta.component_access_set.combined_access()
     // }
 
     // #[inline]
@@ -195,29 +191,14 @@ where
     // }
 
     #[inline]
-    fn initialize(&mut self, world: &mut World) {
-        self.param_state = Some(<Param::Fetch as SystemParamState>::init(
-            world,
-            &mut self.system_meta,
-            self.config.take().unwrap(),
-        ));
-    }
-
-    #[inline]
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out {
-        let out = self.func.run(
-            input,
-            self.param_state.as_mut().unwrap(),
-            &self.system_meta,
-            world,
-        );
-        out
+        self.func
+            .run(input, &mut self.param_state, &self.system_meta, world)
     }
 
     #[inline]
     fn apply_buffers(&mut self, world: &mut World) {
-        let param_state = self.param_state.as_mut().unwrap();
-        param_state.apply(world);
+        self.param_state.apply(world);
     }
 }
 

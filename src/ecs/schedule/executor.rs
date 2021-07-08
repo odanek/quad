@@ -76,11 +76,8 @@ impl Executor {
         let id = SystemId::new(self.system_id);
         self.system_id += 1;
 
-        let mut boxed = Box::new(system.system(id));
-        boxed.initialize(world);
-
         let key = SystemKey::new(id);
-        let value = SystemValue(boxed);
+        let value = SystemValue(Box::new(system.system(id, world)));
         self.systems.insert(id, Box::new(value));
         key
     }

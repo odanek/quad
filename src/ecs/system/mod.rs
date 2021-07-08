@@ -1,4 +1,4 @@
-use super::World;
+use super::{component::ComponentId, query::access::Access, resource::ResourceId, World};
 
 mod function_system;
 pub mod resource_param;
@@ -19,8 +19,8 @@ pub trait System: Send + Sync + 'static {
 
     fn name(&self) -> &'static str;
     fn id(&self) -> SystemId;
-
-    fn initialize(&mut self, _world: &mut World);
+    fn resource_access(&self) -> &Access<ResourceId>;
+    fn component_access(&self) -> &Access<ComponentId>;
 
     #[allow(clippy::missing_safety_doc)]
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out;
@@ -28,16 +28,10 @@ pub trait System: Send + Sync + 'static {
     fn apply_buffers(&mut self, world: &mut World);
 
     // fn new_archetype(&mut self, archetype: &Archetype);
-    // fn component_access(&self) -> &Access<ComponentId>;
+
     // fn archetype_component_access(&self) -> &Access<ArchetypeComponentId>;
 }
 
 pub trait IntoSystem<SystemType: System> {
-    fn system(self, id: SystemId) -> SystemType;
-}
-
-impl<Sys: System> IntoSystem<Sys> for Sys {
-    fn system(self, _id: SystemId) -> Sys {
-        self
-    }
+    fn system(self, id: SystemId, world: &mut World) -> SystemType;
 }

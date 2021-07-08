@@ -9,6 +9,8 @@ use std::{
 
 use self::type_info::TypeInfo;
 
+use super::query::access::AccessIndex;
+
 pub trait Component: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Component for T {}
 
@@ -23,6 +25,12 @@ impl ComponentId {
 
     #[inline]
     pub fn index(self) -> usize {
+        self.0
+    }
+}
+
+impl AccessIndex for ComponentId {
+    fn index(&self) -> usize {
         self.0
     }
 }
