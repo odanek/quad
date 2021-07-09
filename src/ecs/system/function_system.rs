@@ -135,7 +135,7 @@ where
     Out: 'static,
     Param: SystemParam + 'static,
     Marker: 'static,
-    F: SystemParamFunction<In, Out, Param, Marker> + Send + Sync + 'static,
+    F: SystemParamFunction<In, Out, Param, Marker>,
 {
     fn system(self, id: SystemId, world: &mut World) -> FunctionSystem<In, Out, Param, Marker, F> {
         let mut meta = SystemMeta::new::<F>(id);

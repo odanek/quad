@@ -88,17 +88,20 @@ impl Executor {
     }
 
     #[inline]
-    pub fn run<Out: 'static>(&mut self, world: &mut World, key: SystemKey<(), Out>) -> Out {
+    pub fn run<Out>(&mut self, world: &mut World, key: SystemKey<(), Out>) -> Out where Out: 'static {
         self.run_with(world, key, ())
     }
 
     #[inline]
-    pub fn run_with<In: 'static, Out: 'static>(
+    pub fn run_with<In, Out>(
         &mut self,
         world: &mut World,
         key: SystemKey<In, Out>,
         param: In,
-    ) -> Out {
+    ) -> Out 
+    where In: 'static,
+    Out: 'static,
+    {
         let boxed = self
             .systems
             .get_mut(&key.id)

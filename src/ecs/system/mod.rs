@@ -15,8 +15,8 @@ impl SystemId {
 }
 
 pub trait System: Send + Sync + 'static {
-    type In;
-    type Out;
+    type In: 'static;
+    type Out: 'static;
 
     fn name(&self) -> &'static str;
     fn id(&self) -> SystemId;
