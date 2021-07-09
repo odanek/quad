@@ -14,7 +14,8 @@ pub use entity::{Entities, Entity};
 pub use resource::Resources;
 pub use schedule::{Executor, SystemKey};
 pub use system::{
+    local_param::Local,
     resource_param::{Res, ResMut},
     IntoSystem, System,
 };
-pub use world::World;
+pub use world::{FromWorld, World};

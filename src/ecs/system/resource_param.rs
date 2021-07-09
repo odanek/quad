@@ -11,7 +11,7 @@ use std::{
 
 use super::{
     function_system::SystemMeta,
-    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
+    system_param::{SystemParam, SystemParamFetch, SystemParamState},
 };
 
 pub struct Res<'w, T: Resource> {
@@ -42,8 +42,6 @@ impl<'w, T: Resource> AsRef<T> for Res<'w, T> {
     }
 }
 
-unsafe impl<T: Resource> ReadOnlySystemParamFetch for ResState<T> {}
-
 pub struct ResState<T> {
     _resource_id: ResourceId,
     marker: PhantomData<T>,
@@ -53,7 +51,7 @@ impl<'a, T: Resource> SystemParam for Res<'a, T> {
     type Fetch = ResState<T>;
 }
 
-unsafe impl<T: Resource> SystemParamState for ResState<T> {
+impl<T: Resource> SystemParamState for ResState<T> {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         let resource_id = world.resource_id::<T>().unwrap();
         let access = &mut system_meta.resource_access;
@@ -134,7 +132,7 @@ impl<'a, T: Resource> SystemParam for ResMut<'a, T> {
     type Fetch = ResMutState<T>;
 }
 
-unsafe impl<T: Resource> SystemParamState for ResMutState<T> {
+impl<T: Resource> SystemParamState for ResMutState<T> {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         let resource_id = world.resource_id::<T>().unwrap();
         let access = &mut system_meta.resource_access;

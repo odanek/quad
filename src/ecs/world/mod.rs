@@ -147,3 +147,13 @@ impl World {
         self.get_entity_mut(entity).expect("Entity does not exist")
     }
 }
+
+pub trait FromWorld {
+    fn from_world(world: &mut World) -> Self;
+}
+
+impl<T: Default> FromWorld for T {
+    fn from_world(_world: &mut World) -> Self {
+        T::default()
+    }
+}

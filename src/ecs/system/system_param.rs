@@ -2,7 +2,7 @@ use crate::ecs::{entity::archetype::Archetype, World};
 
 use super::function_system::SystemMeta;
 
-pub unsafe trait SystemParamState: Send + Sync + 'static {
+pub trait SystemParamState: Send + Sync + 'static {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self;
 
     #[inline]
@@ -11,8 +11,6 @@ pub unsafe trait SystemParamState: Send + Sync + 'static {
     #[inline]
     fn apply(&mut self, _world: &mut World) {}
 }
-
-pub unsafe trait ReadOnlySystemParamFetch {}
 
 pub trait SystemParamFetch<'a>: SystemParamState {
     type Item;
@@ -34,9 +32,6 @@ macro_rules! impl_system_param_tuple {
             type Fetch = ($($param::Fetch,)*);
         }
 
-        // SAFE: tuple consists only of ReadOnlySystemParamFetches
-        unsafe impl<$($param: ReadOnlySystemParamFetch),*> ReadOnlySystemParamFetch for ($($param,)*) {}
-
         #[allow(unused_variables)]
         #[allow(non_snake_case)]
         impl<'a, $($param: SystemParamFetch<'a>),*> SystemParamFetch<'a> for ($($param,)*) {
@@ -56,7 +51,7 @@ macro_rules! impl_system_param_tuple {
 
         /// SAFE: implementors of each SystemParamState in the tuple have validated their impls
         #[allow(non_snake_case)]
-        unsafe impl<$($param: SystemParamState),*> SystemParamState for ($($param,)*) {
+        impl<$($param: SystemParamState),*> SystemParamState for ($($param,)*) {
             #[inline]
             fn new(_world: &mut World, _system_meta: &mut SystemMeta) -> Self {
                 (($($param::new(_world, _system_meta),)*))
