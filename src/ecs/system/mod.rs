@@ -1,9 +1,10 @@
 use super::{component::ComponentId, query::access::Access, resource::ResourceId, World};
 
-mod function_system;
+pub mod function_system;
 pub mod local_param;
+pub mod query;
 pub mod resource_param;
-mod system_param;
+pub mod system_param;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct SystemId(pub usize);

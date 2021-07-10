@@ -88,7 +88,10 @@ impl Executor {
     }
 
     #[inline]
-    pub fn run<Out>(&mut self, world: &mut World, key: SystemKey<(), Out>) -> Out where Out: 'static {
+    pub fn run<Out>(&mut self, world: &mut World, key: SystemKey<(), Out>) -> Out
+    where
+        Out: 'static,
+    {
         self.run_with(world, key, ())
     }
 
@@ -98,9 +101,10 @@ impl Executor {
         world: &mut World,
         key: SystemKey<In, Out>,
         param: In,
-    ) -> Out 
-    where In: 'static,
-    Out: 'static,
+    ) -> Out
+    where
+        In: 'static,
+        Out: 'static,
     {
         let boxed = self
             .systems
