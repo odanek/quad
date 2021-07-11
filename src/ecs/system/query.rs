@@ -1,6 +1,9 @@
-use crate::ecs::{World, query::{fetch::WorldQuery, filter::FilterFetch, state::QueryState}};
+use crate::ecs::{
+    query::{fetch::WorldQuery, filter::FilterFetch, state::QueryState},
+    World,
+};
 
-pub struct Query<'w, Q: WorldQuery, F: WorldQuery/* = ()*/>
+pub struct Query<'w, Q: WorldQuery, F: WorldQuery /* = ()*/>
 where
     F::Fetch: FilterFetch,
 {

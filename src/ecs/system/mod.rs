@@ -1,4 +1,9 @@
-use super::{World, component::ComponentId, query::access::{Access, FilteredAccess}, resource::ResourceId};
+use super::{
+    component::ComponentId,
+    query::access::{Access, FilteredAccess},
+    resource::ResourceId,
+    World,
+};
 
 pub mod function_system;
 pub mod local_param;

@@ -1,6 +1,11 @@
 use std::marker::PhantomData;
 
-use crate::ecs::{World, component::ComponentId, query::access::{Access, FilteredAccess}, resource::ResourceId};
+use crate::ecs::{
+    component::ComponentId,
+    query::access::{Access, FilteredAccess},
+    resource::ResourceId,
+    World,
+};
 
 use super::{
     system_param::{SystemParam, SystemParamFetch, SystemParamState},

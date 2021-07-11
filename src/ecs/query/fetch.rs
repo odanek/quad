@@ -1,4 +1,8 @@
-use crate::ecs::{World, entity::archetype::Archetype, storage::{Table, Tables}};
+use crate::ecs::{
+    entity::archetype::Archetype,
+    storage::{Table, Tables},
+    World,
+};
 
 pub trait WorldQuery {
     type Fetch: for<'a> Fetch<'a, State = Self::State>;
@@ -9,10 +13,7 @@ pub trait Fetch<'w>: Sized {
     type Item;
     type State: FetchState;
 
-    unsafe fn init(
-        world: &World,
-        state: &Self::State,
-    ) -> Self;
+    unsafe fn init(world: &World, state: &Self::State) -> Self;
 
     fn is_dense(&self) -> bool;
 
