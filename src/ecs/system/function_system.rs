@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::ecs::{component::ComponentId, query::access::Access, resource::ResourceId, World};
+use crate::ecs::{World, component::ComponentId, query::access::{Access, FilteredAccess}, resource::ResourceId};
 
 use super::{
     system_param::{SystemParam, SystemParamFetch, SystemParamState},
@@ -11,7 +11,7 @@ pub struct SystemMeta {
     pub(crate) id: SystemId,
     pub(crate) name: &'static str,
     pub(crate) resource_access: Access<ResourceId>,
-    pub(crate) component_access: Access<ComponentId>,
+    pub(crate) component_access: FilteredAccess<ComponentId>,
     // pub(crate) component_access_set: FilteredAccessSet<ComponentId>,
     // pub(crate) archetype_component_access: Access<ArchetypeComponentId>,
 }
@@ -175,7 +175,7 @@ where
     }
 
     #[inline]
-    fn component_access(&self) -> &Access<ComponentId> {
+    fn component_access(&self) -> &FilteredAccess<ComponentId> {
         &self.system_meta.component_access
     }
 

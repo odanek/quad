@@ -1,4 +1,4 @@
-use super::{component::ComponentId, query::access::Access, resource::ResourceId, World};
+use super::{World, component::ComponentId, query::access::{Access, FilteredAccess}, resource::ResourceId};
 
 pub mod function_system;
 pub mod local_param;
@@ -22,7 +22,7 @@ pub trait System: Send + Sync + 'static {
     fn name(&self) -> &'static str;
     fn id(&self) -> SystemId;
     fn resource_access(&self) -> &Access<ResourceId>;
-    fn component_access(&self) -> &Access<ComponentId>;
+    fn component_access(&self) -> &FilteredAccess<ComponentId>;
 
     #[allow(clippy::missing_safety_doc)]
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out;

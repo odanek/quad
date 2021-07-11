@@ -1,6 +1,6 @@
 use super::{fetch::WorldQuery, filter::FilterFetch};
 
-pub struct QueryState<Q: WorldQuery, F: WorldQuery = ()>
+pub struct QueryState<Q: WorldQuery, F: WorldQuery/* = ()*/>
 where
     F::Fetch: FilterFetch,
 {
