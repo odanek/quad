@@ -1,8 +1,11 @@
 use crate::ecs::{
+    component::ComponentId,
     entity::archetype::Archetype,
     storage::{Table, Tables},
     World,
 };
+
+use super::access::FilteredAccess;
 
 pub trait WorldQuery {
     type Fetch: for<'a> Fetch<'a, State = Self::State>;
@@ -13,7 +16,7 @@ pub trait Fetch<'w>: Sized {
     type Item;
     type State: FetchState;
 
-    unsafe fn init(world: &World, state: &Self::State) -> Self;
+    unsafe fn new(world: &World, state: &Self::State) -> Self;
 
     fn is_dense(&self) -> bool;
 
@@ -27,8 +30,8 @@ pub trait Fetch<'w>: Sized {
 }
 
 pub unsafe trait FetchState: Send + Sync + Sized {
-    fn init(world: &mut World) -> Self;
-    // fn update_component_access(&self, access: &mut FilteredAccess<ComponentId>);
+    fn new(world: &mut World) -> Self;
+    fn update_component_access(&self, access: &mut FilteredAccess<ComponentId>);
     // fn update_archetype_component_access(
     //     &self,
     //     archetype: &Archetype,
