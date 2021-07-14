@@ -179,10 +179,20 @@ impl Table {
         self.len -= 1;
     }
 
-    pub(crate) unsafe fn clear(&mut self) {
+    pub unsafe fn clear(&mut self) {
         for column in self.columns.values_mut() {
             column.clear();
         }
+    }
+
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
     }
 }
 

@@ -2,13 +2,7 @@ mod entity_ref;
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{
-    component::{bundle::Bundles, Components},
-    entity::archetype::Archetypes,
-    resource::{Resource, ResourceId},
-    storage::Storages,
-    Entities, Entity, Resources,
-};
+use super::{Entities, Entity, Resources, component::{bundle::Bundles, Components}, entity::archetype::{Archetype, ArchetypeId, Archetypes}, resource::{Resource, ResourceId}, storage::Storages};
 
 #[derive(Default)]
 pub struct World {
@@ -37,8 +31,13 @@ impl World {
     }
 
     #[inline]
-    pub fn archetypes(&self) -> &Archetypes {
+    pub(crate) fn archetypes(&self) -> &Archetypes {
         &self.archetypes
+    }
+
+    #[inline]
+    pub(crate) fn archetype(&self, id: ArchetypeId) -> &Archetype {
+        &self.archetypes[id]
     }
 
     #[inline]
