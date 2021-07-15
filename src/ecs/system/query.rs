@@ -71,7 +71,7 @@ where
     #[inline]
     unsafe fn get_param(
         state: &'a mut Self,
-        system_meta: &SystemMeta,
+        _system_meta: &SystemMeta,
         world: &'a World,
     ) -> Self::Item {
         Query::new(world, state)

@@ -44,7 +44,7 @@ where
         // properly considered in a global "cross-query" context (both within systems and across systems).
         component_access.extend(&filter_component_access);
 
-        let mut state = Self {
+        Self {
             // world_id: world.id(),
             // archetype_generation: ArchetypeGeneration::initial(),
             // matched_table_ids: Vec::new(),
@@ -55,8 +55,7 @@ where
             matched_tables: Default::default(),
             matched_archetypes: Default::default(),
             // archetype_component_access: Default::default(),
-        };
+        }
         // state.validate_world_and_update_archetypes(world);
-        state
     }
 }
