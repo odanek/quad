@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use crate::ecs::{component::ComponentId, entity::archetype::ArchetypeId, storage::TableId, World};
 
 use super::{
@@ -13,8 +11,8 @@ where
     F::Fetch: FilterFetch,
 {
     // pub(crate) archetype_generation: ArchetypeGeneration,
-    pub(crate) matched_tables: HashSet<TableId>,
-    pub(crate) matched_archetypes: HashSet<ArchetypeId>,
+    pub(crate) matched_tables: Vec<TableId>,
+    pub(crate) matched_archetypes: Vec<ArchetypeId>,
     // pub(crate) archetype_component_access: Access<ArchetypeComponentId>,
     pub(crate) component_access: FilteredAccess<ComponentId>,
     // pub(crate) matched_table_ids: Vec<TableId>,

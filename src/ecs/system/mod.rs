@@ -8,6 +8,7 @@ use super::{
 pub mod function_system;
 pub mod local_param;
 pub mod query;
+pub mod query_param;
 pub mod resource_param;
 pub mod system_param;
 
