@@ -131,14 +131,14 @@ impl World {
     }
 
     #[inline]
-    pub fn get_entity(&self, entity: Entity) -> Option<EntityRef> {
-        let location = self.entities.get(entity)?;
-        Some(EntityRef::new(self, entity, location))
+    pub fn entity(&self, entity: Entity) -> EntityRef {
+        self.get_entity(entity).expect("Entity does not exist")
     }
 
     #[inline]
-    pub fn entity(&self, entity: Entity) -> EntityRef {
-        self.get_entity(entity).expect("Entity does not exist")
+    pub fn get_entity(&self, entity: Entity) -> Option<EntityRef> {
+        let location = self.entities.get(entity)?;
+        Some(EntityRef::new(self, entity, location))
     }
 
     #[inline]

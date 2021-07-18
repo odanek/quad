@@ -73,6 +73,14 @@ impl<T: AccessIndex> FilteredAccess<T> {
         &self.access
     }
 
+    pub fn has_read(&self, index: T) -> bool {
+        self.access.has_read(index)
+    }
+
+    pub fn has_write(&self, index: T) -> bool {
+        self.access.has_write(index)
+    }
+
     pub fn add_read(&mut self, index: T) {
         self.access.add_read(index);
         self.add_with(index);

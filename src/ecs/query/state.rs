@@ -57,3 +57,8 @@ where
         // state.validate_world_and_update_archetypes(world);
     }
 }
+
+pub enum QueryEntityError {
+    QueryDoesNotMatch,
+    NoSuchEntity,
+}

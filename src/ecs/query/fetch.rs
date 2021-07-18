@@ -40,3 +40,5 @@ pub unsafe trait FetchState: Send + Sync + Sized {
     fn matches_archetype(&self, archetype: &Archetype) -> bool;
     fn matches_table(&self, table: &Table) -> bool;
 }
+
+pub unsafe trait ReadOnlyFetch {}
