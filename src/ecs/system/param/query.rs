@@ -1,20 +1,13 @@
 use std::any::TypeId;
 
-use crate::ecs::{
-    component::Component,
-    query::{
+use crate::ecs::{Entity, World, component::Component, query::{
         fetch::{Fetch, ReadOnlyFetch, WorldQuery},
         filter::FilterFetch,
         iter::QueryIter,
         state::{QueryEntityError, QueryState},
-    },
-    Entity, World,
-};
+    }, system::function_system::SystemMeta};
 
-use super::{
-    function_system::SystemMeta,
-    system_param::{SystemParam, SystemParamFetch, SystemParamState},
-};
+use super::{SystemParam, SystemParamFetch, SystemParamState};
 
 pub struct Query<'w, Q: WorldQuery, F: WorldQuery /* = ()*/>
 where

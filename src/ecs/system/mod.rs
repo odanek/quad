@@ -6,10 +6,7 @@ use super::{
 };
 
 pub mod function_system;
-pub mod local_param;
-pub mod query_param;
-pub mod resource_param;
-pub mod system_param;
+pub mod param;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct SystemId(pub usize);

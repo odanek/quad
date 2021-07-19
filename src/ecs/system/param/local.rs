@@ -1,13 +1,10 @@
-use crate::ecs::{component::Component, FromWorld, World};
+use crate::ecs::{FromWorld, World, component::Component, system::function_system::SystemMeta};
 use std::{
     fmt::Debug,
     ops::{Deref, DerefMut},
 };
 
-use super::{
-    function_system::SystemMeta,
-    system_param::{SystemParam, SystemParamFetch, SystemParamState},
-};
+use super::{SystemParam, SystemParamFetch, SystemParamState};
 
 pub struct Local<'a, T: Component>(&'a mut T);
 

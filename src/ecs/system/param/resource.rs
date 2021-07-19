@@ -1,7 +1,4 @@
-use crate::ecs::{
-    resource::{Resource, ResourceId},
-    World,
-};
+use crate::ecs::{World, resource::{Resource, ResourceId}, system::function_system::SystemMeta};
 use std::{
     any::type_name,
     fmt::Debug,
@@ -9,10 +6,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use super::{
-    function_system::SystemMeta,
-    system_param::{SystemParam, SystemParamFetch, SystemParamState},
-};
+use super::{SystemParam, SystemParamFetch, SystemParamState};
 
 pub struct Res<'w, T: Resource> {
     pub(crate) value: &'w T,

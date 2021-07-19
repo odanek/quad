@@ -8,7 +8,7 @@ use crate::ecs::{
 };
 
 use super::{
-    system_param::{SystemParam, SystemParamFetch, SystemParamState},
+    param::{SystemParam, SystemParamFetch, SystemParamState},
     IntoSystem, System, SystemId,
 };
 
@@ -17,8 +17,6 @@ pub struct SystemMeta {
     pub(crate) name: &'static str,
     pub(crate) resource_access: Access<ResourceId>,
     pub(crate) component_access: FilteredAccess<ComponentId>,
-    // pub(crate) component_access_set: FilteredAccessSet<ComponentId>,
-    // pub(crate) archetype_component_access: Access<ArchetypeComponentId>,
 }
 
 impl SystemMeta {
@@ -28,7 +26,6 @@ impl SystemMeta {
             name: std::any::type_name::<T>(),
             resource_access: Default::default(),
             component_access: Default::default(),
-            // archetype_component_access: Access::default(),
         }
     }
 }
@@ -99,17 +96,6 @@ where
     fn component_access(&self) -> &FilteredAccess<ComponentId> {
         &self.system_meta.component_access
     }
-
-    // #[inline]
-    // fn new_archetype(&mut self, archetype: &Archetype) {
-    //     let param_state = self.param_state.as_mut().unwrap();
-    //     param_state.new_archetype(archetype, &mut self.system_meta);
-    // }
-
-    // #[inline]
-    // fn archetype_component_access(&self) -> &Access<ArchetypeComponentId> {
-    //     &self.system_meta.archetype_component_access
-    // }
 
     #[inline]
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out {
