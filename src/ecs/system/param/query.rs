@@ -111,7 +111,7 @@ where
     ) -> Result<&mut T, QueryComponentError> {
         let world = self.world;
         let entity_ref = world
-            .get_entity_mut(entity)
+            .get_entity(entity)
             .ok_or(QueryComponentError::NoSuchEntity)?;
         let component_id = world
             .components()
@@ -123,7 +123,7 @@ where
             .has_write(component_id)
         {
             entity_ref
-                .get_mut::<T>()
+                .get_unchecked_mut::<T>()
                 .ok_or(QueryComponentError::MissingComponent)
         } else {
             Err(QueryComponentError::MissingWriteAccess)

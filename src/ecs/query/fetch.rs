@@ -32,11 +32,6 @@ pub trait Fetch<'w>: Sized {
 pub unsafe trait FetchState: Send + Sync + Sized {
     fn new(world: &mut World) -> Self;
     fn update_component_access(&self, access: &mut FilteredAccess<ComponentId>);
-    // fn update_archetype_component_access(
-    //     &self,
-    //     archetype: &Archetype,
-    //     access: &mut Access<ArchetypeComponentId>,
-    // );
     fn matches_archetype(&self, archetype: &Archetype) -> bool;
     fn matches_table(&self, table: &Table) -> bool;
 }

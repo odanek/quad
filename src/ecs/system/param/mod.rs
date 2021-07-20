@@ -1,4 +1,4 @@
-use crate::ecs::{entity::archetype::Archetype, World};
+use crate::ecs::World;
 
 use super::function_system::SystemMeta;
 
@@ -12,9 +12,6 @@ pub use query::Query;
 
 pub trait SystemParamState: Send + Sync + 'static {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self;
-
-    #[inline]
-    fn new_archetype(&mut self, _archetype: &Archetype, _system_meta: &mut SystemMeta) {}
 
     #[inline]
     fn apply(&mut self, _world: &mut World) {}

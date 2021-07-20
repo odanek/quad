@@ -1,22 +1,21 @@
-use crate::ecs::{component::ComponentId, entity::archetype::ArchetypeId, storage::TableId, World};
+use crate::ecs::{
+    component::ComponentId, entity::archetype::ArchetypeId, storage::TableId, Entity, World,
+};
 
 use super::{
     access::FilteredAccess,
-    fetch::{FetchState, WorldQuery},
+    fetch::{Fetch, FetchState, ReadOnlyFetch, WorldQuery},
     filter::FilterFetch,
+    iter::QueryIter,
 };
 
 pub struct QueryState<Q: WorldQuery, F: WorldQuery /* = ()*/>
 where
     F::Fetch: FilterFetch,
 {
-    // pub(crate) archetype_generation: ArchetypeGeneration,
     pub(crate) matched_tables: Vec<TableId>,
     pub(crate) matched_archetypes: Vec<ArchetypeId>,
-    // pub(crate) archetype_component_access: Access<ArchetypeComponentId>,
     pub(crate) component_access: FilteredAccess<ComponentId>,
-    // pub(crate) matched_table_ids: Vec<TableId>,
-    // pub(crate) matched_archetype_ids: Vec<ArchetypeId>,
     pub(crate) fetch_state: Q::State,
     pub(crate) filter_state: F::State,
 }
@@ -32,29 +31,179 @@ where
         let mut component_access = FilteredAccess::default();
         fetch_state.update_component_access(&mut component_access);
 
-        // Use a temporary empty FilteredAccess for filters. This prevents them from conflicting with the
-        // main Query's `fetch_state` access. Filters are allowed to conflict with the main query fetch
-        // because they are evaluated *before* a specific reference is constructed.
         let mut filter_component_access = FilteredAccess::default();
         filter_state.update_component_access(&mut filter_component_access);
 
-        // Merge the temporary filter access with the main access. This ensures that filter access is
-        // properly considered in a global "cross-query" context (both within systems and across systems).
         component_access.extend(&filter_component_access);
 
         Self {
-            // world_id: world.id(),
-            // archetype_generation: ArchetypeGeneration::initial(),
-            // matched_table_ids: Vec::new(),
-            // matched_archetype_ids: Vec::new(),
             fetch_state,
             filter_state,
             component_access,
             matched_tables: Default::default(),
             matched_archetypes: Default::default(),
-            // archetype_component_access: Default::default(),
         }
-        // state.validate_world_and_update_archetypes(world);
+    }
+
+    #[inline]
+    pub fn is_empty(&self, world: &World) -> bool {
+        unsafe { self.iter_unchecked_manual(world).none_remaining() }
+    }
+
+    #[inline]
+    pub fn get<'w>(
+        &mut self,
+        world: &'w World,
+        entity: Entity,
+    ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError>
+    where
+        Q::Fetch: ReadOnlyFetch,
+    {
+        unsafe { self.get_unchecked(world, entity) }
+    }
+
+    #[inline]
+    pub fn get_mut<'w>(
+        &mut self,
+        world: &'w mut World,
+        entity: Entity,
+    ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError> {
+        unsafe { self.get_unchecked(world, entity) }
+    }
+
+    #[inline]
+    pub unsafe fn get_unchecked<'w>(
+        &mut self,
+        world: &'w World,
+        entity: Entity,
+    ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError> {
+        self.get_unchecked_manual(world, entity)
+    }
+
+    pub unsafe fn get_unchecked_manual<'w>(
+        &self,
+        world: &'w World,
+        entity: Entity,
+    ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError> {
+        let location = world
+            .entities()
+            .get(entity)
+            .ok_or(QueryEntityError::NoSuchEntity)?;
+        if !self.matched_archetypes.contains(&location.archetype_id) {
+            return Err(QueryEntityError::QueryDoesNotMatch);
+        }
+        let archetype = &world.archetype(location.archetype_id);
+        let mut fetch = <Q::Fetch as Fetch>::new(world, &self.fetch_state);
+        let mut filter = <F::Fetch as Fetch>::new(world, &self.filter_state);
+
+        fetch.set_archetype(&self.fetch_state, archetype, &world.storages().tables);
+        filter.set_archetype(&self.filter_state, archetype, &world.storages().tables);
+        if filter.archetype_filter_fetch(location.index) {
+            Ok(fetch.archetype_fetch(location.index))
+        } else {
+            Err(QueryEntityError::QueryDoesNotMatch)
+        }
+    }
+
+    #[inline]
+    pub fn iter<'w, 's>(&'s mut self, world: &'w World) -> QueryIter<'w, 's, Q, F>
+    where
+        Q::Fetch: ReadOnlyFetch,
+    {
+        unsafe { self.iter_unchecked(world) }
+    }
+
+    #[inline]
+    pub fn iter_mut<'w, 's>(&'s mut self, world: &'w mut World) -> QueryIter<'w, 's, Q, F> {
+        unsafe { self.iter_unchecked(world) }
+    }
+
+    #[inline]
+    pub unsafe fn iter_unchecked<'w, 's>(
+        &'s mut self,
+        world: &'w World,
+    ) -> QueryIter<'w, 's, Q, F> {
+        self.iter_unchecked_manual(world)
+    }
+
+    #[inline]
+    pub(crate) unsafe fn iter_unchecked_manual<'w, 's>(
+        &'s self,
+        world: &'w World,
+    ) -> QueryIter<'w, 's, Q, F> {
+        QueryIter::new(world, self)
+    }
+
+    #[inline]
+    pub fn for_each<'w>(
+        &mut self,
+        world: &'w World,
+        func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
+    ) where
+        Q::Fetch: ReadOnlyFetch,
+    {
+        unsafe {
+            self.for_each_unchecked(world, func);
+        }
+    }
+
+    #[inline]
+    pub fn for_each_mut<'w>(
+        &mut self,
+        world: &'w mut World,
+        func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
+    ) {
+        unsafe {
+            self.for_each_unchecked(world, func);
+        }
+    }
+
+    #[inline]
+    pub unsafe fn for_each_unchecked<'w>(
+        &mut self,
+        world: &'w World,
+        func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
+    ) {
+        self.for_each_unchecked_manual(world, func);
+    }
+
+    pub(crate) unsafe fn for_each_unchecked_manual<'w, 's>(
+        &'s self,
+        world: &'w World,
+        mut func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
+    ) {
+        let mut fetch = <Q::Fetch as Fetch>::new(world, &self.fetch_state);
+        let mut filter = <F::Fetch as Fetch>::new(world, &self.filter_state);
+        if fetch.is_dense() && filter.is_dense() {
+            let tables = &world.storages().tables;
+            for table_id in self.matched_tables.iter() {
+                let table = &tables[*table_id];
+                fetch.set_table(&self.fetch_state, table);
+                filter.set_table(&self.filter_state, table);
+
+                for table_index in 0..table.len() {
+                    if !filter.table_filter_fetch(table_index) {
+                        continue;
+                    }
+                    let item = fetch.table_fetch(table_index);
+                    func(item);
+                }
+            }
+        } else {
+            let tables = &world.storages().tables;
+            for archetype_id in self.matched_archetypes.iter() {
+                let archetype = world.archetype(*archetype_id);
+                fetch.set_archetype(&self.fetch_state, archetype, tables);
+                filter.set_archetype(&self.filter_state, archetype, tables);
+
+                for archetype_index in 0..archetype.len() {
+                    if !filter.archetype_filter_fetch(archetype_index) {
+                        continue;
+                    }
+                    func(fetch.archetype_fetch(archetype_index));
+                }
+            }
+        }
     }
 }
 

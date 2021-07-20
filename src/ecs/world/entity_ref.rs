@@ -61,6 +61,14 @@ impl<'w> EntityRef<'w> {
                 .map(|value| &*value.cast::<T>())
         }
     }
+
+    #[inline]
+    pub(crate) fn get_unchecked_mut<T: Component>(&self) -> Option<&'w mut T> {
+        unsafe {
+            get_component(&self.world, TypeId::of::<T>(), self.location)
+                .map(|value| &mut *value.cast::<T>())
+        }
+    }
 }
 
 pub struct EntityMut<'w> {
