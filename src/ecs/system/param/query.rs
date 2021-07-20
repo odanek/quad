@@ -1,11 +1,16 @@
 use std::any::TypeId;
 
-use crate::ecs::{Entity, World, component::Component, query::{
+use crate::ecs::{
+    component::Component,
+    query::{
         fetch::{Fetch, ReadOnlyFetch, WorldQuery},
         filter::FilterFetch,
         iter::QueryIter,
         state::{QueryEntityError, QueryState},
-    }, system::function_system::SystemMeta};
+    },
+    system::function_system::SystemMeta,
+    Entity, World,
+};
 
 use super::{SystemParam, SystemParamFetch, SystemParamState};
 
@@ -45,6 +50,7 @@ where
     }
 
     #[inline]
+    #[allow(clippy::missing_safety_doc)]
     pub fn for_each(&self, f: impl FnMut(<Q::Fetch as Fetch<'w>>::Item))
     where
         Q::Fetch: ReadOnlyFetch,
@@ -74,6 +80,7 @@ where
     }
 
     #[inline]
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn get_unchecked(
         &self,
         entity: Entity,
@@ -91,11 +98,7 @@ where
             .components()
             .get_id(TypeId::of::<T>())
             .ok_or(QueryComponentError::MissingComponent)?;
-        if self
-            .state
-            .component_access
-            .has_read(component_id)
-        {
+        if self.state.component_access.has_read(component_id) {
             entity_ref
                 .get::<T>()
                 .ok_or(QueryComponentError::MissingComponent)
@@ -117,11 +120,7 @@ where
             .components()
             .get_id(TypeId::of::<T>())
             .ok_or(QueryComponentError::MissingComponent)?;
-        if self
-            .state
-            .component_access
-            .has_write(component_id)
-        {
+        if self.state.component_access.has_write(component_id) {
             entity_ref
                 .get_unchecked_mut::<T>()
                 .ok_or(QueryComponentError::MissingComponent)

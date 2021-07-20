@@ -1,4 +1,8 @@
-use crate::ecs::{World, resource::{Resource, ResourceId}, system::function_system::SystemMeta};
+use crate::ecs::{
+    resource::{Resource, ResourceId},
+    system::function_system::SystemMeta,
+    World,
+};
 use std::{
     any::type_name,
     fmt::Debug,

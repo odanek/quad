@@ -226,10 +226,7 @@ impl<'s, Q: WorldQuery, F: WorldQuery> QueryIterationCursor<'s, Q, F>
 where
     F::Fetch: FilterFetch,
 {
-    unsafe fn new_empty(
-        world: &World,
-        query_state: &'s QueryState<Q, F>,
-    ) -> Self {
+    unsafe fn new_empty(world: &World, query_state: &'s QueryState<Q, F>) -> Self {
         QueryIterationCursor {
             table_id_iter: [].iter(),
             archetype_id_iter: [].iter(),
@@ -237,18 +234,9 @@ where
         }
     }
 
-    unsafe fn new(
-        world: &World,
-        query_state: &'s QueryState<Q, F>,
-    ) -> Self {
-        let fetch = <Q::Fetch as Fetch>::new(
-            world,
-            &query_state.fetch_state,
-        );
-        let filter = <F::Fetch as Fetch>::new(
-            world,
-            &query_state.filter_state,
-        );
+    unsafe fn new(world: &World, query_state: &'s QueryState<Q, F>) -> Self {
+        let fetch = <Q::Fetch as Fetch>::new(world, &query_state.fetch_state);
+        let filter = <F::Fetch as Fetch>::new(world, &query_state.filter_state);
         QueryIterationCursor {
             is_dense: fetch.is_dense() && filter.is_dense(),
             fetch,

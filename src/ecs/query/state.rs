@@ -174,8 +174,8 @@ where
     ) {
         let mut fetch = <Q::Fetch as Fetch>::new(world, &self.fetch_state);
         let mut filter = <F::Fetch as Fetch>::new(world, &self.filter_state);
-        if fetch.is_dense() && filter.is_dense() {
-            let tables = &world.storages().tables;
+        let tables = &world.storages().tables;
+        if fetch.is_dense() && filter.is_dense() {            
             for table_id in self.matched_tables.iter() {
                 let table = &tables[*table_id];
                 fetch.set_table(&self.fetch_state, table);
@@ -190,7 +190,6 @@ where
                 }
             }
         } else {
-            let tables = &world.storages().tables;
             for archetype_id in self.matched_archetypes.iter() {
                 let archetype = world.archetype(*archetype_id);
                 fetch.set_archetype(&self.fetch_state, archetype, tables);
