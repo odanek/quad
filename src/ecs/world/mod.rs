@@ -1,14 +1,10 @@
 mod entity_ref;
 
+use std::any::TypeId;
+
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{
-    component::{bundle::Bundles, Components},
-    entity::archetype::{Archetype, ArchetypeId, Archetypes},
-    resource::{Resource, ResourceId},
-    storage::Storages,
-    Entities, Entity, Resources,
-};
+use super::{Entities, Entity, Resources, component::{Component, ComponentId, Components, bundle::Bundles}, entity::archetype::{Archetype, ArchetypeId, Archetypes}, resource::{Resource, ResourceId}, storage::Storages};
 
 #[derive(Default)]
 pub struct World {
@@ -64,6 +60,21 @@ impl World {
     #[inline]
     pub fn resource_id<T: Resource>(&self) -> Option<ResourceId> {
         self.resources.get_id::<T>()
+    }
+
+    #[inline]
+    pub fn register_resource<T: Resource>(&mut self) -> ResourceId {
+        self.resources.get_or_insert_id::<T>()
+    }
+
+    #[inline]
+    pub fn component_id<T: Component>(&self) -> Option<ComponentId> {
+        self.components.get_id(TypeId::of::<T>())
+    }
+
+    #[inline]
+    pub fn register_component<T: Component>(&mut self) -> ComponentId {
+        self.components.get_or_insert::<T>()
     }
 
     #[inline]

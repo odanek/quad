@@ -104,7 +104,7 @@ impl Components {
         if let Entry::Occupied(_) = index_entry {
             return Err(ComponentsError::ComponentAlreadyExists);
         }
-        
+
         let id = ComponentId::new(index);
         self.indices.insert(info.type_id(), id);
         self.components.push(ComponentInfo::new(id, info));
@@ -137,7 +137,17 @@ impl Components {
         self.indices.get(&type_id).map(|id| *id)
     }
 
-    pub fn get_or_insert(&mut self, info: &TypeInfo) -> ComponentId {
+    pub fn get_or_insert<T: Component>(&mut self) -> ComponentId {
+        let component_id = self.get_id(TypeId::of::<T>());
+        if let Some(id) = component_id {
+            id
+        } else {
+            let info = TypeInfo::of::<T>();
+            self.add(&info).unwrap()
+        }
+    }
+
+    pub fn get_or_insert_info(&mut self, info: &TypeInfo) -> ComponentId {
         let component_id = self.get_id(info.type_id());
         if let Some(id) = component_id {
             id

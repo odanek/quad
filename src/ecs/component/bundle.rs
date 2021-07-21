@@ -125,7 +125,7 @@ fn initialize_bundle(
     let mut component_ids = Vec::new();
 
     for type_info in type_info {
-        let component_id = components.get_or_insert(&type_info);
+        let component_id = components.get_or_insert_info(&type_info);
         component_ids.push(component_id);
     }
 

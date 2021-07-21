@@ -98,7 +98,7 @@ impl Resources {
         self.get::<T>().map(|r| r as *const T as _)
     }
 
-    fn get_or_insert_id<T: Resource>(&mut self) -> ResourceId {
+    pub fn get_or_insert_id<T: Resource>(&mut self) -> ResourceId {
         let type_id = TypeId::of::<T>();
         let resources = &mut self.resources;
         *self.id_map.entry(type_id).or_insert_with(|| {

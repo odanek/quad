@@ -51,7 +51,7 @@ impl<'a, T: Resource> SystemParam for Res<'a, T> {
 
 impl<T: Resource> SystemParamState for ResState<T> {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
-        let resource_id = world.resource_id::<T>().unwrap();
+        let resource_id = world.register_resource::<T>();
         let access = &mut system_meta.resource_access;
         if access.has_write(resource_id) {
             panic!(
@@ -132,7 +132,7 @@ impl<'a, T: Resource> SystemParam for ResMut<'a, T> {
 
 impl<T: Resource> SystemParamState for ResMutState<T> {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
-        let resource_id = world.resource_id::<T>().unwrap();
+        let resource_id = world.register_resource::<T>();
         let access = &mut system_meta.resource_access;
         if access.has_write(resource_id) {
             panic!(

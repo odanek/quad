@@ -1,9 +1,9 @@
-use std::{
-    collections::HashMap,
-    ops::{Index, IndexMut},
-};
+use std::{collections::HashMap, ops::{Index, IndexMut}, ptr::NonNull};
 
-use crate::ecs::{Entity, component::{ComponentId, ComponentInfo, Components}};
+use crate::ecs::{
+    component::{ComponentId, ComponentInfo, Components},
+    Entity,
+};
 
 use super::BlobVec;
 
@@ -19,6 +19,11 @@ impl Column {
             component_id: component_info.id(),
             data: BlobVec::new(component_info.layout(), component_info.drop(), capacity),
         }
+    }
+
+    #[inline]
+    pub unsafe fn get_data_ptr(&self) -> NonNull<u8> {
+        self.data.get_ptr()
     }
 
     #[inline]
@@ -126,6 +131,11 @@ impl Table {
     #[inline]
     pub fn get_column_mut(&mut self, component_id: ComponentId) -> Option<&mut Column> {
         self.columns.get_mut(&component_id)
+    }
+
+    #[inline]
+    pub fn has_column(&self, component_id: ComponentId) -> bool {
+        self.columns.contains_key(&component_id)
     }
 
     #[inline]
