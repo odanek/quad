@@ -1,5 +1,6 @@
 use super::{
     component::ComponentId,
+    entity::archetype::Archetype,
     query::access::{Access, FilteredAccess},
     resource::ResourceId,
     World,
@@ -25,15 +26,12 @@ pub trait System: Send + Sync + 'static {
     fn id(&self) -> SystemId;
     fn resource_access(&self) -> &Access<ResourceId>;
     fn component_access(&self) -> &FilteredAccess<ComponentId>;
+    fn new_archetype(&mut self, archetype: &Archetype);
 
     #[allow(clippy::missing_safety_doc)]
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out;
 
     fn apply_buffers(&mut self, world: &mut World);
-
-    // fn new_archetype(&mut self, archetype: &Archetype);
-
-    // fn archetype_component_access(&self) -> &Access<ArchetypeComponentId>;
 }
 
 pub trait IntoSystem<SystemType: System> {

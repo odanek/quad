@@ -149,8 +149,8 @@ impl Archetype {
     }
 
     #[inline]
-    pub fn entities(&self) -> impl Iterator<Item = Entity> + '_ {
-        self.entities.iter().cloned()
+    pub fn entities(&self) -> &[Entity] {
+        &self.entities
     }
 
     pub fn next_location(&self) -> EntityLocation {
@@ -184,6 +184,21 @@ impl Archetype {
     }
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub struct ArchetypeGeneration(usize);
+
+impl ArchetypeGeneration {
+    #[inline]
+    pub const fn initial() -> Self {
+        ArchetypeGeneration(0)
+    }
+
+    #[inline]
+    pub fn value(self) -> usize {
+        self.0
+    }
+}
+
 pub struct Archetypes {
     archetypes: Vec<Archetype>,
     archetype_ids: HashMap<ArchetypeIdentity, ArchetypeId>,
@@ -202,6 +217,11 @@ impl Default for Archetypes {
 }
 
 impl Archetypes {
+    #[inline]
+    pub fn generation(&self) -> ArchetypeGeneration {
+        ArchetypeGeneration(self.archetypes.len())
+    }
+
     #[inline]
     pub fn len(&self) -> usize {
         self.archetypes.len()

@@ -41,6 +41,16 @@ impl BlobVec {
     }
 
     #[inline]
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
+    #[inline]
     pub fn capacity(&self) -> usize {
         self.capacity
     }

@@ -94,7 +94,7 @@ pub enum ComponentsError {
 #[derive(Debug, Default)]
 pub struct Components {
     components: Vec<ComponentInfo>,
-    indices: HashMap<TypeId, usize>,
+    indices: HashMap<TypeId, ComponentId>,
 }
 
 impl Components {
@@ -104,9 +104,9 @@ impl Components {
         if let Entry::Occupied(_) = index_entry {
             return Err(ComponentsError::ComponentAlreadyExists);
         }
-        self.indices.insert(info.type_id(), index);
-
+        
         let id = ComponentId::new(index);
+        self.indices.insert(info.type_id(), id);
         self.components.push(ComponentInfo::new(id, info));
 
         Ok(id)
@@ -134,7 +134,7 @@ impl Components {
 
     #[inline]
     pub fn get_id(&self, type_id: TypeId) -> Option<ComponentId> {
-        self.indices.get(&type_id).map(|index| ComponentId(*index))
+        self.indices.get(&type_id).map(|id| *id)
     }
 
     pub fn get_or_insert(&mut self, info: &TypeInfo) -> ComponentId {

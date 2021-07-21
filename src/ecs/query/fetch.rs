@@ -2,7 +2,7 @@ use crate::ecs::{
     component::ComponentId,
     entity::archetype::Archetype,
     storage::{Table, Tables},
-    World,
+    Entity, World,
 };
 
 use super::access::FilteredAccess;
@@ -37,3 +37,75 @@ pub unsafe trait FetchState: Send + Sync + Sized {
 }
 
 pub unsafe trait ReadOnlyFetch {}
+
+impl WorldQuery for Entity {
+    type Fetch = EntityFetch;
+    type State = EntityState;
+}
+
+pub struct EntityFetch {
+    entities: *const Entity,
+}
+
+unsafe impl ReadOnlyFetch for EntityFetch {}
+
+pub struct EntityState;
+
+unsafe impl FetchState for EntityState {
+    fn new(_world: &mut World) -> Self {
+        Self
+    }
+
+    fn update_component_access(&self, _access: &mut FilteredAccess<ComponentId>) {}
+
+    #[inline]
+    fn matches_archetype(&self, _archetype: &Archetype) -> bool {
+        true
+    }
+
+    #[inline]
+    fn matches_table(&self, _table: &Table) -> bool {
+        true
+    }
+}
+
+impl<'w> Fetch<'w> for EntityFetch {
+    type Item = Entity;
+    type State = EntityState;
+
+    #[inline]
+    fn is_dense(&self) -> bool {
+        true
+    }
+
+    unsafe fn new(_world: &World, _state: &Self::State) -> Self {
+        Self {
+            entities: std::ptr::null::<Entity>(),
+        }
+    }
+
+    #[inline]
+    unsafe fn set_archetype(
+        &mut self,
+        _state: &Self::State,
+        archetype: &Archetype,
+        _tables: &Tables,
+    ) {
+        self.entities = archetype.entities().as_ptr();
+    }
+
+    #[inline]
+    unsafe fn set_table(&mut self, _state: &Self::State, table: &Table) {
+        self.entities = table.entities().as_ptr();
+    }
+
+    #[inline]
+    unsafe fn table_fetch(&mut self, table_row: usize) -> Self::Item {
+        *self.entities.add(table_row)
+    }
+
+    #[inline]
+    unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item {
+        *self.entities.add(archetype_index)
+    }
+}

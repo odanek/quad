@@ -1,4 +1,4 @@
-use crate::ecs::World;
+use crate::ecs::{entity::archetype::Archetype, World};
 
 use super::function_system::SystemMeta;
 
@@ -12,6 +12,9 @@ pub use resource::{Res, ResMut};
 
 pub trait SystemParamState: Send + Sync + 'static {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self;
+
+    #[inline]
+    fn new_archetype(&mut self, _archetype: &Archetype, _system_meta: &mut SystemMeta) {}
 
     #[inline]
     fn apply(&mut self, _world: &mut World) {}
@@ -60,6 +63,12 @@ macro_rules! impl_system_param_tuple {
             #[inline]
             fn new(_world: &mut World, _system_meta: &mut SystemMeta) -> Self {
                 (($($param::new(_world, _system_meta),)*))
+            }
+
+            #[inline]
+            fn new_archetype(&mut self, _archetype: &Archetype, _system_meta: &mut SystemMeta) {
+                let ($($param,)*) = self;
+                $($param.new_archetype(_archetype, _system_meta);)*
             }
 
             #[inline]

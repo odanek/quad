@@ -2,6 +2,7 @@ use std::any::TypeId;
 
 use crate::ecs::{
     component::Component,
+    entity::archetype::Archetype,
     query::{
         fetch::{Fetch, ReadOnlyFetch, WorldQuery},
         filter::FilterFetch,
@@ -183,6 +184,11 @@ where
         }
         system_meta.component_access.extend(&state.component_access);
         state
+    }
+
+    #[inline]
+    fn new_archetype(&mut self, archetype: &Archetype, system_meta: &mut SystemMeta) {
+        self.new_archetype(archetype);
     }
 }
 

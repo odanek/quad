@@ -3,7 +3,7 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use crate::ecs::component::{ComponentId, ComponentInfo, Components};
+use crate::ecs::{Entity, component::{ComponentId, ComponentInfo, Components}};
 
 use super::BlobVec;
 
@@ -22,7 +22,7 @@ impl Column {
     }
 
     #[inline]
-    pub(crate) fn reserve(&mut self, additional: usize) {
+    pub fn reserve_exact(&mut self, additional: usize) {
         self.data.reserve_exact(additional);
     }
 
@@ -37,23 +37,33 @@ impl Column {
     }
 
     #[inline]
-    pub(crate) unsafe fn swap_remove_unchecked(&mut self, row: usize) {
+    pub unsafe fn swap_remove_unchecked(&mut self, row: usize) {
         self.data.swap_remove_and_drop_unchecked(row);
     }
 
     #[inline]
-    pub(crate) unsafe fn swap_remove_and_forget_unchecked(&mut self, row: usize) -> *mut u8 {
+    pub unsafe fn swap_remove_and_forget_unchecked(&mut self, row: usize) -> *mut u8 {
         self.data.swap_remove_and_forget_unchecked(row)
     }
 
     #[inline]
-    pub(crate) unsafe fn get_unchecked(&self, row: usize) -> *mut u8 {
+    pub unsafe fn get_unchecked(&self, row: usize) -> *mut u8 {
         self.data.get_unchecked(row)
     }
 
     #[inline]
-    pub(crate) unsafe fn clear(&mut self) {
+    pub unsafe fn clear(&mut self) {
         self.data.clear();
+    }
+
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
     }
 }
 
@@ -92,23 +102,19 @@ impl TableIdentity {
 
 pub struct Table {
     columns: HashMap<ComponentId, Column>,
-    len: usize,
-    grow_amount: usize,
-    capacity: usize,
+    entities: Vec<Entity>,
 }
 
 impl Table {
-    pub fn new(infos: &[&ComponentInfo], capacity: usize, grow_amount: usize) -> Table {
+    pub fn new(infos: &[&ComponentInfo], capacity: usize, column_capacity: usize) -> Table {
         let mut columns = HashMap::with_capacity(infos.len());
         for info in infos {
-            columns.insert(info.id(), Column::new(info, capacity));
+            columns.insert(info.id(), Column::new(info, column_capacity));
         }
 
         Self {
             columns,
-            len: 0,
-            grow_amount,
-            capacity,
+            entities: Vec::with_capacity(capacity),
         }
     }
 
@@ -122,45 +128,48 @@ impl Table {
         self.columns.get_mut(&component_id)
     }
 
-    pub fn reserve(&mut self, amount: usize) {
-        let available_space = self.capacity - self.len;
-        if available_space < amount {
-            let min_capacity = self.len + amount;
-            let new_capacity =
-                ((min_capacity + self.grow_amount - 1) / self.grow_amount) * self.grow_amount;
-            let reserve_amount = new_capacity - self.len;
+    #[inline]
+    pub fn entities(&self) -> &[Entity] {
+        &self.entities
+    }
+
+    pub fn reserve(&mut self, additional: usize) {
+        if self.entities.capacity() - self.entities.len() < additional {
+            self.entities.reserve(additional);
+
+            let new_capacity = self.entities.capacity();
+
             for column in self.columns.values_mut() {
-                column.reserve(reserve_amount);
+                column.reserve_exact(new_capacity - column.len());
             }
-            // self.entities.reserve(reserve_amount);
-            self.capacity = new_capacity;
         }
     }
 
-    pub unsafe fn allocate(&mut self) -> usize {
+    pub unsafe fn allocate(&mut self, entity: Entity) -> usize {
         self.reserve(1);
-        self.len += 1;
+        let index = self.entities.len();
+        self.entities.push(entity);
         for column in self.columns.values_mut() {
-            column.data.set_len(self.len);
+            column.data.set_len(index + 1);
         }
-        self.len - 1
+        index
     }
 
     pub unsafe fn swap_remove_unchecked(&mut self, row: usize) {
+        self.entities.swap_remove(row);
         for column in self.columns.values_mut() {
             column.swap_remove_unchecked(row);
         }
-        self.len -= 1;
     }
 
     pub unsafe fn move_to_superset_unchecked(&mut self, row: usize, new_table: &mut Table) {
-        let new_row = new_table.allocate();
+        let entity = self.entities.swap_remove(row);
+        let new_row = new_table.allocate(entity);
         for column in self.columns.values_mut() {
             let new_column = new_table.get_column_mut(column.component_id).unwrap();
             let data = column.swap_remove_and_forget_unchecked(row);
             new_column.initialize(new_row, data);
         }
-        self.len -= 1;
     }
 
     pub unsafe fn move_to_and_forget_missing_unchecked(
@@ -168,31 +177,31 @@ impl Table {
         row: usize,
         new_table: &mut Table,
     ) {
-        debug_assert!(row < self.len);
-        let new_row = new_table.allocate();
+        let entity = self.entities.swap_remove(row);
+        let new_row = new_table.allocate(entity);
         for column in self.columns.values_mut() {
             let data = column.swap_remove_and_forget_unchecked(row);
             if let Some(new_column) = new_table.get_column_mut(column.component_id) {
                 new_column.initialize(new_row, data);
             }
         }
-        self.len -= 1;
     }
 
     pub unsafe fn clear(&mut self) {
         for column in self.columns.values_mut() {
             column.clear();
         }
+        self.entities.clear();
     }
 
     #[inline]
     pub fn len(&self) -> usize {
-        self.len
+        self.entities.len()
     }
 
     #[inline]
     pub fn is_empty(&self) -> bool {
-        self.len == 0
+        self.entities.is_empty()
     }
 }
 
@@ -237,7 +246,7 @@ impl Tables {
     }
 
     #[inline]
-    pub(crate) fn get_2_mut(&mut self, a: TableId, b: TableId) -> (&mut Table, &mut Table) {
+    pub fn get_2_mut(&mut self, a: TableId, b: TableId) -> (&mut Table, &mut Table) {
         if a.index() > b.index() {
             let (b_slice, a_slice) = self.tables.split_at_mut(a.index());
             (&mut a_slice[0], &mut b_slice[b.index()])

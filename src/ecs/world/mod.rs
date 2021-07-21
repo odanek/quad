@@ -103,7 +103,7 @@ impl World {
         let table = &mut self.storages.tables[archetype.table_id()];
         archetype.allocate(entity);
         unsafe {
-            table.allocate();
+            table.allocate(entity);
             EntityMut::new(self, entity, location)
         }
     }
@@ -121,7 +121,7 @@ impl World {
     pub fn despawn_all(&mut self) {
         for archetype in self.archetypes.iter_mut() {
             for entity in archetype.entities() {
-                self.entities.free(entity);
+                self.entities.free(*entity);
             }
             archetype.clear();
             unsafe {
