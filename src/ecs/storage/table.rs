@@ -1,4 +1,8 @@
-use std::{collections::HashMap, ops::{Index, IndexMut}, ptr::NonNull};
+use std::{
+    collections::HashMap,
+    ops::{Index, IndexMut},
+    ptr::NonNull,
+};
 
 use crate::ecs::{
     component::{ComponentId, ComponentInfo, Components},

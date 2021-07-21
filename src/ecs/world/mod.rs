@@ -4,7 +4,13 @@ use std::any::TypeId;
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{Entities, Entity, Resources, component::{Component, ComponentId, Components, bundle::Bundles}, entity::archetype::{Archetype, ArchetypeId, Archetypes}, resource::{Resource, ResourceId}, storage::Storages};
+use super::{
+    component::{bundle::Bundles, Component, ComponentId, Components},
+    entity::archetype::{Archetype, ArchetypeId, Archetypes},
+    resource::{Resource, ResourceId},
+    storage::Storages,
+    Entities, Entity, Resources,
+};
 
 #[derive(Default)]
 pub struct World {
