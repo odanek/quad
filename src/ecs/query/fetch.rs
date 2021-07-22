@@ -1,6 +1,6 @@
 use std::{
     marker::PhantomData,
-    ptr::{self, NonNull},
+    ptr::NonNull,
 };
 
 use crate::ecs::{
@@ -210,5 +210,98 @@ impl<'w, T: Component> Fetch<'w> for ReadFetch<T> {
     #[inline]
     unsafe fn table_fetch(&mut self, table_row: usize) -> Self::Item {
         &*self.table_components.as_ptr().add(table_row)
+    }
+}
+
+impl<T: Component> WorldQuery for &mut T {
+    type Fetch = WriteFetch<T>;
+    type State = WriteState<T>;
+}
+
+pub struct WriteFetch<T> {
+    table_components: NonNull<T>,
+}
+
+impl<T> Clone for WriteFetch<T> {
+    fn clone(&self) -> Self {
+        Self {
+            table_components: self.table_components,
+        }
+    }
+}
+
+pub struct WriteState<T> {
+    component_id: ComponentId,
+    marker: PhantomData<T>,
+}
+
+unsafe impl<T: Component> FetchState for WriteState<T> {
+    fn new(world: &mut World) -> Self {
+        let component_id = world.register_component::<T>();
+        WriteState {
+            component_id,
+            marker: PhantomData,
+        }
+    }
+
+    fn update_component_access(&self, access: &mut FilteredAccess<ComponentId>) {
+        if access.access().has_read(self.component_id) {
+            panic!("&mut {} conflicts with a previous access in this query. Mutable component access must be unique.",
+                std::any::type_name::<T>());
+        }
+        access.add_write(self.component_id);
+    }
+
+    fn matches_archetype(&self, archetype: &Archetype) -> bool {
+        archetype.contains(self.component_id)
+    }
+
+    fn matches_table(&self, table: &Table) -> bool {
+        table.has_column(self.component_id)
+    }
+}
+
+impl<'w, T: Component> Fetch<'w> for WriteFetch<T> {
+    type Item = &'w mut T;
+    type State = WriteState<T>;
+
+    #[inline]
+    fn is_dense(&self) -> bool {
+        true
+    }
+
+    unsafe fn new(_world: &World, _state: &Self::State) -> Self {
+        Self {
+            table_components: NonNull::dangling(),
+        }
+    }
+
+    #[inline]
+    unsafe fn set_archetype(
+        &mut self,
+        state: &Self::State,
+        archetype: &Archetype,
+        tables: &Tables,
+    ) {
+        let column = tables[archetype.table_id()]
+            .get_column(state.component_id)
+            .unwrap();
+        self.table_components = column.get_data_ptr().cast::<T>();
+    }
+
+    #[inline]
+    unsafe fn set_table(&mut self, state: &Self::State, table: &Table) {
+        let column = table.get_column(state.component_id).unwrap();
+        self.table_components = column.get_data_ptr().cast::<T>();
+    }
+
+    #[inline]
+    unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item {
+        &mut *self.table_components.as_ptr().add(archetype_index)
+    }
+
+    #[inline]
+    unsafe fn table_fetch(&mut self, table_row: usize) -> Self::Item {
+        &mut *self.table_components.as_ptr().add(table_row)
     }
 }
