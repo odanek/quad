@@ -302,3 +302,57 @@ impl<'w, T: Fetch<'w>> Fetch<'w> for OptionFetch<T> {
         }
     }
 }
+
+macro_rules! impl_tuple_fetch {
+    ($(($name: ident, $state: ident)),*) => {
+        #[allow(non_snake_case)]
+        impl<'a, $($name: Fetch<'a>),*> Fetch<'a> for ($($name,)*) {
+            type Item = ($($name::Item,)*);
+            type State = ($($name::State,)*);
+
+            unsafe fn new(_world: &World, state: &Self::State) -> Self {
+                let ($($name,)*) = state;
+                ($($name::new(_world, $name),)*)
+            }
+
+            #[inline]
+            unsafe fn set_archetype(&mut self, _state: &Self::State, _archetype: &Archetype, _tables: &Tables) {
+                let ($($name,)*) = self;
+                let ($($state,)*) = _state;
+                $($name.set_archetype($state, _archetype, _tables);)*
+            }
+
+            #[inline]
+            unsafe fn archetype_fetch(&mut self, _archetype_index: usize) -> Self::Item {
+                let ($($name,)*) = self;
+                ($($name.archetype_fetch(_archetype_index),)*)
+            }
+        }
+
+        #[allow(non_snake_case)]
+        unsafe impl<$($name: FetchState),*> FetchState for ($($name,)*) {
+            fn new(_world: &mut World) -> Self {
+                ($($name::new(_world),)*)
+            }
+
+            fn update_component_access(&self, _access: &mut FilteredAccess<ComponentId>) {
+                let ($($name,)*) = self;
+                $($name.update_component_access(_access);)*
+            }
+
+            fn matches_archetype(&self, _archetype: &Archetype) -> bool {
+                let ($($name,)*) = self;
+                true $(&& $name.matches_archetype(_archetype))*
+            }
+        }
+
+        impl<$($name: WorldQuery),*> WorldQuery for ($($name,)*) {
+            type Fetch = ($($name::Fetch,)*);
+            type State = ($($name::State,)*);
+        }
+
+        unsafe impl<$($name: ReadOnlyFetch),*> ReadOnlyFetch for ($($name,)*) {}
+    };
+}
+
+all_pair_tuples!(impl_tuple_fetch);

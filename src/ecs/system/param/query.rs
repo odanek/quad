@@ -187,7 +187,7 @@ where
     }
 
     #[inline]
-    fn new_archetype(&mut self, archetype: &Archetype, system_meta: &mut SystemMeta) {
+    fn new_archetype(&mut self, archetype: &Archetype, _system_meta: &mut SystemMeta) {
         self.new_archetype(archetype);
     }
 }
