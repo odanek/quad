@@ -1,12 +1,9 @@
-use std::{
-    marker::PhantomData,
-    ptr::NonNull,
-};
+use std::{marker::PhantomData, ptr::NonNull};
 
 use crate::ecs::{
     component::{Component, ComponentId},
     entity::archetype::Archetype,
-    storage::{Table, Tables},
+    storage::Tables,
     Entity, World,
 };
 
@@ -23,22 +20,15 @@ pub trait Fetch<'w>: Sized {
 
     unsafe fn new(world: &World, state: &Self::State) -> Self;
 
-    fn is_dense(&self) -> bool;
-
     unsafe fn set_archetype(&mut self, state: &Self::State, archetype: &Archetype, tables: &Tables);
 
-    unsafe fn set_table(&mut self, state: &Self::State, table: &Table);
-
     unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item;
-
-    unsafe fn table_fetch(&mut self, table_row: usize) -> Self::Item;
 }
 
 pub unsafe trait FetchState: Send + Sync + Sized {
     fn new(world: &mut World) -> Self;
     fn update_component_access(&self, access: &mut FilteredAccess<ComponentId>);
     fn matches_archetype(&self, archetype: &Archetype) -> bool;
-    fn matches_table(&self, table: &Table) -> bool;
 }
 
 pub unsafe trait ReadOnlyFetch {}
@@ -67,21 +57,11 @@ unsafe impl FetchState for EntityState {
     fn matches_archetype(&self, _archetype: &Archetype) -> bool {
         true
     }
-
-    #[inline]
-    fn matches_table(&self, _table: &Table) -> bool {
-        true
-    }
 }
 
 impl<'w> Fetch<'w> for EntityFetch {
     type Item = Entity;
     type State = EntityState;
-
-    #[inline]
-    fn is_dense(&self) -> bool {
-        true
-    }
 
     unsafe fn new(_world: &World, _state: &Self::State) -> Self {
         Self {
@@ -97,16 +77,6 @@ impl<'w> Fetch<'w> for EntityFetch {
         _tables: &Tables,
     ) {
         self.entities = archetype.entities().as_ptr();
-    }
-
-    #[inline]
-    unsafe fn set_table(&mut self, _state: &Self::State, table: &Table) {
-        self.entities = table.entities().as_ptr();
-    }
-
-    #[inline]
-    unsafe fn table_fetch(&mut self, table_row: usize) -> Self::Item {
-        *self.entities.add(table_row)
     }
 
     #[inline]
@@ -145,10 +115,6 @@ unsafe impl<T: Component> FetchState for ReadState<T> {
     fn matches_archetype(&self, archetype: &Archetype) -> bool {
         archetype.contains(self.component_id)
     }
-
-    fn matches_table(&self, table: &Table) -> bool {
-        table.has_column(self.component_id)
-    }
 }
 
 pub struct ReadFetch<T> {
@@ -169,11 +135,6 @@ impl<'w, T: Component> Fetch<'w> for ReadFetch<T> {
     type Item = &'w T;
     type State = ReadState<T>;
 
-    #[inline]
-    fn is_dense(&self) -> bool {
-        true
-    }
-
     unsafe fn new(_world: &World, _state: &Self::State) -> Self {
         Self {
             table_components: NonNull::dangling(),
@@ -187,15 +148,7 @@ impl<'w, T: Component> Fetch<'w> for ReadFetch<T> {
         archetype: &Archetype,
         tables: &Tables,
     ) {
-        let column = tables[archetype.table_id()]
-            .get_column(state.component_id)
-            .unwrap();
-        self.table_components = column.get_data_ptr().cast::<T>();
-    }
-
-    #[inline]
-    unsafe fn set_table(&mut self, state: &Self::State, table: &Table) {
-        self.table_components = table
+        self.table_components = tables[archetype.table_id()]
             .get_column(state.component_id)
             .unwrap()
             .get_data_ptr()
@@ -205,11 +158,6 @@ impl<'w, T: Component> Fetch<'w> for ReadFetch<T> {
     #[inline]
     unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item {
         &*self.table_components.as_ptr().add(archetype_index)
-    }
-
-    #[inline]
-    unsafe fn table_fetch(&mut self, table_row: usize) -> Self::Item {
-        &*self.table_components.as_ptr().add(table_row)
     }
 }
 
@@ -255,20 +203,11 @@ unsafe impl<T: Component> FetchState for WriteState<T> {
     fn matches_archetype(&self, archetype: &Archetype) -> bool {
         archetype.contains(self.component_id)
     }
-
-    fn matches_table(&self, table: &Table) -> bool {
-        table.has_column(self.component_id)
-    }
 }
 
 impl<'w, T: Component> Fetch<'w> for WriteFetch<T> {
     type Item = &'w mut T;
     type State = WriteState<T>;
-
-    #[inline]
-    fn is_dense(&self) -> bool {
-        true
-    }
 
     unsafe fn new(_world: &World, _state: &Self::State) -> Self {
         Self {
@@ -290,18 +229,7 @@ impl<'w, T: Component> Fetch<'w> for WriteFetch<T> {
     }
 
     #[inline]
-    unsafe fn set_table(&mut self, state: &Self::State, table: &Table) {
-        let column = table.get_column(state.component_id).unwrap();
-        self.table_components = column.get_data_ptr().cast::<T>();
-    }
-
-    #[inline]
     unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item {
         &mut *self.table_components.as_ptr().add(archetype_index)
-    }
-
-    #[inline]
-    unsafe fn table_fetch(&mut self, table_row: usize) -> Self::Item {
-        &mut *self.table_components.as_ptr().add(table_row)
     }
 }

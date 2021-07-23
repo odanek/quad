@@ -111,7 +111,7 @@ impl TableIdentity {
 
 pub struct Table {
     columns: HashMap<ComponentId, Column>,
-    entities: Vec<Entity>,
+    entities: Vec<Entity>, // TODO: Not needed
 }
 
 impl Table {

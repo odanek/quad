@@ -1,7 +1,6 @@
 use crate::ecs::{
     component::ComponentId,
     entity::archetype::{Archetype, ArchetypeGeneration, ArchetypeId},
-    storage::TableId,
     Entity, World,
 };
 
@@ -17,7 +16,6 @@ where
     F::Fetch: FilterFetch,
 {
     pub(crate) archetype_generation: ArchetypeGeneration,
-    pub(crate) matched_tables: Vec<TableId>,
     pub(crate) matched_archetypes: Vec<ArchetypeId>,
     pub(crate) component_access: FilteredAccess<ComponentId>,
     pub(crate) fetch_state: Q::State,
@@ -45,7 +43,6 @@ where
             fetch_state,
             filter_state,
             component_access,
-            matched_tables: Default::default(),
             matched_archetypes: Default::default(),
         };
         state.update_archetypes(world);
@@ -73,7 +70,6 @@ where
             && self.filter_state.matches_archetype(archetype)
         {
             self.matched_archetypes.push(archetype.id());
-            self.matched_tables.push(archetype.table_id());
         }
     }
 
@@ -205,32 +201,16 @@ where
         let mut fetch = <Q::Fetch as Fetch>::new(world, &self.fetch_state);
         let mut filter = <F::Fetch as Fetch>::new(world, &self.filter_state);
         let tables = &world.storages().tables;
-        if fetch.is_dense() && filter.is_dense() {
-            for table_id in self.matched_tables.iter() {
-                let table = &tables[*table_id];
-                fetch.set_table(&self.fetch_state, table);
-                filter.set_table(&self.filter_state, table);
+        for archetype_id in self.matched_archetypes.iter() {
+            let archetype = world.archetype(*archetype_id);
+            fetch.set_archetype(&self.fetch_state, archetype, tables);
+            filter.set_archetype(&self.filter_state, archetype, tables);
 
-                for table_index in 0..table.len() {
-                    if !filter.table_filter_fetch(table_index) {
-                        continue;
-                    }
-                    let item = fetch.table_fetch(table_index);
-                    func(item);
+            for archetype_index in 0..archetype.len() {
+                if !filter.archetype_filter_fetch(archetype_index) {
+                    continue;
                 }
-            }
-        } else {
-            for archetype_id in self.matched_archetypes.iter() {
-                let archetype = world.archetype(*archetype_id);
-                fetch.set_archetype(&self.fetch_state, archetype, tables);
-                filter.set_archetype(&self.filter_state, archetype, tables);
-
-                for archetype_index in 0..archetype.len() {
-                    if !filter.archetype_filter_fetch(archetype_index) {
-                        continue;
-                    }
-                    func(fetch.archetype_fetch(archetype_index));
-                }
+                func(fetch.archetype_fetch(archetype_index));
             }
         }
     }
