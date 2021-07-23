@@ -233,3 +233,72 @@ impl<'w, T: Component> Fetch<'w> for WriteFetch<T> {
         &mut *self.table_components.as_ptr().add(archetype_index)
     }
 }
+
+impl<T: WorldQuery> WorldQuery for Option<T> {
+    type Fetch = OptionFetch<T::Fetch>;
+    type State = OptionState<T::State>;
+}
+
+pub struct OptionFetch<T> {
+    fetch: T,
+    matches: bool,
+}
+
+unsafe impl<T: ReadOnlyFetch> ReadOnlyFetch for OptionFetch<T> {}
+
+pub struct OptionState<T: FetchState> {
+    state: T,
+}
+
+unsafe impl<T: FetchState> FetchState for OptionState<T> {
+    fn new(world: &mut World) -> Self {
+        Self {
+            state: T::new(world),
+        }
+    }
+
+    fn update_component_access(&self, access: &mut FilteredAccess<ComponentId>) {
+        self.state.update_component_access(access);
+    }
+
+    fn matches_archetype(&self, _archetype: &Archetype) -> bool {
+        true
+    }
+}
+
+impl<'w, T: Fetch<'w>> Fetch<'w> for OptionFetch<T> {
+    type Item = Option<T::Item>;
+    type State = OptionState<T::State>;
+
+    unsafe fn new(
+        world: &World,
+        state: &Self::State,
+    ) -> Self {
+        Self {
+            fetch: T::new(world, &state.state),
+            matches: false,
+        }
+    }
+
+    #[inline]
+    unsafe fn set_archetype(
+        &mut self,
+        state: &Self::State,
+        archetype: &Archetype,
+        tables: &Tables,
+    ) {
+        self.matches = state.state.matches_archetype(archetype);
+        if self.matches {
+            self.fetch.set_archetype(&state.state, archetype, tables);
+        }
+    }
+
+    #[inline]
+    unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item {
+        if self.matches {
+            Some(self.fetch.archetype_fetch(archetype_index))
+        } else {
+            None
+        }
+    }
+}
