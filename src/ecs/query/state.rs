@@ -11,7 +11,7 @@ use super::{
     iter::QueryIter,
 };
 
-pub struct QueryState<Q: WorldQuery, F: WorldQuery /* = ()*/>
+pub struct QueryState<Q: WorldQuery, F: WorldQuery = ()>
 where
     F::Fetch: FilterFetch,
 {

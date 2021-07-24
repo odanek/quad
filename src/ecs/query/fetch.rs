@@ -270,10 +270,7 @@ impl<'w, T: Fetch<'w>> Fetch<'w> for OptionFetch<T> {
     type Item = Option<T::Item>;
     type State = OptionState<T::State>;
 
-    unsafe fn new(
-        world: &World,
-        state: &Self::State,
-    ) -> Self {
+    unsafe fn new(world: &World, state: &Self::State) -> Self {
         Self {
             fetch: T::new(world, &state.state),
             matches: false,

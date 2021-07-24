@@ -133,8 +133,9 @@ impl Components {
     }
 
     #[inline]
+    #[allow(clippy::missing_safety_doc)]
     pub fn get_id(&self, type_id: TypeId) -> Option<ComponentId> {
-        self.indices.get(&type_id).map(|id| *id)
+        self.indices.get(&type_id).copied()
     }
 
     pub fn get_or_insert<T: Component>(&mut self) -> ComponentId {

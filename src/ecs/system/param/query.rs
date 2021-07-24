@@ -15,7 +15,8 @@ use crate::ecs::{
 
 use super::{SystemParam, SystemParamFetch, SystemParamState};
 
-pub struct Query<'w, Q: WorldQuery, F: WorldQuery /* = ()*/>
+// TODO: This definition allows to have With, Without, Or in Q, while it should be possible only in F
+pub struct Query<'w, Q: WorldQuery, F: WorldQuery = ()>
 where
     F::Fetch: FilterFetch,
 {
@@ -46,12 +47,12 @@ where
     }
 
     #[inline]
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn iter_unsafe(&self) -> QueryIter<'_, '_, Q, F> {
         self.state.iter_unchecked_manual(self.world)
     }
 
     #[inline]
-    #[allow(clippy::missing_safety_doc)]
     pub fn for_each(&self, f: impl FnMut(<Q::Fetch as Fetch<'w>>::Item))
     where
         Q::Fetch: ReadOnlyFetch,
