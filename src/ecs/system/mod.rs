@@ -1,6 +1,5 @@
 use super::{
     component::ComponentId,
-    entity::archetype::Archetype,
     query::access::{Access, FilteredAccess},
     resource::ResourceId,
     World,

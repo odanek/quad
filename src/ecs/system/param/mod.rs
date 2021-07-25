@@ -1,4 +1,4 @@
-use crate::ecs::{entity::archetype::Archetype, World};
+use crate::ecs::World;
 
 use super::function_system::SystemMeta;
 
@@ -66,15 +66,15 @@ macro_rules! impl_system_param_tuple {
             }
 
             #[inline]
-            fn update(&mut self, world: &World, system_meta: &mut SystemMeta) {
+            fn update(&mut self, _world: &World, _system_meta: &mut SystemMeta) {
                 let ($($param,)*) = self;
-                $($param.update(world, system_meta);)*
+                $($param.update(_world, _system_meta);)*
             }
 
             #[inline]
-            fn apply(&mut self, world: &mut World) {
+            fn apply(&mut self, _world: &mut World) {
                 let ($($param,)*) = self;
-                $($param.apply(world);)*
+                $($param.apply(_world);)*
             }
         }
     };

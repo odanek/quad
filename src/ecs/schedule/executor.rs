@@ -122,7 +122,7 @@ impl Executor {
             .unwrap()
     }
 
-    pub fn flush(&mut self, world: &World) {
+    pub fn flush(&mut self, _world: &World) {
         // TODO: Flush commands here
     }
 }
