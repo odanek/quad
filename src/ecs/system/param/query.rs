@@ -2,7 +2,6 @@ use std::any::TypeId;
 
 use crate::ecs::{
     component::Component,
-    entity::archetype::Archetype,
     query::{
         fetch::{Fetch, ReadOnlyFetch, WorldQuery},
         filter::FilterFetch,
@@ -188,8 +187,8 @@ where
     }
 
     #[inline]
-    fn new_archetype(&mut self, archetype: &Archetype, _system_meta: &mut SystemMeta) {
-        self.new_archetype(archetype);
+    fn update(&mut self, world: &World, _system_meta: &mut SystemMeta) {
+        self.update_archetypes(world);
     }
 }
 

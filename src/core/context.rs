@@ -30,11 +30,33 @@ impl Context {
     pub fn start_scene(&mut self) {
         self.scene
             .on_start(SceneContext::new(&mut self.world, &mut self.executor));
+        self.executor.flush(&self.world);
+    }
+
+    pub fn _stop_scene(&mut self) {
+        self.scene
+            .on_stop(SceneContext::new(&mut self.world, &mut self.executor));
+        self.executor.flush(&self.world);
+    }
+
+    pub fn _pause_scene(&mut self) {
+        self.scene
+            .on_pause(SceneContext::new(&mut self.world, &mut self.executor));
+        self.executor.flush(&self.world);
+    }
+
+    pub fn _resume_scene(&mut self) {
+        self.scene
+            .on_resume(SceneContext::new(&mut self.world, &mut self.executor));
+        self.executor.flush(&self.world);
     }
 
     pub fn update_scene(&mut self) -> SceneResult {
-        self.scene
-            .update(SceneContext::new(&mut self.world, &mut self.executor))
+        let result = self
+            .scene
+            .update(SceneContext::new(&mut self.world, &mut self.executor));
+        self.executor.flush(&self.world);
+        result
     }
 
     pub fn handle_scene_update(&mut self) -> bool {

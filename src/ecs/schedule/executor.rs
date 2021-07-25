@@ -32,7 +32,7 @@ impl<In, Out> SystemKey<In, Out> {
     }
 }
 
-pub struct SystemValue<In, Out>(Box<dyn System<In = In, Out = Out>>);
+struct SystemValue<In, Out>(Box<dyn System<In = In, Out = Out>>);
 
 impl<In, Out> Deref for SystemValue<In, Out> {
     type Target = Box<dyn System<In = In, Out = Out>>;
@@ -78,7 +78,7 @@ impl Executor {
 
         let key = SystemKey::new(id);
         let value = SystemValue(Box::new(system.system(id, world)));
-        self.systems.insert(id, Box::new(value));
+        self.systems.insert(id, Box::new(value)); // TODO: How to avoid box in a box?
         key
     }
 
@@ -106,13 +106,23 @@ impl Executor {
         In: 'static,
         Out: 'static,
     {
-        let boxed = self
-            .systems
+        let system = self.get(key);
+        unsafe { system.run(param, world) }
+    }
+
+    fn get<In, Out>(&mut self, key: SystemKey<In, Out>) -> &mut SystemValue<In, Out>
+    where
+        In: 'static,
+        Out: 'static,
+    {
+        self.systems
             .get_mut(&key.id)
             .unwrap()
             .downcast_mut::<SystemValue<In, Out>>()
-            .unwrap();
+            .unwrap()
+    }
 
-        unsafe { boxed.run(param, world) }
+    pub fn flush(&mut self, world: &World) {
+        // TODO: Flush commands here
     }
 }

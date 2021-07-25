@@ -2,7 +2,6 @@ use std::marker::PhantomData;
 
 use crate::ecs::{
     component::ComponentId,
-    entity::archetype::Archetype,
     query::access::{Access, FilteredAccess},
     resource::ResourceId,
     World,
@@ -99,13 +98,8 @@ where
     }
 
     #[inline]
-    fn new_archetype(&mut self, archetype: &Archetype) {
-        self.param_state
-            .new_archetype(archetype, &mut self.system_meta);
-    }
-
-    #[inline]
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out {
+        self.param_state.update(world, &mut self.system_meta);
         self.func
             .run(input, &mut self.param_state, &self.system_meta, world)
     }

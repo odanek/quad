@@ -1,6 +1,6 @@
 use crate::ecs::{
     component::ComponentId,
-    entity::archetype::{Archetype, ArchetypeGeneration, ArchetypeId},
+    entity::archetype::{ArchetypeGeneration, ArchetypeId},
     Entity, World,
 };
 
@@ -38,15 +38,13 @@ where
 
         component_access.extend(&filter_component_access);
 
-        let mut state = Self {
+        Self {
             archetype_generation: ArchetypeGeneration::initial(),
             fetch_state,
             filter_state,
             component_access,
             matched_archetypes: Default::default(),
-        };
-        state.update_archetypes(world);
-        state
+        }
     }
 
     #[inline]
@@ -56,20 +54,18 @@ where
 
     pub fn update_archetypes(&mut self, world: &World) {
         let archetypes = world.archetypes();
-        let new_generation = archetypes.generation();
+        let new_generation = archetypes.generation();        
         let old_generation = std::mem::replace(&mut self.archetype_generation, new_generation);
         let archetype_index_range = old_generation.value()..new_generation.value();
 
         for archetype_index in archetype_index_range {
-            self.new_archetype(&archetypes[ArchetypeId::new(archetype_index)]);
-        }
-    }
+            let archetype = &archetypes[ArchetypeId::new(archetype_index)];
 
-    pub fn new_archetype(&mut self, archetype: &Archetype) {
-        if self.fetch_state.matches_archetype(archetype)
-            && self.filter_state.matches_archetype(archetype)
-        {
-            self.matched_archetypes.push(archetype.id());
+            if self.fetch_state.matches_archetype(archetype)
+                && self.filter_state.matches_archetype(archetype)
+            {
+                self.matched_archetypes.push(archetype.id());
+            }
         }
     }
 
@@ -100,7 +96,6 @@ where
         world: &'w World,
         entity: Entity,
     ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError> {
-        self.update_archetypes(world); // TODO: Are these calls necessary?
         self.get_unchecked_manual(world, entity)
     }
 
@@ -147,7 +142,6 @@ where
         &'s mut self,
         world: &'w World,
     ) -> QueryIter<'w, 's, Q, F> {
-        self.update_archetypes(world);
         self.iter_unchecked_manual(world)
     }
 
@@ -189,7 +183,6 @@ where
         world: &'w World,
         func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
     ) {
-        self.update_archetypes(world);
         self.for_each_unchecked_manual(world, func);
     }
 

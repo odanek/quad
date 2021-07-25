@@ -14,7 +14,7 @@ pub trait SystemParamState: Send + Sync + 'static {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self;
 
     #[inline]
-    fn new_archetype(&mut self, _archetype: &Archetype, _system_meta: &mut SystemMeta) {}
+    fn update(&mut self, __world: &World, _system_meta: &mut SystemMeta) {}
 
     #[inline]
     fn apply(&mut self, _world: &mut World) {}
@@ -66,15 +66,15 @@ macro_rules! impl_system_param_tuple {
             }
 
             #[inline]
-            fn new_archetype(&mut self, _archetype: &Archetype, _system_meta: &mut SystemMeta) {
+            fn update(&mut self, world: &World, system_meta: &mut SystemMeta) {
                 let ($($param,)*) = self;
-                $($param.new_archetype(_archetype, _system_meta);)*
+                $($param.update(world, system_meta);)*
             }
 
             #[inline]
-            fn apply(&mut self, _world: &mut World) {
+            fn apply(&mut self, world: &mut World) {
                 let ($($param,)*) = self;
-                $($param.apply(_world);)*
+                $($param.apply(world);)*
             }
         }
     };
