@@ -4,13 +4,7 @@ use std::any::TypeId;
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{
-    component::{bundle::Bundles, Component, ComponentId, Components},
-    entity::archetype::{Archetype, ArchetypeId, Archetypes},
-    resource::{Resource, ResourceId},
-    storage::Storages,
-    Entities, Entity, Resources,
-};
+use super::{Entities, Entity, Resources, component::{bundle::Bundles, Component, ComponentId, Components}, entity::archetype::{Archetype, ArchetypeId, Archetypes}, query::{fetch::WorldQuery, state::QueryState}, resource::{Resource, ResourceId}, storage::Storages};
 
 #[derive(Default)]
 pub struct World {
@@ -167,6 +161,11 @@ impl World {
     #[inline]
     pub fn entity_mut(&mut self, entity: Entity) -> EntityMut {
         self.get_entity_mut(entity).expect("Entity does not exist")
+    }
+
+    #[inline]
+    pub fn query<Q: WorldQuery>(&mut self) -> QueryState<Q, ()> {
+        QueryState::new(self)
     }
 }
 

@@ -96,6 +96,7 @@ where
         world: &'w World,
         entity: Entity,
     ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError> {
+        self.update_archetypes(world);
         self.get_unchecked_manual(world, entity)
     }
 
@@ -142,6 +143,7 @@ where
         &'s mut self,
         world: &'w World,
     ) -> QueryIter<'w, 's, Q, F> {
+        self.update_archetypes(world);
         self.iter_unchecked_manual(world)
     }
 
@@ -183,6 +185,7 @@ where
         world: &'w World,
         func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
     ) {
+        self.update_archetypes(world);
         self.for_each_unchecked_manual(world, func);
     }
 
