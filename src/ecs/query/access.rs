@@ -39,9 +39,9 @@ impl<T: AccessIndex> Access<T> {
     }
 
     pub fn is_compatible(&self, other: &Access<T>) -> bool {
-        intersects(&self.reads, &other.writes)
+        !(intersects(&self.reads, &other.writes)
             || intersects(&other.reads, &self.writes)
-            || intersects(&self.writes, &other.writes)
+            || intersects(&self.writes, &other.writes))
     }
 
     pub fn extend(&mut self, other: &Access<T>) {
