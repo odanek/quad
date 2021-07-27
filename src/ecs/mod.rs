@@ -17,4 +17,5 @@ pub use system::{
     param::{Local, Query, Res, ResMut},
     IntoSystem, System,
 };
+pub use query::filter::{With, Without, Or};
 pub use world::{FromWorld, World};
