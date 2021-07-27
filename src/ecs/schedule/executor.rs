@@ -7,7 +7,7 @@ use std::{
 
 use crate::ecs::{system::SystemId, IntoSystem, System, World};
 
-pub struct SystemKey<In, Out> {
+pub struct SystemKey<In = (), Out = ()> {
     id: SystemId,
     marker: PhantomData<dyn System<In = In, Out = Out>>,
 }
