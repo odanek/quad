@@ -56,6 +56,7 @@ unsafe impl<T: Component> FetchState for WithState<T> {
         access.add_with(self.component_id);
     }
 
+    #[inline]
     fn matches_archetype(&self, archetype: &Archetype) -> bool {
         archetype.contains(self.component_id)
     }
@@ -116,6 +117,7 @@ unsafe impl<T: Component> FetchState for WithoutState<T> {
         access.add_without(self.component_id);
     }
 
+    #[inline]
     fn matches_archetype(&self, archetype: &Archetype) -> bool {
         !archetype.contains(self.component_id)
     }

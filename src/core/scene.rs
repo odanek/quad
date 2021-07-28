@@ -1,4 +1,4 @@
-use crate::ecs::{Executor, World};
+use crate::ecs::World;
 
 pub type BoxedScene = Box<dyn Scene>;
 
@@ -12,12 +12,11 @@ pub enum SceneResult {
 
 pub struct SceneContext<'a> {
     pub world: &'a mut World,
-    pub executor: &'a mut Executor,
 }
 
 impl<'a, 'b> SceneContext<'a> {
-    pub fn new(world: &'a mut World, executor: &'a mut Executor) -> SceneContext<'a> {
-        SceneContext { world, executor }
+    pub fn new(world: &'a mut World) -> SceneContext<'a> {
+        SceneContext { world }
     }
 }
 

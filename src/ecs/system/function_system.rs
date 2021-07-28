@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use std::{any::type_name, marker::PhantomData};
 
 use crate::ecs::{
     component::ComponentId,
@@ -9,21 +9,19 @@ use crate::ecs::{
 
 use super::{
     param::{SystemParam, SystemParamFetch, SystemParamState},
-    IntoSystem, System, SystemId,
+    IntoSystem, System,
 };
 
 pub struct SystemMeta {
-    pub(crate) id: SystemId,
-    pub(crate) name: &'static str,
+    pub(crate) name: String,
     pub(crate) resource_access: Access<ResourceId>,
     pub(crate) component_access: FilteredAccess<ComponentId>,
 }
 
 impl SystemMeta {
-    fn new<T>(id: SystemId) -> Self {
+    pub(crate) fn new(name: String) -> Self {
         Self {
-            id,
-            name: std::any::type_name::<T>(),
+            name,
             resource_access: Default::default(),
             component_access: Default::default(),
         }
@@ -47,7 +45,7 @@ where
     marker: PhantomData<fn() -> (In, Out, Marker)>,
 }
 
-impl<In, Out, Param, Marker, F> IntoSystem<FunctionSystem<In, Out, Param, Marker, F>> for F
+impl<In, Out, Param, Marker, F> IntoSystem<In, Out, (Param, Marker)> for F
 where
     In: 'static,
     Out: 'static,
@@ -55,8 +53,10 @@ where
     Marker: 'static,
     F: SystemParamFunction<In, Out, Param, Marker>,
 {
-    fn system(self, id: SystemId, world: &mut World) -> FunctionSystem<In, Out, Param, Marker, F> {
-        let mut meta = SystemMeta::new::<F>(id);
+    type System = FunctionSystem<In, Out, Param, Marker, F>;
+
+    fn system(self, world: &mut World) -> Self::System {
+        let mut meta = SystemMeta::new(type_name::<F>().to_owned());
         FunctionSystem {
             func: self,
             param_state: <Param::Fetch as SystemParamState>::new(world, &mut meta),
@@ -78,13 +78,8 @@ where
     type Out = Out;
 
     #[inline]
-    fn name(&self) -> &'static str {
-        self.system_meta.name
-    }
-
-    #[inline]
-    fn id(&self) -> SystemId {
-        self.system_meta.id
+    fn name(&self) -> &str {
+        &self.system_meta.name
     }
 
     #[inline]

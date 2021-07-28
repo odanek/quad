@@ -1,7 +1,4 @@
-use crate::{
-    ecs::{Executor, World},
-    input::KeyboardInput,
-};
+use crate::{ecs::World, input::KeyboardInput};
 
 use super::{
     scene::{BoxedScene, SceneContext},
@@ -10,7 +7,6 @@ use super::{
 
 pub struct Context {
     pub world: Box<World>,
-    pub executor: Executor,
     pub scene: BoxedScene,
 }
 
@@ -18,7 +14,6 @@ impl Context {
     pub fn new(scene: BoxedScene) -> Self {
         Context {
             world: Box::new(Default::default()),
-            executor: Default::default(),
             scene,
         }
     }
@@ -28,34 +23,23 @@ impl Context {
     }
 
     pub fn start_scene(&mut self) {
-        self.scene
-            .on_start(SceneContext::new(&mut self.world, &mut self.executor));
-        self.executor.flush(&self.world);
+        self.scene.on_start(SceneContext::new(&mut self.world));
     }
 
     pub fn _stop_scene(&mut self) {
-        self.scene
-            .on_stop(SceneContext::new(&mut self.world, &mut self.executor));
-        self.executor.flush(&self.world);
+        self.scene.on_stop(SceneContext::new(&mut self.world));
     }
 
     pub fn _pause_scene(&mut self) {
-        self.scene
-            .on_pause(SceneContext::new(&mut self.world, &mut self.executor));
-        self.executor.flush(&self.world);
+        self.scene.on_pause(SceneContext::new(&mut self.world));
     }
 
     pub fn _resume_scene(&mut self) {
-        self.scene
-            .on_resume(SceneContext::new(&mut self.world, &mut self.executor));
-        self.executor.flush(&self.world);
+        self.scene.on_resume(SceneContext::new(&mut self.world));
     }
 
     pub fn update_scene(&mut self) -> SceneResult {
-        let result = self
-            .scene
-            .update(SceneContext::new(&mut self.world, &mut self.executor));
-        self.executor.flush(&self.world);
+        let result = self.scene.update(SceneContext::new(&mut self.world));
         result
     }
 

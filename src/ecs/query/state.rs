@@ -54,7 +54,7 @@ where
 
     pub fn update_archetypes(&mut self, world: &World) {
         let archetypes = world.archetypes();
-        let new_generation = archetypes.generation();        
+        let new_generation = archetypes.generation();
         let old_generation = std::mem::replace(&mut self.archetype_generation, new_generation);
         let archetype_index_range = old_generation.value()..new_generation.value();
 

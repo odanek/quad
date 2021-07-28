@@ -84,7 +84,6 @@ where
 {
     type Item = <Q::Fetch as Fetch<'w>>::Item;
 
-    #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
             loop {
@@ -127,12 +126,12 @@ where
     }
 }
 
-// impl<'w, 's, Q: WorldQuery> ExactSizeIterator for QueryIter<'w, 's, Q, ()> {
-//     fn len(&self) -> usize {
-//         self.query_state
-//             .matched_archetypes
-//             .iter()
-//             .map(|id| self.world.archetype(*id).len())
-//             .sum()
-//     }
-// }
+impl<'w, 's, Q: WorldQuery> ExactSizeIterator for QueryIter<'w, 's, Q, ()> {
+    fn len(&self) -> usize {
+        self.query_state
+            .matched_archetypes
+            .iter()
+            .map(|id| self.world.archetype(*id).len())
+            .sum()
+    }
+}
