@@ -5,6 +5,7 @@ use super::{
     World,
 };
 
+pub mod command;
 pub mod function_system;
 pub mod param;
 
