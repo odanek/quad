@@ -10,7 +10,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use super::{SystemParam, SystemParamFetch, SystemParamState};
+use super::system_param::{SystemParam, SystemParamFetch, SystemParamState};
 
 pub struct Res<'w, T: Resource> {
     pub(crate) value: &'w T,

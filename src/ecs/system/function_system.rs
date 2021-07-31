@@ -8,7 +8,7 @@ use crate::ecs::{
 };
 
 use super::{
-    param::{SystemParam, SystemParamFetch, SystemParamState},
+    system_param::{SystemParam, SystemParamFetch, SystemParamState},
     IntoSystem, System,
 };
 

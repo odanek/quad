@@ -7,7 +7,10 @@ use super::{
 
 pub mod command;
 pub mod function_system;
-pub mod param;
+pub mod local;
+pub mod query;
+pub mod resource;
+pub mod system_param;
 
 pub trait System: Send + Sync + 'static {
     type In: 'static;

@@ -12,7 +12,7 @@ use crate::ecs::{
     Entity, World,
 };
 
-use super::{SystemParam, SystemParamFetch, SystemParamState};
+use super::system_param::{SystemParam, SystemParamFetch, SystemParamState};
 
 // TODO: This definition allows to have With, Without, Or in Q, while it should be possible only in F
 pub struct Query<'w, Q: WorldQuery, F: WorldQuery = ()>

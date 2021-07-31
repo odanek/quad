@@ -15,7 +15,9 @@ pub use query::filter::{Or, With, Without};
 pub use resource::Resources;
 pub use schedule::{Schedule, Scheduler};
 pub use system::{
-    param::{Local, Query, Res, ResMut},
+    local::Local,
+    query::Query,
+    resource::{Res, ResMut},
     IntoSystem, System,
 };
 pub use world::{FromWorld, World};

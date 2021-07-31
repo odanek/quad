@@ -2,14 +2,6 @@ use crate::ecs::World;
 
 use super::function_system::SystemMeta;
 
-mod local;
-mod query;
-mod resource;
-
-pub use local::Local;
-pub use query::Query;
-pub use resource::{Res, ResMut};
-
 pub trait SystemParamState: Send + Sync + 'static {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self;
 
