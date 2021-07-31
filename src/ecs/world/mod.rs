@@ -115,6 +115,8 @@ impl World {
     }
 
     pub fn spawn(&mut self) -> EntityMut {
+        self.flush();
+        
         let archetype = self.archetypes.empty_mut();
         let location = archetype.next_location();
         let entity = self.entities.alloc(location);
@@ -173,6 +175,16 @@ impl World {
     #[inline]
     pub fn query<Q: WorldQuery>(&mut self) -> QueryState<Q, ()> {
         QueryState::new(self)
+    }
+
+    pub(crate) fn flush(&mut self) {
+        let empty_archetype = self.archetypes.empty_mut();
+        unsafe {
+            let table = &mut self.storages.tables[empty_archetype.table_id()];            
+            // self.entities.flush(|entity, location| {
+            //     *location = empty_archetype.allocate(entity, table.allocate(entity));
+            // });
+        }
     }
 }
 

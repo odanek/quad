@@ -235,6 +235,8 @@ impl<'w> EntityMut<'w> {
 
     pub fn despawn(self) {
         let world = self.world;
+        world.flush();
+
         let location = world
             .entities
             .free(self.entity)
