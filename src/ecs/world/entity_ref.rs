@@ -229,6 +229,10 @@ impl<'w> EntityMut<'w> {
         result
     }
 
+    pub fn remove_bundle_intersection<T: Bundle>(&mut self) {
+        // TODO: Implement
+    }
+
     pub fn remove<T: Component>(&mut self) -> T {
         self.remove_bundle::<(T,)>().0
     }

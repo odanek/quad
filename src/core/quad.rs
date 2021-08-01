@@ -17,7 +17,7 @@ impl Quad {
         let mut exit = false;
 
         let mut context = Context::new(scene);
-        context.register_resources();
+        context.insert_resources();
         context.start_scene();
 
         event_loop.run(move |event, _, control_flow| {

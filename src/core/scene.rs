@@ -10,6 +10,7 @@ pub enum SceneResult {
     Replace(BoxedScene),
 }
 
+// TODO: Remove and use world directly?
 pub struct SceneContext<'a> {
     pub world: &'a mut World,
 }

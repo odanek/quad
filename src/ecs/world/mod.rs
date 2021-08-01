@@ -70,7 +70,7 @@ impl World {
     }
 
     #[inline]
-    pub fn register_resource<T: Resource>(&mut self) -> ResourceId {
+    pub(crate) fn register_resource<T: Resource>(&mut self) -> ResourceId {
         self.resources.get_or_insert_id::<T>()
     }
 
@@ -80,12 +80,12 @@ impl World {
     }
 
     #[inline]
-    pub fn register_component<T: Component>(&mut self) -> ComponentId {
+    pub(crate) fn register_component<T: Component>(&mut self) -> ComponentId {
         self.components.get_or_insert::<T>()
     }
 
     #[inline]
-    pub fn add_resource<T: Resource>(&mut self, resource: T) -> Option<T> {
+    pub fn insert_resource<T: Resource>(&mut self, resource: T) -> Option<T> {
         self.resources.add(resource)
     }
 
@@ -116,7 +116,7 @@ impl World {
 
     pub fn spawn(&mut self) -> EntityMut {
         self.flush();
-        
+
         let archetype = self.archetypes.empty_mut();
         let location = archetype.next_location();
         let entity = self.entities.alloc(location);
@@ -178,13 +178,8 @@ impl World {
     }
 
     pub(crate) fn flush(&mut self) {
-        let empty_archetype = self.archetypes.empty_mut();
-        unsafe {
-            let table = &mut self.storages.tables[empty_archetype.table_id()];            
-            // self.entities.flush(|entity, location| {
-            //     *location = empty_archetype.allocate(entity, table.allocate(entity));
-            // });
-        }
+        // TODO: Implement
+        todo!("Implement")
     }
 }
 

@@ -2,9 +2,9 @@ use self::archetype::ArchetypeId;
 
 pub mod archetype;
 
-#[derive(Clone, Copy, Hash, Eq, PartialEq)]
+#[derive(Clone, Copy, Hash, Eq, PartialEq, Debug)]
 pub struct Entity {
-    pub(crate) generation: u32, // TODO: Combine into single u64?
+    pub(crate) generation: u32,
     pub(crate) id: u32,
 }
 
@@ -117,5 +117,10 @@ impl Entities {
 
     pub(crate) fn update_location(&mut self, entity: Entity, location: EntityLocation) {
         self.meta[entity.id as usize].location = location;
+    }
+
+    pub fn reserve_entity(&self) -> Entity {
+        // TODO
+        todo!("Implement");
     }
 }

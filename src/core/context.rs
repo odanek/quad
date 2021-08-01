@@ -5,6 +5,7 @@ use super::{
     SceneResult,
 };
 
+// TODO: World should not be owned by Context. Remove Context entirely?
 pub struct Context {
     pub world: Box<World>,
     pub scene: BoxedScene,
@@ -18,8 +19,8 @@ impl Context {
         }
     }
 
-    pub fn register_resources(&mut self) {
-        self.world.add_resource(KeyboardInput::default());
+    pub fn insert_resources(&mut self) {
+        self.world.insert_resource(KeyboardInput::default());
     }
 
     pub fn start_scene(&mut self) {
