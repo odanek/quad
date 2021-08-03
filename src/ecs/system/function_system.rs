@@ -19,7 +19,7 @@ pub struct SystemMeta {
 }
 
 impl SystemMeta {
-    pub(crate) fn new(name: String) -> Self {
+    pub fn new(name: String) -> Self {
         Self {
             name,
             resource_access: Default::default(),

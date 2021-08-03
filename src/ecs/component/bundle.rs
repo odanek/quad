@@ -65,7 +65,7 @@ pub struct BundleInfo {
 
 impl BundleInfo {
     #[inline]
-    pub(crate) unsafe fn write_components<T: Bundle>(
+    pub unsafe fn write_components<T: Bundle>(
         &self,
         table: &mut Table,
         table_row: usize,
@@ -99,10 +99,7 @@ pub struct Bundles {
 }
 
 impl Bundles {
-    pub(crate) fn init_info<'a, T: Bundle>(
-        &'a mut self,
-        components: &mut Components,
-    ) -> &'a BundleInfo {
+    pub fn init_info<'a, T: Bundle>(&'a mut self, components: &mut Components) -> &'a BundleInfo {
         let bundle_infos = &mut self.bundle_infos;
         let id = self.bundle_ids.entry(TypeId::of::<T>()).or_insert_with(|| {
             let type_info = T::type_info();

@@ -148,7 +148,7 @@ where
     }
 
     #[inline]
-    pub(crate) unsafe fn iter_unchecked_manual<'w, 's>(
+    pub unsafe fn iter_unchecked_manual<'w, 's>(
         &'s self,
         world: &'w World,
     ) -> QueryIter<'w, 's, Q, F> {
@@ -189,7 +189,7 @@ where
         self.for_each_unchecked_manual(world, func);
     }
 
-    pub(crate) unsafe fn for_each_unchecked_manual<'w, 's>(
+    pub unsafe fn for_each_unchecked_manual<'w, 's>(
         &'s self,
         world: &'w World,
         mut func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),

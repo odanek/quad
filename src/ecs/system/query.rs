@@ -28,7 +28,7 @@ where
     F::Fetch: FilterFetch,
 {
     #[inline]
-    pub(crate) unsafe fn new(world: &'w World, state: &'w QueryState<Q, F>) -> Self {
+    pub unsafe fn new(world: &'w World, state: &'w QueryState<Q, F>) -> Self {
         Self { world, state }
     }
 

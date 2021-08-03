@@ -124,7 +124,7 @@ impl Archetype {
     }
 
     #[inline]
-    pub(crate) fn edges_mut(&mut self) -> &mut Edges {
+    pub fn edges_mut(&mut self) -> &mut Edges {
         &mut self.edges
     }
 
@@ -179,7 +179,7 @@ impl Archetype {
         }
     }
 
-    pub(crate) fn clear(&mut self) {
+    pub fn clear(&mut self) {
         self.entities.clear();
     }
 }

@@ -31,7 +31,7 @@ impl<'w, 's, Q: WorldQuery, F: WorldQuery> QueryIter<'w, 's, Q, F>
 where
     F::Fetch: FilterFetch,
 {
-    pub(crate) unsafe fn new(world: &'w World, query_state: &'s QueryState<Q, F>) -> Self {
+    pub unsafe fn new(world: &'w World, query_state: &'s QueryState<Q, F>) -> Self {
         let fetch = <Q::Fetch as Fetch>::new(world, &query_state.fetch_state);
         let filter = <F::Fetch as Fetch>::new(world, &query_state.filter_state);
 
@@ -48,7 +48,7 @@ where
         }
     }
 
-    pub(crate) fn none_remaining(mut self) -> bool {
+    pub fn none_remaining(mut self) -> bool {
         unsafe {
             loop {
                 if self.current_index == self.current_len {

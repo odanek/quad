@@ -85,7 +85,7 @@ impl Resources {
     }
 
     #[inline]
-    pub(crate) fn get_unchecked<T: Resource>(&self) -> Option<*const T> {
+    pub fn get_unchecked<T: Resource>(&self) -> Option<*const T> {
         self.get::<T>().map(|r| r as _)
     }
 
@@ -96,7 +96,7 @@ impl Resources {
     }
 
     #[inline]
-    pub(crate) fn get_mut_unchecked<T: Resource>(&self) -> Option<*mut T> {
+    pub fn get_mut_unchecked<T: Resource>(&self) -> Option<*mut T> {
         self.get::<T>().map(|r| r as *const T as _)
     }
 

@@ -98,7 +98,7 @@ pub struct Components {
 }
 
 impl Components {
-    pub(crate) fn add(&mut self, info: &TypeInfo) -> Result<ComponentId, ComponentsError> {
+    fn add(&mut self, info: &TypeInfo) -> Result<ComponentId, ComponentsError> {
         let index = self.components.len();
         let index_entry = self.indices.entry(info.type_id());
         if let Entry::Occupied(_) = index_entry {
