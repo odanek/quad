@@ -24,7 +24,7 @@ macro_rules! bundle_impl {
                 vec![$(TypeInfo::of::<$name>()),*]
             }
 
-            #[allow(unused_variables, unused_mut)]
+            #[allow(unused_variables, unused_mut, clippy::unused_unit)]
             unsafe fn from_components(mut func: impl FnMut() -> *mut u8) -> Self {
                 #[allow(non_snake_case)]
                 let ($(mut $name,)*) = (
@@ -122,7 +122,7 @@ fn initialize_bundle(
     let mut component_ids = Vec::new();
 
     for type_info in type_info {
-        let component_id = components.get_or_insert_info(&type_info);
+        let component_id = components.get_or_insert_info(type_info);
         component_ids.push(component_id);
     }
 

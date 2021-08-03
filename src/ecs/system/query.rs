@@ -28,6 +28,7 @@ where
     F::Fetch: FilterFetch,
 {
     #[inline]
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn new(world: &'w World, state: &'w QueryState<Q, F>) -> Self {
         Self { world, state }
     }

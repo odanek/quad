@@ -57,7 +57,7 @@ impl<'w> EntityRef<'w> {
     #[inline]
     pub fn get<T: Component>(&self) -> Option<&'w T> {
         unsafe {
-            get_component(&self.world, TypeId::of::<T>(), self.location)
+            get_component(self.world, TypeId::of::<T>(), self.location)
                 .map(|value| &*value.cast::<T>())
         }
     }
@@ -65,7 +65,7 @@ impl<'w> EntityRef<'w> {
     #[inline]
     pub(crate) fn get_unchecked_mut<T: Component>(&self) -> Option<&'w mut T> {
         unsafe {
-            get_component(&self.world, TypeId::of::<T>(), self.location)
+            get_component(self.world, TypeId::of::<T>(), self.location)
                 .map(|value| &mut *value.cast::<T>())
         }
     }
@@ -113,7 +113,7 @@ impl<'w> EntityMut<'w> {
     #[inline]
     pub fn get<T: Component>(&self) -> Option<&'w T> {
         unsafe {
-            get_component(&self.world, TypeId::of::<T>(), self.location)
+            get_component(self.world, TypeId::of::<T>(), self.location)
                 .map(|value| &*value.cast::<T>())
         }
     }
@@ -121,7 +121,7 @@ impl<'w> EntityMut<'w> {
     #[inline]
     pub fn get_mut<T: Component>(&mut self) -> Option<&'w mut T> {
         unsafe {
-            get_component(&self.world, TypeId::of::<T>(), self.location)
+            get_component(self.world, TypeId::of::<T>(), self.location)
                 .map(|value| &mut *value.cast::<T>())
         }
     }

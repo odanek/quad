@@ -38,6 +38,7 @@ macro_rules! impl_system_param_tuple {
             type Item = ($($param::Item,)*);
 
             #[inline]
+            #[allow(clippy::unused_unit)]
             unsafe fn get_param(
                 state: &'a mut Self,
                 system_meta: &SystemMeta,
