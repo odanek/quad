@@ -24,6 +24,7 @@ pub struct ResourceInfo {
     name: &'static str,
 }
 
+#[allow(dead_code)]
 impl ResourceInfo {
     #[inline]
     pub fn id(&self) -> ResourceId {
@@ -48,6 +49,7 @@ pub struct Resources {
     map: HashMap<ResourceId, Box<dyn Any>>,
 }
 
+#[allow(dead_code)]
 impl Resources {
     #[inline]
     pub fn get_id<T: Resource>(&self) -> Option<ResourceId> {

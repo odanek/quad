@@ -216,6 +216,7 @@ impl Default for Archetypes {
     }
 }
 
+#[allow(dead_code)]
 impl Archetypes {
     #[inline]
     pub fn generation(&self) -> ArchetypeGeneration {

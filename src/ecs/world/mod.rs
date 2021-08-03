@@ -6,11 +6,14 @@ use self::entity_ref::{EntityMut, EntityRef};
 
 use super::{
     component::{bundle::Bundles, Component, ComponentId, Components},
-    entity::archetype::{Archetype, ArchetypeId, Archetypes},
+    entity::{
+        archetype::{Archetype, ArchetypeId, Archetypes},
+        Entities,
+    },
     query::{fetch::WorldQuery, state::QueryState},
-    resource::{Resource, ResourceId},
+    resource::{Resource, ResourceId, Resources},
     storage::Storages,
-    Entities, Entity, Resources,
+    Entity,
 };
 
 #[derive(Default)]
@@ -23,6 +26,7 @@ pub struct World {
     bundles: Bundles,
 }
 
+#[allow(dead_code)]
 impl World {
     #[inline]
     pub fn new() -> World {
@@ -30,42 +34,42 @@ impl World {
     }
 
     #[inline]
-    pub fn resources(&self) -> &Resources {
+    pub(crate) fn resources(&self) -> &Resources {
         &self.resources
     }
 
     #[inline]
-    pub fn entities(&self) -> &Entities {
+    pub(crate) fn entities(&self) -> &Entities {
         &self.entities
     }
 
     #[inline]
-    pub fn archetypes(&self) -> &Archetypes {
+    pub(crate) fn archetypes(&self) -> &Archetypes {
         &self.archetypes
     }
 
     #[inline]
-    pub fn archetype(&self, id: ArchetypeId) -> &Archetype {
+    pub(crate) fn archetype(&self, id: ArchetypeId) -> &Archetype {
         &self.archetypes[id]
     }
 
     #[inline]
-    pub fn components(&self) -> &Components {
+    pub(crate) fn components(&self) -> &Components {
         &self.components
     }
 
     #[inline]
-    pub fn storages(&self) -> &Storages {
+    pub(crate) fn storages(&self) -> &Storages {
         &self.storages
     }
 
     #[inline]
-    pub fn bundles(&self) -> &Bundles {
+    pub(crate) fn bundles(&self) -> &Bundles {
         &self.bundles
     }
 
     #[inline]
-    pub fn resource_id<T: Resource>(&self) -> Option<ResourceId> {
+    pub(crate) fn resource_id<T: Resource>(&self) -> Option<ResourceId> {
         self.resources.get_id::<T>()
     }
 
@@ -75,7 +79,7 @@ impl World {
     }
 
     #[inline]
-    pub fn component_id<T: Component>(&self) -> Option<ComponentId> {
+    pub(crate) fn component_id<T: Component>(&self) -> Option<ComponentId> {
         self.components.get_id(TypeId::of::<T>())
     }
 

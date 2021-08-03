@@ -2,7 +2,8 @@ use std::marker::PhantomData;
 
 use crate::ecs::{
     component::{bundle::Bundle, Component},
-    Entities, Entity, World,
+    entity::Entities,
+    Entity, World,
 };
 
 use super::{

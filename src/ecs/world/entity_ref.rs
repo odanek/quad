@@ -7,10 +7,10 @@ use crate::ecs::{
     },
     entity::{
         archetype::{Archetype, ArchetypeId, Archetypes},
-        EntityLocation,
+        Entities, EntityLocation,
     },
     storage::Storages,
-    Entities, Entity,
+    Entity,
 };
 
 use super::World;

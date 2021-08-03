@@ -1,5 +1,5 @@
-use std::sync::atomic::{AtomicI64, Ordering};
 use std::convert::TryFrom;
+use std::sync::atomic::{AtomicI64, Ordering};
 
 use self::archetype::ArchetypeId;
 
@@ -47,10 +47,11 @@ pub struct EntityLocation {
     pub index: usize,
 }
 
+#[allow(dead_code)]
 impl Entities {
     pub fn alloc(&mut self, location: EntityLocation) -> Entity {
         self.verify_flushed();
-        
+
         if let Some(id) = self.pending.pop() {
             *self.free_cursor.get_mut() = self.pending.len() as i64;
             let meta = &mut self.meta[id as usize];
@@ -102,10 +103,7 @@ impl Entities {
             }
         } else {
             let id = u32::try_from(self.meta.len() as i64 - n).expect("too many entities");
-            Entity {
-                generation: 0,
-                id,
-            }
+            Entity { generation: 0, id }
         }
     }
 
@@ -152,12 +150,8 @@ impl Entities {
         //     current_free_cursor as usize
         // } else {
 
-
-
         //     let old_meta_len = self.meta.len();
         //     let new_meta_len = old_meta_len + (-current_free_cursor as usize);
-
-
 
         //     self.meta.resize(new_meta_len, EntityMeta::EMPTY);
         //     self.len += -current_free_cursor as u32;
@@ -186,7 +180,7 @@ impl Entities {
         //         &mut meta.location,
         //     );
         // }
-    }    
+    }
 
     fn verify_flushed(&mut self) {
         debug_assert!(
