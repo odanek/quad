@@ -1,7 +1,7 @@
 mod builder;
 mod size;
 
-pub use builder::WindowBuilder;
+pub use builder::WindowBuilder; // TODO: Shouldn't be exposed from the crate
 pub use size::{FullScreen, LogicalSize, PhysicalSize, Size};
 
 pub struct Window {

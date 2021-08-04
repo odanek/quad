@@ -1,6 +1,6 @@
 use crate::window::Window;
 
-use super::{builder::QuadBuilder, context::Context, scene::BoxedScene};
+use super::{builder::QuadBuilder, context::Context, scene::Scene};
 
 pub struct Quad {
     pub(crate) main_window: Window,
@@ -11,7 +11,7 @@ impl Quad {
         QuadBuilder::default()
     }
 
-    pub fn run(self, scene: BoxedScene) {
+    pub fn run(self, scene: Box<dyn Scene>) {
         let window = self.main_window;
         let event_loop = window.event_loop;
         let mut exit = false;

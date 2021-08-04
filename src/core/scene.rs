@@ -1,13 +1,11 @@
 use crate::ecs::World;
 
-pub type BoxedScene = Box<dyn Scene>;
-
 pub enum SceneResult {
     Ok,
     Quit,
     Pop,
-    Push(BoxedScene),
-    Replace(BoxedScene),
+    Push(Box<dyn Scene>),
+    Replace(Box<dyn Scene>),
 }
 
 // TODO: Remove and use world directly?

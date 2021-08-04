@@ -119,8 +119,6 @@ impl World {
     }
 
     pub fn spawn(&mut self) -> EntityMut {
-        self.flush();
-
         let archetype = self.archetypes.empty_mut();
         let location = archetype.next_location();
         let entity = self.entities.alloc(location);
@@ -182,8 +180,16 @@ impl World {
     }
 
     pub(crate) fn flush(&mut self) {
-        // TODO: Implement
-        todo!("Implement")
+        let archetype = self.archetypes.empty_mut();
+        let table = &mut self.storages.tables[archetype.table_id()];
+        unsafe {
+            self.entities.flush(|entity| {
+                let location = archetype.next_location();
+                archetype.allocate(entity);
+                table.allocate(entity);
+                location
+            });
+        }
     }
 }
 

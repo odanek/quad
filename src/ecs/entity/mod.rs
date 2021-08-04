@@ -141,45 +141,35 @@ impl Entities {
         self.meta[entity.id as usize].location = location;
     }
 
-    pub fn flush(&mut self, mut init: impl FnMut(Entity, &mut EntityLocation)) {
-        todo!()
-        // let free_cursor = self.free_cursor.get_mut();
-        // let current_free_cursor = *free_cursor;
+    pub fn flush(&mut self, mut init: impl FnMut(Entity) -> EntityLocation) {
+        let free_cursor = self.free_cursor.get_mut();
+        let mut current_free_cursor = *free_cursor;
 
-        // let new_free_cursor = if current_free_cursor >= 0 {
-        //     current_free_cursor as usize
-        // } else {
+        if current_free_cursor < 0 {
+            let meta = &mut self.meta;
+            let mut id = meta.len() as u32;
+            while current_free_cursor < 0 {
+                let entity = Entity::new(id);
+                let location = init(entity);
+                meta.push(EntityMeta {
+                    generation: entity.generation,
+                    location,
+                });
+                id += 1;
+                current_free_cursor += 1;
+            }
+            *free_cursor = 0;
+        }
 
-        //     let old_meta_len = self.meta.len();
-        //     let new_meta_len = old_meta_len + (-current_free_cursor as usize);
-
-        //     self.meta.resize(new_meta_len, EntityMeta::EMPTY);
-        //     self.len += -current_free_cursor as u32;
-        //     for (id, meta) in self.meta.iter_mut().enumerate().skip(old_meta_len) {
-        //         init(
-        //             Entity {
-        //                 id: id as u32,
-        //                 generation: meta.generation,
-        //             },
-        //             &mut meta.location,
-        //         );
-        //     }
-
-        //     *free_cursor = 0;
-        //     0
-        // };
-
-        // self.len += (self.pending.len() - new_free_cursor) as u32;
-        // for id in self.pending.drain(new_free_cursor..) {
-        //     let meta = &mut self.meta[id as usize];
-        //     init(
-        //         Entity {
-        //             id,
-        //             generation: meta.generation,
-        //         },
-        //         &mut meta.location,
-        //     );
-        // }
+        let pending_index = current_free_cursor as usize;
+        for id in self.pending.drain(pending_index..) {
+            let meta = &mut self.meta[id as usize];
+            let entity = Entity {
+                id,
+                generation: meta.generation,
+            };
+            meta.location = init(entity);
+        }
     }
 
     fn verify_flushed(&mut self) {

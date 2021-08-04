@@ -1,18 +1,15 @@
 use crate::{ecs::World, input::KeyboardInput};
 
-use super::{
-    scene::{BoxedScene, SceneContext},
-    SceneResult,
-};
+use super::{scene::SceneContext, Scene, SceneResult};
 
 // TODO: World should not be owned by Context. Remove Context entirely?
 pub struct Context {
     pub world: Box<World>,
-    pub scene: BoxedScene,
+    pub scene: Box<dyn Scene>,
 }
 
 impl Context {
-    pub fn new(scene: BoxedScene) -> Self {
+    pub fn new(scene: Box<dyn Scene>) -> Self {
         Context {
             world: Box::new(Default::default()),
             scene,
