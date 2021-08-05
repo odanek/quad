@@ -374,7 +374,7 @@ unsafe fn remove_bundle_from_archetype(
 
     let mut removed_components = bundle_info.component_ids.clone();
     removed_components.sort();
-    let mut next_components = current_archetype.components().collect::<Vec<_>>();
+    let mut next_components = current_archetype.components().collect();
     sorted_remove(&mut next_components, &removed_components);
 
     let next_table_id = if removed_components.is_empty() {

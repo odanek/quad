@@ -20,6 +20,7 @@ pub struct AddBundle {
 pub struct Edges {
     pub add_bundle: HashMap<BundleId, AddBundle>,
     pub remove_bundle: HashMap<BundleId, ArchetypeId>,
+    pub remove_bundle_intersection: HashMap<BundleId, ArchetypeId>,
 }
 
 impl Edges {
@@ -52,6 +53,21 @@ impl Edges {
     #[inline]
     pub fn set_remove_bundle(&mut self, bundle_id: BundleId, archetype_id: ArchetypeId) {
         self.remove_bundle.insert(bundle_id, archetype_id);
+    }
+
+    #[inline]
+    pub fn get_remove_bundle_intersection(&self, bundle_id: BundleId) -> Option<ArchetypeId> {
+        self.remove_bundle_intersection.get(&bundle_id).cloned()
+    }
+
+    #[inline]
+    pub fn set_remove_bundle_intersection(
+        &mut self,
+        bundle_id: BundleId,
+        archetype_id: ArchetypeId,
+    ) {
+        self.remove_bundle_intersection
+            .insert(bundle_id, archetype_id);
     }
 }
 
