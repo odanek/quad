@@ -201,6 +201,19 @@ impl Table {
         }
     }
 
+    pub unsafe fn move_to_and_drop_missing_unchecked(&mut self, row: usize, new_table: &mut Table) {
+        let entity = self.entities.swap_remove(row);
+        let new_row = new_table.allocate(entity);
+        for column in self.columns.values_mut() {
+            if let Some(new_column) = new_table.get_column_mut(column.component_id) {
+                let data = column.swap_remove_and_forget_unchecked(row);
+                new_column.initialize(new_row, data);
+            } else {
+                column.swap_remove_unchecked(row);
+            }
+        }
+    }
+
     pub unsafe fn clear(&mut self) {
         for column in self.columns.values_mut() {
             column.clear();

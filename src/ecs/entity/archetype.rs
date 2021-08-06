@@ -19,8 +19,8 @@ pub struct AddBundle {
 #[derive(Default)]
 pub struct Edges {
     pub add_bundle: HashMap<BundleId, AddBundle>,
-    pub remove_bundle: HashMap<BundleId, ArchetypeId>,
-    pub remove_bundle_intersection: HashMap<BundleId, ArchetypeId>,
+    pub remove_bundle: HashMap<BundleId, Option<ArchetypeId>>,
+    pub remove_bundle_intersection: HashMap<BundleId, Option<ArchetypeId>>,
 }
 
 impl Edges {
@@ -46,17 +46,20 @@ impl Edges {
     }
 
     #[inline]
-    pub fn get_remove_bundle(&self, bundle_id: BundleId) -> Option<ArchetypeId> {
+    pub fn get_remove_bundle(&self, bundle_id: BundleId) -> Option<Option<ArchetypeId>> {
         self.remove_bundle.get(&bundle_id).cloned()
     }
 
     #[inline]
-    pub fn set_remove_bundle(&mut self, bundle_id: BundleId, archetype_id: ArchetypeId) {
+    pub fn set_remove_bundle(&mut self, bundle_id: BundleId, archetype_id: Option<ArchetypeId>) {
         self.remove_bundle.insert(bundle_id, archetype_id);
     }
 
     #[inline]
-    pub fn get_remove_bundle_intersection(&self, bundle_id: BundleId) -> Option<ArchetypeId> {
+    pub fn get_remove_bundle_intersection(
+        &self,
+        bundle_id: BundleId,
+    ) -> Option<Option<ArchetypeId>> {
         self.remove_bundle_intersection.get(&bundle_id).cloned()
     }
 
@@ -64,7 +67,7 @@ impl Edges {
     pub fn set_remove_bundle_intersection(
         &mut self,
         bundle_id: BundleId,
-        archetype_id: ArchetypeId,
+        archetype_id: Option<ArchetypeId>,
     ) {
         self.remove_bundle_intersection
             .insert(bundle_id, archetype_id);
@@ -197,6 +200,33 @@ impl Archetype {
 
     pub fn clear(&mut self) {
         self.entities.clear();
+    }
+
+    pub fn get_remove_bundle_archetype(
+        &self,
+        bundle_id: BundleId,
+        intersection: bool,
+    ) -> Option<Option<ArchetypeId>> {
+        let edges = &self.edges;
+        if intersection {
+            edges.get_remove_bundle_intersection(bundle_id)
+        } else {
+            edges.get_remove_bundle(bundle_id)
+        }
+    }
+
+    pub fn set_remove_bundle_archetype(
+        &mut self,
+        bundle_id: BundleId,
+        archetype_id: Option<ArchetypeId>,
+        intersection: bool,
+    ) {
+        let edges = &mut self.edges;
+        if intersection {
+            edges.set_remove_bundle_intersection(bundle_id, archetype_id)
+        } else {
+            edges.set_remove_bundle(bundle_id, archetype_id);
+        }
     }
 }
 

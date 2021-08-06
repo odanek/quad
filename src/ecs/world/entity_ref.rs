@@ -169,7 +169,7 @@ impl<'w> EntityMut<'w> {
         self.insert_bundle((value,))
     }
 
-    pub fn remove_bundle<T: Bundle>(&mut self) -> T {
+    pub fn remove_bundle<T: Bundle>(&mut self) -> Option<T> {
         let archetypes = &mut self.world.archetypes;
         let storages = &mut self.world.storages;
         let components = &mut self.world.components;
@@ -177,24 +177,24 @@ impl<'w> EntityMut<'w> {
 
         let bundle_info = self.world.bundles.init_info::<T>(components);
         let old_location = self.location;
-        let new_archetype_id = unsafe {
-            remove_bundle_from_archetype(
-                archetypes,
-                storages,
-                components,
-                old_location.archetype_id,
-                bundle_info,
-            )
-        };
+        let new_archetype_id = remove_bundle_from_archetype(
+            archetypes,
+            storages,
+            components,
+            old_location.archetype_id,
+            bundle_info,
+            false,
+        )?;
 
-        let old_archetype = &mut archetypes[old_location.archetype_id];
+        let old_archetype_id = old_location.archetype_id;
+        let old_archetype = &mut archetypes[old_archetype_id];
+        let old_table = &storages.tables[old_archetype.table_id()];
         let mut bundle_components = bundle_info.component_ids.iter().cloned();
-        let entity = self.entity;
 
         let result = unsafe {
             T::from_components(|| {
                 let component_id = bundle_components.next().unwrap();
-                let table = &storages.tables[old_archetype.table_id()];
+                let table = old_table;
                 let column = table
                     .get_column(component_id)
                     .expect("The entity does not contain given component");
@@ -202,39 +202,58 @@ impl<'w> EntityMut<'w> {
             })
         };
 
-        if new_archetype_id == old_location.archetype_id {
-            return result;
+        if new_archetype_id == old_archetype_id {
+            return Some(result);
         }
 
-        let remove_result = old_archetype.swap_remove(old_location.index);
-        if let Some(swapped_entity) = remove_result {
-            entities.update_location(swapped_entity, old_location);
-        }
-        let old_table_row = old_location.index;
-        let old_table_id = old_archetype.table_id();
-        let new_archetype = &mut archetypes[new_archetype_id];
-
-        let (old_table, new_table) = storages
-            .tables
-            .get_2_mut(old_table_id, new_archetype.table_id());
-
-        unsafe { old_table.move_to_and_forget_missing_unchecked(old_table_row, new_table) };
-
-        let new_location = new_archetype.next_location();
-        new_archetype.allocate(entity);
-
-        self.location = new_location;
-        entities.update_location(entity, new_location);
-
-        result
+        self.location = move_entity_after_remove(
+            false,
+            self.entity,
+            old_location,
+            new_archetype_id,
+            archetypes,
+            storages,
+            entities,
+        );
+        Some(result)
     }
 
     pub fn remove_bundle_intersection<T: Bundle>(&mut self) {
-        // TODO: Implement
+        let archetypes = &mut self.world.archetypes;
+        let storages = &mut self.world.storages;
+        let components = &mut self.world.components;
+        let entities = &mut self.world.entities;
+
+        let bundle_info = self.world.bundles.init_info::<T>(components);
+        let old_location = self.location;
+        let old_archetype_id = old_location.archetype_id;
+        let new_archetype_id = remove_bundle_from_archetype(
+            archetypes,
+            storages,
+            components,
+            old_location.archetype_id,
+            bundle_info,
+            true,
+        )
+        .expect("intersections should always return a result");
+
+        if new_archetype_id == old_archetype_id {
+            return;
+        }
+
+        self.location = move_entity_after_remove(
+            true,
+            self.entity,
+            old_location,
+            new_archetype_id,
+            archetypes,
+            storages,
+            entities,
+        );
     }
 
-    pub fn remove<T: Component>(&mut self) -> T {
-        self.remove_bundle::<(T,)>().0
+    pub fn remove<T: Component>(&mut self) -> Option<T> {
+        self.remove_bundle::<(T,)>().map(|v| v.0)
     }
 
     pub fn despawn(self) {
@@ -358,21 +377,33 @@ unsafe fn add_bundle_to_archetype(
     }
 }
 
-unsafe fn remove_bundle_from_archetype(
+fn remove_bundle_from_archetype(
     archetypes: &mut Archetypes,
     storages: &mut Storages,
     components: &mut Components,
     archetype_id: ArchetypeId,
     bundle_info: &BundleInfo,
-) -> ArchetypeId {
+    intersection: bool,
+) -> Option<ArchetypeId> {
+    let bundle_id = bundle_info.id;
     let current_archetype = &mut archetypes[archetype_id];
+    let remove_bundle_archetype =
+        current_archetype.get_remove_bundle_archetype(bundle_id, intersection);
 
-    let remove_bundle_result = current_archetype.edges().get_remove_bundle(bundle_info.id);
-    if let Some(result) = remove_bundle_result {
+    if let Some(result) = remove_bundle_archetype {
         return result;
     }
 
-    let mut removed_components = bundle_info.component_ids.clone();
+    let mut removed_components = Vec::new();
+    for component_id in bundle_info.component_ids.iter().cloned() {
+        if current_archetype.contains(component_id) {
+            removed_components.push(component_id);
+        } else if !intersection {
+            current_archetype.set_remove_bundle_archetype(bundle_id, None, false);
+            return None;
+        }
+    }
+
     removed_components.sort();
     let mut next_components = current_archetype.components().collect();
     sorted_remove(&mut next_components, &removed_components);
@@ -380,16 +411,15 @@ unsafe fn remove_bundle_from_archetype(
     let next_table_id = if removed_components.is_empty() {
         current_archetype.table_id()
     } else {
-        storages
-            .tables
-            .get_id_or_insert(&next_components, components)
+        unsafe {
+            storages
+                .tables
+                .get_id_or_insert(&next_components, components)
+        }
     };
 
-    let new_archetype_id = archetypes.get_id_or_insert(next_table_id, &next_components);
-
-    archetypes[archetype_id]
-        .edges_mut()
-        .set_remove_bundle(bundle_info.id, new_archetype_id);
+    let new_archetype_id = Some(archetypes.get_id_or_insert(next_table_id, &next_components));
+    archetypes[archetype_id].set_remove_bundle_archetype(bundle_id, new_archetype_id, intersection);
 
     new_archetype_id
 }
@@ -407,4 +437,42 @@ fn sorted_remove<T: Eq + Ord + Copy>(source: &mut Vec<T>, remove: &[T]) {
             true
         }
     })
+}
+
+fn move_entity_after_remove(
+    drop: bool,
+    entity: Entity,    
+    old_location: EntityLocation,
+    new_archetype_id: ArchetypeId,
+    archetypes: &mut Archetypes,
+    storages: &mut Storages,
+    entities: &mut Entities,
+) -> EntityLocation {
+    let old_archetype = &mut archetypes[old_location.archetype_id];
+    let remove_result = old_archetype.swap_remove(old_location.index);
+    if let Some(swapped_entity) = remove_result {
+        entities.update_location(swapped_entity, old_location);
+    }
+    let old_table_row = old_location.index;
+    let old_table_id = old_archetype.table_id();
+
+    let new_archetype = &mut archetypes[new_archetype_id];
+    let (old_table, new_table) = storages
+        .tables
+        .get_2_mut(old_table_id, new_archetype.table_id());
+
+    unsafe {
+        if drop {
+            old_table.move_to_and_drop_missing_unchecked(old_table_row, new_table);
+        } else {
+            old_table.move_to_and_forget_missing_unchecked(old_table_row, new_table);
+        }
+    };
+
+    let new_location = new_archetype.next_location();
+    new_archetype.allocate(entity);
+
+    entities.update_location(entity, new_location);
+
+    new_location
 }
