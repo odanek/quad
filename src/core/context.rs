@@ -21,19 +21,19 @@ impl Context {
     }
 
     pub fn start_scene(&mut self) {
-        self.scene.on_start(SceneContext::new(&mut self.world));
+        self.scene.start(SceneContext::new(&mut self.world));
     }
 
     pub fn _stop_scene(&mut self) {
-        self.scene.on_stop(SceneContext::new(&mut self.world));
+        self.scene.stop(SceneContext::new(&mut self.world));
     }
 
     pub fn _pause_scene(&mut self) {
-        self.scene.on_pause(SceneContext::new(&mut self.world));
+        self.scene.pause(SceneContext::new(&mut self.world));
     }
 
     pub fn _resume_scene(&mut self) {
-        self.scene.on_resume(SceneContext::new(&mut self.world));
+        self.scene.resume(SceneContext::new(&mut self.world));
     }
 
     pub fn update_scene(&mut self) -> SceneResult {

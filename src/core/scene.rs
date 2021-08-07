@@ -20,10 +20,10 @@ impl<'a, 'b> SceneContext<'a> {
 }
 
 pub trait Scene {
-    fn on_start(&mut self, _context: SceneContext) {}
-    fn on_stop(&mut self, _context: SceneContext) {}
-    fn on_pause(&mut self, _context: SceneContext) {}
-    fn on_resume(&mut self, _context: SceneContext) {}
+    fn start(&mut self, _context: SceneContext) {}
+    fn stop(&mut self, _context: SceneContext) {}
+    fn pause(&mut self, _context: SceneContext) {}
+    fn resume(&mut self, _context: SceneContext) {}
     fn update(&mut self, _context: SceneContext) -> SceneResult {
         SceneResult::Ok
     }

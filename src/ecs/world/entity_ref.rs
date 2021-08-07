@@ -441,7 +441,7 @@ fn sorted_remove<T: Eq + Ord + Copy>(source: &mut Vec<T>, remove: &[T]) {
 
 fn move_entity_after_remove(
     drop: bool,
-    entity: Entity,    
+    entity: Entity,
     old_location: EntityLocation,
     new_archetype_id: ArchetypeId,
     archetypes: &mut Archetypes,
