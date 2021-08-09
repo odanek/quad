@@ -36,16 +36,22 @@ impl Context {
         self.scene.resume(SceneContext::new(&mut self.world));
     }
 
-    pub fn update_scene(&mut self) -> SceneResult {
+    pub fn update_scene(&mut self) -> SceneResult {        
         let result = self.scene.update(SceneContext::new(&mut self.world));
         result
     }
 
     pub fn handle_scene_update(&mut self) -> bool {
-        // Update
-        // Draw
         let result = self.update_scene();
-        matches!(result, SceneResult::Quit)
+        if matches!(result, SceneResult::Quit) {
+            return true
+        }
+
+        // Physics, animations, ...
+        // Draw
+
+        self.world.clear_trackers();
+        false
     }
 
     pub fn handle_window_resize(&mut self, _size: winit::dpi::PhysicalSize<u32>) {

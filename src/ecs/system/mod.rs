@@ -9,6 +9,7 @@ pub mod command;
 pub mod function_system;
 pub mod local;
 pub mod query;
+pub mod removed_components;
 pub mod resource;
 pub mod system_param;
 

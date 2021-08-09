@@ -19,6 +19,7 @@ pub use system::{
     command::Commands,
     local::Local,
     query::Query,
+    removed_components::RemovedComponents,
     resource::{Res, ResMut},
     IntoSystem, System,
 };

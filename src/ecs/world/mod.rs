@@ -1,6 +1,6 @@
 mod entity_ref;
 
-use std::any::TypeId;
+use std::{any::TypeId, collections::HashMap};
 
 use self::entity_ref::{EntityMut, EntityRef};
 
@@ -24,6 +24,7 @@ pub struct World {
     components: Components,
     storages: Storages,
     bundles: Bundles,
+    removed_components: HashMap<ComponentId, Vec<Entity>>,
 }
 
 #[allow(dead_code)]
@@ -177,6 +178,26 @@ impl World {
     #[inline]
     pub fn query<Q: WorldQuery>(&mut self) -> QueryState<Q, ()> {
         QueryState::new(self)
+    }
+
+    pub fn removed<T: Component>(&self) -> std::iter::Cloned<std::slice::Iter<'_, Entity>> {
+        self.component_id::<T>()
+            .map_or_else(|| [].iter().cloned(), |id| self.removed_with_id(id))
+    }
+
+    pub(crate) fn removed_with_id(
+        &self,
+        component_id: ComponentId,
+    ) -> std::iter::Cloned<std::slice::Iter<'_, Entity>> {
+        self.removed_components
+            .get(&component_id)
+            .map_or_else(|| [].iter().cloned(), |list| list.iter().cloned())
+    }
+
+    pub(crate) fn clear_trackers(&mut self) {
+        for entities in self.removed_components.values_mut() {
+            entities.clear();
+        }
     }
 
     pub(crate) fn flush(&mut self) {
