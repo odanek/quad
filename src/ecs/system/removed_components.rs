@@ -54,6 +54,7 @@ impl<'a, T: Component> SystemParamFetch<'a> for RemovedComponentsState<T> {
     }
 }
 
+#[cfg(test)]
 mod test {
     use crate::ecs::{Entity, IntoSystem, RemovedComponents, Res, ResMut, Scheduler, World};
 
