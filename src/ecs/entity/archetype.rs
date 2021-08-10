@@ -163,8 +163,8 @@ impl Archetype {
     }
 
     #[inline]
-    pub fn components(&self) -> impl Iterator<Item = ComponentId> + '_ {
-        self.components.iter().cloned()
+    pub fn components(&self) -> &[ComponentId] {
+        &self.components
     }
 
     #[inline]

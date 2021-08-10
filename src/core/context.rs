@@ -36,7 +36,7 @@ impl Context {
         self.scene.resume(SceneContext::new(&mut self.world));
     }
 
-    pub fn update_scene(&mut self) -> SceneResult {        
+    pub fn update_scene(&mut self) -> SceneResult {
         let result = self.scene.update(SceneContext::new(&mut self.world));
         result
     }
@@ -44,7 +44,7 @@ impl Context {
     pub fn handle_scene_update(&mut self) -> bool {
         let result = self.update_scene();
         if matches!(result, SceneResult::Quit) {
-            return true
+            return true;
         }
 
         // Physics, animations, ...

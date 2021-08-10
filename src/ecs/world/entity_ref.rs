@@ -174,7 +174,9 @@ impl<'w> EntityMut<'w> {
         let storages = &mut self.world.storages;
         let components = &mut self.world.components;
         let entities = &mut self.world.entities;
+        let removed_components = &mut self.world.removed_components;
 
+        let entity = self.entity;
         let bundle_info = self.world.bundles.init_info::<T>(components);
         let old_location = self.location;
         let new_archetype_id = remove_bundle_from_archetype(
@@ -194,6 +196,12 @@ impl<'w> EntityMut<'w> {
         let result = unsafe {
             T::from_components(|| {
                 let component_id = bundle_components.next().unwrap();
+
+                removed_components
+                    .entry(component_id)
+                    .or_insert_with(Vec::new)
+                    .push(entity);
+
                 let table = old_table;
                 let column = table
                     .get_column(component_id)
@@ -223,6 +231,7 @@ impl<'w> EntityMut<'w> {
         let storages = &mut self.world.storages;
         let components = &mut self.world.components;
         let entities = &mut self.world.entities;
+        let removed_components = &mut self.world.removed_components;
 
         let bundle_info = self.world.bundles.init_info::<T>(components);
         let old_location = self.location;
@@ -239,6 +248,17 @@ impl<'w> EntityMut<'w> {
 
         if new_archetype_id == old_archetype_id {
             return;
+        }
+
+        let entity = self.entity;
+        let old_archetype = &mut archetypes[old_archetype_id];
+        for component_id in bundle_info.component_ids.iter().cloned() {
+            if old_archetype.contains(component_id) {
+                removed_components
+                    .entry(component_id)
+                    .or_insert_with(Vec::new)
+                    .push(entity);
+            }
         }
 
         self.location = move_entity_after_remove(
@@ -271,6 +291,15 @@ impl<'w> EntityMut<'w> {
 
         let table_row = location.index;
         unsafe { world.storages.tables[archetype.table_id()].swap_remove_unchecked(table_row) };
+
+        let entity = self.entity;
+        let removed_components = &mut world.removed_components;
+        for &component_id in archetype.components() {
+            removed_components
+                .entry(component_id)
+                .or_insert_with(Vec::new)
+                .push(entity);
+        }
     }
 }
 
@@ -405,7 +434,7 @@ fn remove_bundle_from_archetype(
     }
 
     removed_components.sort();
-    let mut next_components = current_archetype.components().collect();
+    let mut next_components = current_archetype.components().to_vec();
     sorted_remove(&mut next_components, &removed_components);
 
     let next_table_id = if removed_components.is_empty() {
