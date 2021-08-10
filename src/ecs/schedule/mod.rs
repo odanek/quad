@@ -52,6 +52,15 @@ impl Scheduler {
     //     ParallelBuilder::default()
     // }
 
+    pub fn single<S, In, Out>(system: S) -> Schedule<In, Out>
+    where
+        S: System<In = In, Out = Out>,
+        In: 'static,
+        Out: 'static,
+    {
+        Schedule::new(system)
+    }
+
     pub fn chain() -> EmptyChainBuilder {
         Default::default()
     }

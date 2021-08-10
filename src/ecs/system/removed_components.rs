@@ -53,3 +53,36 @@ impl<'a, T: Component> SystemParamFetch<'a> for RemovedComponentsState<T> {
         }
     }
 }
+
+mod test {
+    use crate::ecs::{Entity, IntoSystem, RemovedComponents, Res, ResMut, Scheduler, World};
+
+    #[test]
+    fn remove_tracking() {
+        let mut world = World::new();
+        struct Despawned(Entity);
+        let a = world.spawn().insert_bundle(("abc", 123)).id();
+        world.spawn().insert_bundle(("abc", 123));
+        world.insert_resource(false);
+        world.insert_resource(Despawned(a));
+
+        world.entity_mut(a).despawn();
+
+        fn validate_removed(
+            removed_i32: RemovedComponents<i32>,
+            despawned: Res<Despawned>,
+            mut ran: ResMut<bool>,
+        ) {
+            assert_eq!(
+                removed_i32.iter().collect::<Vec<_>>(),
+                &[despawned.0],
+                "despawning results in 'removed component' state"
+            );
+
+            *ran = true;
+        }
+
+        Scheduler::single(validate_removed.system(&mut world)).run(&mut world);
+        assert!(*world.get_resource::<bool>().unwrap(), "system ran");
+    }
+}
