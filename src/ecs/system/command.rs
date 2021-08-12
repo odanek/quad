@@ -13,7 +13,7 @@ use super::{
 
 #[derive(Default)]
 pub struct CommandQueue {
-    commands: Vec<Box<dyn Command>>
+    commands: Vec<Box<dyn Command>>,
 }
 
 unsafe impl Send for CommandQueue {}
@@ -152,20 +152,6 @@ impl<'a, 'b> EntityCommands<'a, 'b> {
 }
 
 #[derive(Debug)]
-pub struct Spawn<T> {
-    pub bundle: T,
-}
-
-impl<T> Command for Spawn<T>
-where
-    T: Bundle,
-{
-    fn write(self: Box<Self>, world: &mut World) {
-        world.spawn().insert_bundle(self.bundle);
-    }
-}
-
-#[derive(Debug)]
 pub struct Despawn {
     pub entity: Entity,
 }
@@ -285,5 +271,34 @@ impl<'a> SystemParamFetch<'a> for CommandQueue {
         world: &'a World,
     ) -> Self::Item {
         Commands::new(state, world)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    struct SpawnCommand;
+
+    impl Command for SpawnCommand {
+        fn write(self: Box<Self>, world: &mut World) {
+            world.spawn();
+        }
+    }
+
+    #[test]
+    fn test_command_queue_inner() {
+        let mut queue = CommandQueue::default();
+
+        queue.push(SpawnCommand);
+        queue.push(SpawnCommand);
+
+        let mut world = World::new();
+        queue.apply(&mut world);
+
+        assert_eq!(world.entities().len(), 2);
+
+        queue.apply(&mut world);
+        assert_eq!(world.entities().len(), 2);
     }
 }

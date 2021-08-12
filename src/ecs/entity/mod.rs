@@ -33,6 +33,7 @@ pub struct Entities {
     meta: Vec<EntityMeta>,
     pending: Vec<u32>,
     free_cursor: AtomicI64,
+    len: u32,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -49,6 +50,16 @@ pub struct EntityLocation {
 
 #[allow(dead_code)]
 impl Entities {
+    #[inline]
+    pub fn len(&self) -> u32 {
+        self.len
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
     pub fn alloc(&mut self, location: EntityLocation) -> Entity {
         self.verify_flushed();
 
@@ -56,6 +67,7 @@ impl Entities {
             *self.free_cursor.get_mut() = self.pending.len() as i64;
             let meta = &mut self.meta[id as usize];
             meta.location = location;
+            self.len += 1;
 
             Entity {
                 generation: meta.generation,
@@ -68,6 +80,7 @@ impl Entities {
                 location,
             };
             self.meta.push(meta);
+            self.len += 1;
             Entity::new(id)
         }
     }
@@ -87,8 +100,10 @@ impl Entities {
         meta.generation += 1;
 
         self.pending.push(entity.id);
-
         *self.free_cursor.get_mut() = self.pending.len() as i64;
+
+        self.len -= 1;
+
         Some(meta.location)
     }
 
@@ -156,6 +171,7 @@ impl Entities {
                 });
                 id += 1;
                 current_free_cursor += 1;
+                self.len += 1;
             }
             *free_cursor = 0;
         }
@@ -168,6 +184,7 @@ impl Entities {
                 generation: meta.generation,
             };
             meta.location = init(entity);
+            self.len += 1;
         }
     }
 
