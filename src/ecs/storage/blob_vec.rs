@@ -125,18 +125,13 @@ impl BlobVec {
 
     pub fn clear(&mut self) {
         let len = self.len;
-        // We set len to 0 _before_ dropping elements for unwind safety. This ensures we don't
-        // accidentally drop elements twice in the event of a drop impl panicking.
         self.len = 0;
         for i in 0..len {
             unsafe {
-                // NOTE: this doesn't use self.get_unchecked(i) because the debug_assert on index
-                // will panic here due to self.len being set to 0
                 let ptr = self.get_ptr().as_ptr().add(i * self.item_layout.size());
                 (self.drop)(ptr);
             }
         }
-        // TODO: Free reserved capacity to save mem?
     }
 
     #[inline]

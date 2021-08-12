@@ -157,7 +157,6 @@ impl<'w> EntityMut<'w> {
         let archetype = &archetypes[new_location.archetype_id];
         let table = &mut storages.tables[archetype.table_id()];
 
-        // TODO: If we overwrite, where are old components dropped?
         unsafe {
             bundle_info.write_components(table, new_location.index, bundle, &edge.bundle_status)
         };

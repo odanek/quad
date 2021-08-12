@@ -93,7 +93,6 @@ impl Entities {
     }
 
     pub fn reserve_entity(&self) -> Entity {
-        // TODO: This returns Entity that has valid generation but is in fact invalid until flush is called
         let n = self.free_cursor.fetch_sub(1, Ordering::Relaxed);
         if n > 0 {
             let id = self.pending[(n - 1) as usize];
