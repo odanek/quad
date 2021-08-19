@@ -5,4 +5,4 @@ pub type Vec4 = cgm::Vec4<f32>;
 pub type Mat2 = cgm::Mat2<f32>;
 pub type Mat3 = cgm::Mat3<f32>;
 pub type Mat4 = cgm::Mat4<f32>;
-pub type Quaternion = cgm::Quaternion<f32>;
+pub type Quat = cgm::Quat<f32>;
