@@ -12,4 +12,4 @@ repository = "https://github.com/odanek/quad"
 winit = "0.25.0"
 log = "0.4.14"
 image = "0.23.14"
-cgm = { git = "https://github.com/odanek/cgm", branch = "main" }
+cgm = { path = "../cgm" }
