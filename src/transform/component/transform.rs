@@ -12,7 +12,7 @@ pub struct Transform {
     pub scale: Vec3,
 }
 
-const IDENTITY_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
+pub const IDENTITY_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
 
 impl Transform {
     #[inline]
@@ -127,7 +127,7 @@ impl Transform {
 
     #[inline]
     pub fn mul_transform(&self, transform: Transform) -> Self {
-        let translation = self.mul_vec3(transform.translation);
+        let translation = self * transform.translation;
         let rotation = self.rotation * transform.rotation;
         let scale = self.scale.mul_element_wise(transform.scale);
         Transform {
@@ -138,13 +138,8 @@ impl Transform {
     }
 
     #[inline]
-    pub fn mul_vec3(&self, value: Vec3) -> Vec3 {
-        (self.rotation * value).mul_element_wise(self.scale) + self.translation
-    }
-
-    #[inline]
-    pub fn apply_non_uniform_scale(&mut self, scale_factor: Vec3) {
-        self.scale.mul_assign_element_wise(scale_factor);
+    pub fn apply_non_uniform_scale(&mut self, scale: Vec3) {
+        self.scale.mul_assign_element_wise(scale);
     }
 
     #[inline]
@@ -175,6 +170,7 @@ impl From<GlobalTransform> for Transform {
 impl Mul<Transform> for Transform {
     type Output = Transform;
 
+    #[inline]
     fn mul(self, transform: Transform) -> Self::Output {
         self.mul_transform(transform)
     }
@@ -183,7 +179,18 @@ impl Mul<Transform> for Transform {
 impl Mul<Vec3> for Transform {
     type Output = Vec3;
 
+    #[allow(clippy::op_ref)]
+    #[inline]
     fn mul(self, value: Vec3) -> Self::Output {
-        self.mul_vec3(value)
+        &self * value
+    }
+}
+
+impl Mul<Vec3> for &Transform {
+    type Output = Vec3;
+
+    #[inline]
+    fn mul(self, value: Vec3) -> Self::Output {
+        (self.rotation * value).mul_element_wise(self.scale) + self.translation
     }
 }
