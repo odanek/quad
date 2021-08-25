@@ -1,16 +1,19 @@
 use std::any::TypeId;
 
-use crate::ecs::{
-    component::{
-        bundle::{Bundle, BundleInfo},
-        Component, ComponentStatus, Components,
+use crate::{
+    ecs::{
+        component::{
+            bundle::{Bundle, BundleInfo},
+            Component, ComponentStatus, Components,
+        },
+        entity::{
+            archetype::{Archetype, ArchetypeId, Archetypes},
+            Entities, EntityLocation,
+        },
+        storage::Storages,
+        Entity,
     },
-    entity::{
-        archetype::{Archetype, ArchetypeId, Archetypes},
-        Entities, EntityLocation,
-    },
-    storage::Storages,
-    Entity,
+    transform::{Children, Parent},
 };
 
 use super::World;
@@ -299,6 +302,60 @@ impl<'w> EntityMut<'w> {
                 .or_insert_with(Vec::new)
                 .push(entity);
         }
+    }
+
+    pub fn push_child(&mut self, child: Entity) -> &mut Self {
+        let parent = self.entity;
+        self.world.entity_mut(child).insert(Parent(parent));
+
+        if let Some(children_component) = self.get_mut::<Children>() {
+            children_component.0.push(child);
+        } else {
+            self.insert(Children::with(&[child]));
+        }
+        self
+    }
+
+    pub fn push_children(&mut self, children: &[Entity]) -> &mut Self {
+        let parent = self.entity;
+        for child in children.iter() {
+            self.world.entity_mut(*child).insert(Parent(parent));
+        }
+
+        if let Some(children_component) = self.get_mut::<Children>() {
+            children_component.0.extend(children.iter().cloned());
+        } else {
+            self.insert(Children::with(children));
+        }
+        self
+    }
+
+    pub fn insert_child(&mut self, index: usize, child: Entity) -> &mut Self {
+        let parent = self.entity;
+        self.world.entity_mut(child).insert(Parent(parent));
+
+        if let Some(children_component) = self.get_mut::<Children>() {
+            children_component.0.insert(index, child);
+        } else {
+            self.insert(Children::with(&[child]));
+        }
+        self
+    }
+
+    pub fn insert_children(&mut self, index: usize, children: &[Entity]) -> &mut Self {
+        let parent = self.entity;
+        for child in children.iter() {
+            self.world.entity_mut(*child).insert(Parent(parent));
+        }
+
+        if let Some(children_component) = self.get_mut::<Children>() {
+            children_component
+                .0
+                .splice(index..index, children.iter().cloned());
+        } else {
+            self.insert(Children::with(children));
+        }
+        self
     }
 }
 
