@@ -8,7 +8,7 @@ use super::{
     component::{bundle::Bundles, Component, ComponentId, Components},
     entity::{
         archetype::{Archetype, ArchetypeId, Archetypes},
-        Entities,
+        Entities, EntityLocation,
     },
     query::{fetch::WorldQuery, state::QueryState},
     resource::{Resource, ResourceId, Resources},
@@ -119,6 +119,31 @@ impl World {
         self.get_resource_mut().expect("Resource not found")
     }
 
+    #[inline]
+    pub(crate) fn get_component<T: Component>(&self, location: EntityLocation) -> Option<&T> {
+        unsafe { get_component(self, TypeId::of::<T>(), location).map(|value| &*value.cast::<T>()) }
+    }
+
+    #[inline]
+    pub(crate) fn get_component_mut<T: Component>(
+        &self,
+        location: EntityLocation,
+    ) -> Option<&mut T> {
+        unsafe {
+            get_component(self, TypeId::of::<T>(), location).map(|value| &mut *value.cast::<T>())
+        }
+    }
+
+    #[inline]
+    pub(crate) fn component_unchecked_mut<T: Component>(
+        &self,
+        location: EntityLocation,
+    ) -> Option<&mut T> {
+        unsafe {
+            get_component(self, TypeId::of::<T>(), location).map(|value| &mut *value.cast::<T>())
+        }
+    }
+
     pub fn spawn(&mut self) -> EntityMut {
         let archetype = self.archetypes.empty_mut();
         let location = archetype.next_location();
@@ -222,4 +247,16 @@ impl<T: Default> FromWorld for T {
     fn from_world(_world: &mut World) -> Self {
         T::default()
     }
+}
+
+unsafe fn get_component(
+    world: &World,
+    type_id: TypeId,
+    location: EntityLocation,
+) -> Option<*mut u8> {
+    let component_id = world.components.get_id(type_id)?;
+    let archetype = &world.archetypes[location.archetype_id];
+    let table = &world.storages.tables[archetype.table_id()];
+    let column = table.get_column(component_id)?;
+    Some(column.get_unchecked(location.index))
 }

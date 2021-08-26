@@ -93,16 +93,17 @@ where
     #[inline]
     pub fn get_component<T: Component>(&self, entity: Entity) -> Result<&T, QueryComponentError> {
         let world = self.world;
-        let entity_ref = world
-            .get_entity(entity)
+        let location = world
+            .entities()
+            .get(entity)
             .ok_or(QueryComponentError::NoSuchEntity)?;
         let component_id = world
             .components()
             .get_id(TypeId::of::<T>())
             .ok_or(QueryComponentError::MissingComponent)?;
         if self.state.component_access.has_read(component_id) {
-            entity_ref
-                .get::<T>()
+            world
+                .get_component::<T>(location)
                 .ok_or(QueryComponentError::MissingComponent)
         } else {
             Err(QueryComponentError::MissingReadAccess)
@@ -115,16 +116,17 @@ where
         entity: Entity,
     ) -> Result<&mut T, QueryComponentError> {
         let world = self.world;
-        let entity_ref = world
-            .get_entity(entity)
+        let location = world
+            .entities()
+            .get(entity)
             .ok_or(QueryComponentError::NoSuchEntity)?;
         let component_id = world
             .components()
             .get_id(TypeId::of::<T>())
             .ok_or(QueryComponentError::MissingComponent)?;
         if self.state.component_access.has_write(component_id) {
-            entity_ref
-                .get_unchecked_mut::<T>()
+            world
+                .component_unchecked_mut(location)
                 .ok_or(QueryComponentError::MissingComponent)
         } else {
             Err(QueryComponentError::MissingWriteAccess)

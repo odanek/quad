@@ -58,19 +58,8 @@ impl<'w> EntityRef<'w> {
     }
 
     #[inline]
-    pub fn get<T: Component>(&self) -> Option<&'w T> {
-        unsafe {
-            get_component(self.world, TypeId::of::<T>(), self.location)
-                .map(|value| &*value.cast::<T>())
-        }
-    }
-
-    #[inline]
-    pub(crate) fn get_unchecked_mut<T: Component>(&self) -> Option<&'w mut T> {
-        unsafe {
-            get_component(self.world, TypeId::of::<T>(), self.location)
-                .map(|value| &mut *value.cast::<T>())
-        }
+    pub fn get<T: Component>(&self) -> Option<&T> {
+        self.world.get_component(self.location)
     }
 }
 
@@ -114,19 +103,13 @@ impl<'w> EntityMut<'w> {
     }
 
     #[inline]
-    pub fn get<T: Component>(&self) -> Option<&'w T> {
-        unsafe {
-            get_component(self.world, TypeId::of::<T>(), self.location)
-                .map(|value| &*value.cast::<T>())
-        }
+    pub fn get<T: Component>(&self) -> Option<&T> {
+        self.world.get_component(self.location)
     }
 
     #[inline]
-    pub fn get_mut<T: Component>(&mut self) -> Option<&'w mut T> {
-        unsafe {
-            get_component(self.world, TypeId::of::<T>(), self.location)
-                .map(|value| &mut *value.cast::<T>())
-        }
+    pub fn get_mut<T: Component>(&mut self) -> Option<&mut T> {
+        self.world.get_component_mut(self.location)
     }
 
     // TODO: move relevant methods to World (add/remove bundle)
@@ -362,7 +345,6 @@ impl<'w> EntityMut<'w> {
         // TODO: Nicer way?
         if let Some(children) = self.get_mut::<Children>() {
             let mut found = false;
-            // self.world.entity_mut(child).remove::<Parent>(); // TODO: Why is this not compile error? Try minimal example.
             children.0.retain(|item| {
                 if *item == child {
                     found = true;
@@ -397,26 +379,15 @@ impl<'w> EntityMut<'w> {
     }
 
     pub fn remove_from_parent(&mut self) -> &mut Self {
-        if let Some(&Parent(parent)) = self.get::<Parent>() {
+        if let Some(&Parent(parent_entity)) = self.get::<Parent>() {
             let child = self.entity;
-            let parent_children = self.world.entity_mut(parent).get_mut::<Children>().unwrap();
+            let mut parent = self.world.entity_mut(parent_entity);
+            let parent_children = parent.get_mut::<Children>().unwrap();
             parent_children.0.retain(|item| *item != child);
             self.remove::<Parent>();
         }
         self
     }
-}
-
-unsafe fn get_component(
-    world: &World,
-    type_id: TypeId,
-    location: EntityLocation,
-) -> Option<*mut u8> {
-    let component_id = world.components.get_id(type_id)?;
-    let archetype = &world.archetypes[location.archetype_id];
-    let table = &world.storages.tables[archetype.table_id()];
-    let column = table.get_column(component_id)?;
-    Some(column.get_unchecked(location.index))
 }
 
 unsafe fn get_insert_bundle_info(
