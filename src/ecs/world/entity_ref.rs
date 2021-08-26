@@ -357,6 +357,54 @@ impl<'w> EntityMut<'w> {
         }
         self
     }
+
+    pub fn remove_child(&mut self, child: Entity) -> &mut Self {
+        // TODO: Nicer way?
+        if let Some(children) = self.get_mut::<Children>() {
+            let mut found = false;
+            // self.world.entity_mut(child).remove::<Parent>(); // TODO: Why is this not compile error? Try minimal example.
+            children.0.retain(|item| {
+                if *item == child {
+                    found = true;
+                    false
+                } else {
+                    true
+                }
+            });
+            if found {
+                self.world.entity_mut(child).remove::<Parent>();
+            }
+        }
+        self
+    }
+
+    pub fn remove_children(&mut self, children: &[Entity]) -> &mut Self {
+        if let Some(children_component) = self.get_mut::<Children>() {
+            let mut actual_children = Vec::new();
+            children_component.0.retain(|item| {
+                if children.contains(item) {
+                    actual_children.push(*item);
+                    false
+                } else {
+                    true
+                }
+            });
+            for child in &actual_children {
+                self.world.entity_mut(*child).remove::<Parent>();
+            }
+        }
+        self
+    }
+
+    pub fn remove_from_parent(&mut self) -> &mut Self {
+        if let Some(&Parent(parent)) = self.get::<Parent>() {
+            let child = self.entity;
+            let parent_children = self.world.entity_mut(parent).get_mut::<Children>().unwrap();
+            parent_children.0.retain(|item| *item != child);
+            self.remove::<Parent>();
+        }
+        self
+    }
 }
 
 unsafe fn get_component(
