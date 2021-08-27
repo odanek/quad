@@ -102,6 +102,11 @@ impl<'a, 'b> EntityCommands<'a, 'b> {
         self.entity
     }
 
+    #[inline]
+    pub(crate) fn commands(&mut self) -> &mut Commands<'a> {
+        self.commands
+    }
+
     pub fn insert_bundle(&mut self, bundle: impl Bundle) -> &mut Self {
         self.commands.add(InsertBundle {
             entity: self.entity,
@@ -146,8 +151,59 @@ impl<'a, 'b> EntityCommands<'a, 'b> {
         })
     }
 
-    pub fn commands(&mut self) -> &mut Commands<'a> {
-        self.commands
+    pub fn push_child(&mut self, child: Entity) -> &mut Self {
+        let parent = self.id();
+        self.commands().add(PushChild { child, parent });
+        self
+    }
+
+    pub fn push_children(&mut self, children: &[Entity]) -> &mut Self {
+        let parent = self.id();
+        self.commands().add(PushChildren {
+            children: children.to_vec(),
+            parent,
+        });
+        self
+    }
+
+    pub fn insert_child(&mut self, index: usize, child: Entity) -> &mut Self {
+        let parent = self.id();
+        self.commands().add(InsertChild {
+            child,
+            index,
+            parent,
+        });
+        self
+    }
+
+    pub fn insert_children(&mut self, index: usize, children: &[Entity]) -> &mut Self {
+        let parent = self.id();
+        self.commands().add(InsertChildren {
+            children: children.to_vec(),
+            index,
+            parent,
+        });
+        self
+    }
+
+    pub fn remove_child(&mut self, child: Entity) -> &mut Self {
+        let parent = self.id();
+        self.commands().add(RemoveChild { child, parent });
+        self
+    }
+
+    pub fn remove_children(&mut self, children: &[Entity]) -> &mut Self {
+        let parent = self.id();
+        self.commands().add(RemoveChildren {
+            children: children.to_vec(),
+            parent,
+        });
+        self
+    }
+
+    pub fn remove_from_parent(&mut self, child: Entity) -> &mut Self {
+        self.commands().add(RemoveFromParent { child });
+        self
     }
 }
 
@@ -244,6 +300,90 @@ pub struct RemoveResource<T: Component> {
 impl<T: Component> Command for RemoveResource<T> {
     fn write(self: Box<Self>, world: &mut World) {
         world.remove_resource::<T>();
+    }
+}
+
+pub struct PushChild {
+    parent: Entity,
+    child: Entity,
+}
+
+impl Command for PushChild {
+    fn write(self: Box<Self>, world: &mut World) {
+        world.entity_mut(self.parent).push_child(self.child);
+    }
+}
+
+pub struct PushChildren {
+    parent: Entity,
+    children: Vec<Entity>,
+}
+
+impl Command for PushChildren {
+    fn write(self: Box<Self>, world: &mut World) {
+        world.entity_mut(self.parent).push_children(&self.children);
+    }
+}
+
+pub struct InsertChild {
+    parent: Entity,
+    index: usize,
+    child: Entity,
+}
+
+impl Command for InsertChild {
+    fn write(self: Box<Self>, world: &mut World) {
+        world
+            .entity_mut(self.parent)
+            .insert_child(self.index, self.child);
+    }
+}
+
+pub struct InsertChildren {
+    parent: Entity,
+    children: Vec<Entity>,
+    index: usize,
+}
+
+impl Command for InsertChildren {
+    fn write(self: Box<Self>, world: &mut World) {
+        world
+            .entity_mut(self.parent)
+            .insert_children(self.index, &self.children);
+    }
+}
+
+pub struct RemoveChild {
+    parent: Entity,
+    child: Entity,
+}
+
+impl Command for RemoveChild {
+    fn write(self: Box<Self>, world: &mut World) {
+        world.entity_mut(self.parent).remove_child(self.child);
+    }
+}
+
+pub struct RemoveChildren {
+    parent: Entity,
+    children: Vec<Entity>,
+}
+
+impl Command for RemoveChildren {
+    fn write(self: Box<Self>, world: &mut World) {
+        world
+            .entity_mut(self.parent)
+            .remove_children(&self.children);
+    }
+}
+
+pub struct RemoveFromParent {
+    child: Entity,
+}
+
+impl Command for RemoveFromParent {
+    fn write(self: Box<Self>, world: &mut World) {
+        world.entity_mut(self.child).remove_from_parent();
     }
 }
 
