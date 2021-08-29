@@ -121,6 +121,11 @@ impl Entities {
         }
     }
 
+    pub fn has(&self, entity: Entity) -> bool {
+        let index = entity.id as usize;
+        index < self.meta.len() && self.meta[index].generation == entity.generation
+    }
+
     pub fn get(&self, entity: Entity) -> Option<EntityLocation> {
         if (entity.id as usize) < self.meta.len() {
             let meta = &self.meta[entity.id as usize];

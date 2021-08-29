@@ -40,12 +40,7 @@ impl<'w> EntityRef<'w> {
     }
 
     #[inline]
-    pub fn location(&self) -> EntityLocation {
-        self.location
-    }
-
-    #[inline]
-    pub fn archetype(&self) -> &Archetype {
+    pub(crate) fn archetype(&self) -> &Archetype {
         &self.world.archetypes[self.location.archetype_id]
     }
 
@@ -85,12 +80,7 @@ impl<'w> EntityMut<'w> {
     }
 
     #[inline]
-    pub fn location(&self) -> EntityLocation {
-        self.location
-    }
-
-    #[inline]
-    pub fn archetype(&self) -> &Archetype {
+    pub(crate) fn archetype(&self) -> &Archetype {
         &self.world.archetypes[self.location.archetype_id]
     }
 
@@ -261,41 +251,21 @@ impl<'w> EntityMut<'w> {
         self.remove_bundle::<(T,)>().map(|v| v.0)
     }
 
-    pub fn despawn(self) {
-        let world = self.world;
-        let location = world
-            .entities
-            .free(self.entity)
-            .expect("Despawned entity does not exist");
-
-        let archetype = &mut world.archetypes[location.archetype_id];
-        let remove_result = archetype.swap_remove(location.index);
-        if let Some(swapped_entity) = remove_result {
-            world.entities.update_location(swapped_entity, location);
-        }
-
-        let table_row = location.index;
-        unsafe { world.storages.tables[archetype.table_id()].swap_remove_unchecked(table_row) };
-
-        let entity = self.entity;
-        let removed_components = &mut world.removed_components;
-        for &component_id in archetype.components() {
-            removed_components
-                .entry(component_id)
-                .or_insert_with(Vec::new)
-                .push(entity);
-        }
+    pub fn despawn(mut self) {
+        self.remove_from_parent();
+        despawn_recursive(self.world, self.entity);
     }
 
     pub fn push_child(&mut self, child: Entity) -> &mut Self {
-        let parent = self.entity;
-        self.world.entity_mut(child).insert(Parent(parent));
+        self.world.entity_mut(child).insert(Parent(self.entity));
+        self.refresh_location();
 
         if let Some(children_component) = self.get_mut::<Children>() {
             children_component.0.push(child);
         } else {
             self.insert(Children::with(&[child]));
         }
+
         self
     }
 
@@ -304,24 +274,27 @@ impl<'w> EntityMut<'w> {
         for child in children.iter() {
             self.world.entity_mut(*child).insert(Parent(parent));
         }
+        self.refresh_location();
 
         if let Some(children_component) = self.get_mut::<Children>() {
             children_component.0.extend(children.iter().cloned());
         } else {
             self.insert(Children::with(children));
         }
+
         self
     }
 
     pub fn insert_child(&mut self, index: usize, child: Entity) -> &mut Self {
-        let parent = self.entity;
-        self.world.entity_mut(child).insert(Parent(parent));
+        self.world.entity_mut(child).insert(Parent(self.entity));
+        self.refresh_location();
 
         if let Some(children_component) = self.get_mut::<Children>() {
             children_component.0.insert(index, child);
         } else {
             self.insert(Children::with(&[child]));
         }
+
         self
     }
 
@@ -330,6 +303,7 @@ impl<'w> EntityMut<'w> {
         for child in children.iter() {
             self.world.entity_mut(*child).insert(Parent(parent));
         }
+        self.refresh_location();
 
         if let Some(children_component) = self.get_mut::<Children>() {
             children_component
@@ -338,6 +312,7 @@ impl<'w> EntityMut<'w> {
         } else {
             self.insert(Children::with(children));
         }
+
         self
     }
 
@@ -355,6 +330,7 @@ impl<'w> EntityMut<'w> {
             });
             if found {
                 self.world.entity_mut(child).remove::<Parent>();
+                self.refresh_location();
             }
         }
         self
@@ -373,6 +349,7 @@ impl<'w> EntityMut<'w> {
             });
             for child in &actual_children {
                 self.world.entity_mut(*child).remove::<Parent>();
+                self.refresh_location();
             }
         }
         self
@@ -388,6 +365,37 @@ impl<'w> EntityMut<'w> {
         }
         self
     }
+
+    fn refresh_location(&mut self) {
+        self.location = self.world.entities.get(self.entity).unwrap();
+    }
+}
+
+fn despawn_recursive(world: &mut World, entity: Entity) {
+    if let Some(Children(children)) = world.entity_mut(entity).get_mut::<Children>() {
+        for child in std::mem::take(children) {
+            despawn_recursive(world, child);
+        }
+    }
+
+    let location = world.entities.free(entity).unwrap();
+
+    let archetype = &mut world.archetypes[location.archetype_id];
+    let remove_result = archetype.swap_remove(location.index);
+    if let Some(swapped_entity) = remove_result {
+        world.entities.update_location(swapped_entity, location);
+    }
+
+    let table_row = location.index;
+    unsafe { world.storages.tables[archetype.table_id()].swap_remove_unchecked(table_row) };
+
+    let removed_components = &mut world.removed_components;
+    for &component_id in archetype.components() {
+        removed_components
+            .entry(component_id)
+            .or_insert_with(Vec::new)
+            .push(entity);
+    }
 }
 
 unsafe fn get_insert_bundle_info(
@@ -399,18 +407,19 @@ unsafe fn get_insert_bundle_info(
     current_location: EntityLocation,
     entity: Entity,
 ) -> EntityLocation {
+    let current_archetype_id = current_location.archetype_id;
     let new_archetype_id = add_bundle_to_archetype(
         archetypes,
         storages,
         components,
-        current_location.archetype_id,
+        current_archetype_id,
         bundle_info,
     );
 
-    if new_archetype_id == current_location.archetype_id {
+    if new_archetype_id == current_archetype_id {
         current_location
     } else {
-        let old_archetype = &mut archetypes[current_location.archetype_id];
+        let old_archetype = &mut archetypes[current_archetype_id];
         let result = old_archetype.swap_remove(current_location.index);
         if let Some(swapped_entity) = result {
             entities.update_location(swapped_entity, current_location)
@@ -579,4 +588,83 @@ fn move_entity_after_remove(
     entities.update_location(entity, new_location);
 
     new_location
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{ecs::World, transform::Children};
+
+    #[test]
+    fn despawn() {
+        let mut world = World::new();
+        let entity = world.spawn().id();
+        let entity_ref = world.entity_mut(entity);
+        entity_ref.despawn();
+        assert!(!world.has_entity(entity));
+    }
+
+    #[test]
+    fn despawn_recursive() {
+        let mut world = World::new();
+        let child1_entity = world.spawn().id();
+        let child2_entity = world.spawn().id();
+        let no_parent_entity = world.spawn().id();
+        let parent_entity = world
+            .spawn()
+            .push_children(&[child1_entity, child2_entity])
+            .id();
+        let grandparent_entity = world.spawn().push_child(parent_entity).id();
+        assert!(world.has_entity(child1_entity));
+        assert!(world.has_entity(child2_entity));
+        assert!(world.has_entity(parent_entity));
+        assert!(world.has_entity(grandparent_entity));
+        assert!(world.has_entity(no_parent_entity));
+        assert_eq!(
+            world.entity(parent_entity).get::<Children>().unwrap().0,
+            [child1_entity, child2_entity]
+        );
+        assert_eq!(
+            world
+                .entity(grandparent_entity)
+                .get::<Children>()
+                .unwrap()
+                .0,
+            [parent_entity]
+        );
+        world.entity_mut(parent_entity).despawn();
+        assert!(!world.has_entity(child1_entity));
+        assert!(!world.has_entity(child2_entity));
+        assert!(!world.has_entity(parent_entity));
+        assert!(world.has_entity(grandparent_entity));
+        assert!(world.has_entity(no_parent_entity));
+        assert_eq!(
+            world
+                .entity(grandparent_entity)
+                .get::<Children>()
+                .unwrap()
+                .0,
+            []
+        );
+    }
+
+    #[test]
+    fn push_child() {}
+
+    #[test]
+    fn push_children() {}
+
+    #[test]
+    fn insert_child() {}
+
+    #[test]
+    fn insert_children() {}
+
+    #[test]
+    fn remove_child() {}
+
+    #[test]
+    fn remove_children() {}
+
+    #[test]
+    fn remove_from_parent() {}
 }

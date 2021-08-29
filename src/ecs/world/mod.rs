@@ -167,6 +167,7 @@ impl World {
     }
 
     pub fn despawn_all(&mut self) {
+        // TODO: Track removed components?
         for archetype in self.archetypes.iter_mut() {
             for entity in archetype.entities() {
                 self.entities.free(*entity);
@@ -198,6 +199,11 @@ impl World {
     #[inline]
     pub fn entity_mut(&mut self, entity: Entity) -> EntityMut {
         self.get_entity_mut(entity).expect("Entity does not exist")
+    }
+
+    #[inline]
+    pub fn has_entity(&self, entity: Entity) -> bool {
+        self.entities.has(entity)
     }
 
     #[inline]
@@ -259,4 +265,16 @@ unsafe fn get_component(
     let table = &world.storages.tables[archetype.table_id()];
     let column = table.get_column(component_id)?;
     Some(column.get_unchecked(location.index))
+}
+
+#[cfg(test)]
+mod test {
+    use crate::ecs::World;
+
+    #[test]
+    fn spawn() {
+        let mut world = World::new();
+        let entity = world.spawn().id();
+        assert!(world.has_entity(entity));
+    }
 }
