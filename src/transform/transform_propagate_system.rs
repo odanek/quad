@@ -3,11 +3,8 @@ use crate::ecs::{Entity, Query, With, Without};
 use super::{Children, GlobalTransform, Parent, Transform};
 
 pub fn transform_propagate_system(
-    mut root_query: Query<
-        (Option<&Children>, &Transform, &mut GlobalTransform),
-        Without<Parent>,
-    >,
-    mut transform_query: Query<(&Transform, &mut GlobalTransform), With<Parent>>,    
+    mut root_query: Query<(Option<&Children>, &Transform, &mut GlobalTransform), Without<Parent>>,
+    mut transform_query: Query<(&Transform, &mut GlobalTransform), With<Parent>>,
     children_query: Query<Option<&Children>, (With<Parent>, With<GlobalTransform>)>,
 ) {
     for (children, transform, global_transform) in root_query.iter_mut() {
@@ -16,7 +13,7 @@ pub fn transform_propagate_system(
         if let Some(children) = children {
             for child in children.0.iter() {
                 propagate_recursive(
-                    &global_transform,
+                    global_transform,
                     &mut transform_query,
                     &children_query,
                     *child,
@@ -43,12 +40,7 @@ fn propagate_recursive(
 
     if let Ok(Some(children)) = children_query.get(entity) {
         for child in children.0.iter() {
-            propagate_recursive(
-                &global_matrix,
-                transform_query,
-                children_query,
-                *child,
-            );
+            propagate_recursive(&global_matrix, transform_query, children_query, *child);
         }
     }
 }

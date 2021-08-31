@@ -592,7 +592,10 @@ fn move_entity_after_remove(
 
 #[cfg(test)]
 mod test {
-    use crate::{ecs::World, transform::Children};
+    use crate::{
+        ecs::World,
+        transform::{Children, Parent},
+    };
 
     #[test]
     fn despawn() {
@@ -648,7 +651,33 @@ mod test {
     }
 
     #[test]
-    fn push_child() {}
+    fn push_child() {
+        let mut world = World::new();
+        let grandchild_entity = world.spawn().id();
+        let child_entity = world.spawn().push_child(grandchild_entity).id();
+        let parent_entity = world.spawn().push_child(child_entity).id();
+        assert!(world.has_entity(grandchild_entity));
+        assert!(world.has_entity(child_entity));
+        assert!(world.has_entity(parent_entity));
+        assert_eq!(world.entity(grandchild_entity).get::<Children>(), None);
+        assert_eq!(
+            world.entity(grandchild_entity).get::<Parent>().unwrap().0,
+            child_entity
+        );
+        assert_eq!(
+            world.entity(child_entity).get::<Children>().unwrap().0,
+            [grandchild_entity]
+        );
+        assert_eq!(
+            world.entity(child_entity).get::<Parent>().unwrap().0,
+            parent_entity
+        );
+        assert_eq!(
+            world.entity(parent_entity).get::<Children>().unwrap().0,
+            [child_entity]
+        );
+        assert_eq!(world.entity(parent_entity).get::<Parent>(), None);
+    }
 
     #[test]
     fn push_children() {}

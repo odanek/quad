@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use crate::ecs::Entity;
 
-#[derive(Default, Clone, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug, Default)]
 pub struct Children(pub(crate) Vec<Entity>);
 
 impl Children {
