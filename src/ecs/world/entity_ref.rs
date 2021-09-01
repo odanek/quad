@@ -680,7 +680,43 @@ mod test {
     }
 
     #[test]
-    fn push_children() {}
+    fn push_children() {
+        let mut world = World::new();
+        let grandchild_entity = world.spawn().id();
+        let child1_entity = world.spawn().push_children(&[grandchild_entity]).id();
+        let child2_entity = world.spawn().id();
+        let parent_entity = world
+            .spawn()
+            .push_children(&[child1_entity, child2_entity])
+            .id();
+        assert!(world.has_entity(grandchild_entity));
+        assert!(world.has_entity(child1_entity));
+        assert!(world.has_entity(child2_entity));
+        assert!(world.has_entity(parent_entity));
+        assert_eq!(world.entity(grandchild_entity).get::<Children>(), None);
+        assert_eq!(
+            world.entity(grandchild_entity).get::<Parent>().unwrap().0,
+            child1_entity
+        );
+        assert_eq!(
+            world.entity(child1_entity).get::<Children>().unwrap().0,
+            [grandchild_entity]
+        );
+        assert_eq!(
+            world.entity(child1_entity).get::<Parent>().unwrap().0,
+            parent_entity
+        );
+        assert_eq!(world.entity(child2_entity).get::<Children>(), None);
+        assert_eq!(
+            world.entity(child2_entity).get::<Parent>().unwrap().0,
+            parent_entity
+        );
+        assert_eq!(
+            world.entity(parent_entity).get::<Children>().unwrap().0,
+            [child1_entity, child2_entity]
+        );
+        assert_eq!(world.entity(parent_entity).get::<Parent>(), None);
+    }
 
     #[test]
     fn insert_child() {}
