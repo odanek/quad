@@ -831,5 +831,28 @@ mod test {
     }
 
     #[test]
-    fn remove_from_parent() {}
+    fn remove_from_parent() {
+        let mut world = World::new();
+
+        let child1_entity = world.spawn().id();
+        let child2_entity = world.spawn().id();
+        let parent_entity = world
+            .spawn()
+            .push_children(&[child1_entity, child2_entity])
+            .id();
+
+        check_children(&world, parent_entity, Some(&[child1_entity, child2_entity]));
+        check_parent(&world, child1_entity, Some(parent_entity));
+        check_parent(&world, child2_entity, Some(parent_entity));
+
+        world.entity_mut(child1_entity).remove_from_parent();
+        check_children(&world, parent_entity, Some(&[child2_entity]));
+        check_parent(&world, child1_entity, None);
+        check_parent(&world, child2_entity, Some(parent_entity));
+
+        world.entity_mut(child2_entity).remove_from_parent();
+        check_children(&world, parent_entity, Some(&[]));
+        check_parent(&world, child1_entity, None);
+        check_parent(&world, child2_entity, None);
+    }
 }
