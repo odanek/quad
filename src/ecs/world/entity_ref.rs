@@ -612,10 +612,7 @@ fn move_entity_after_remove(
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        ecs::{Entity, World},
-        transform::{Children, Parent},
-    };
+    use crate::ecs::{Entity, World};
 
     fn check_parent(world: &World, entity: Entity, parent: Option<Entity>) {
         assert_eq!(world.entity(entity).parent(), parent);
@@ -650,32 +647,16 @@ mod test {
         assert!(world.has_entity(parent_entity));
         assert!(world.has_entity(grandparent_entity));
         assert!(world.has_entity(no_parent_entity));
-        assert_eq!(
-            world.entity(parent_entity).get::<Children>().unwrap().0,
-            [child1_entity, child2_entity]
-        );
-        assert_eq!(
-            world
-                .entity(grandparent_entity)
-                .get::<Children>()
-                .unwrap()
-                .0,
-            [parent_entity]
-        );
+        check_children(&world, parent_entity, Some(&[child1_entity, child2_entity]));
+        check_children(&world, grandparent_entity, Some(&[parent_entity]));
+
         world.entity_mut(parent_entity).despawn();
         assert!(!world.has_entity(child1_entity));
         assert!(!world.has_entity(child2_entity));
         assert!(!world.has_entity(parent_entity));
         assert!(world.has_entity(grandparent_entity));
         assert!(world.has_entity(no_parent_entity));
-        assert_eq!(
-            world
-                .entity(grandparent_entity)
-                .get::<Children>()
-                .unwrap()
-                .0,
-            []
-        );
+        check_children(&world, grandparent_entity, Some(&[]));
     }
 
     #[test]
@@ -683,20 +664,21 @@ mod test {
         let mut world = World::new();
 
         let grandchild_entity = world.spawn().id();
-        let child_entity = world.spawn().push_child(grandchild_entity).id();
-        let parent_entity = world.spawn().push_child(child_entity).id();
+        let child1_entity = world.spawn().push_child(grandchild_entity).id();
+        let child2_entity = world.spawn().id();
+        let parent_entity = world
+            .spawn()
+            .push_child(child1_entity)
+            .push_child(child2_entity)
+            .id();
 
-        assert_eq!(world.entity(grandchild_entity).get::<Children>(), None);
-        check_parent(&world, grandchild_entity, Some(child_entity));
-        assert_eq!(
-            world.entity(child_entity).get::<Children>().unwrap().0,
-            [grandchild_entity]
-        );
-        check_parent(&world, child_entity, Some(parent_entity));
-        assert_eq!(
-            world.entity(parent_entity).get::<Children>().unwrap().0,
-            [child_entity]
-        );
+        check_children(&world, grandchild_entity, None);
+        check_parent(&world, grandchild_entity, Some(child1_entity));
+        check_children(&world, child1_entity, Some(&[grandchild_entity]));
+        check_parent(&world, child1_entity, Some(parent_entity));
+        check_children(&world, child2_entity, None);
+        check_parent(&world, child2_entity, Some(parent_entity));
+        check_children(&world, parent_entity, Some(&[child1_entity, child2_entity]));
         check_parent(&world, parent_entity, None);
     }
 
@@ -712,29 +694,14 @@ mod test {
             .push_children(&[child1_entity, child2_entity])
             .id();
 
-        assert_eq!(world.entity(grandchild_entity).get::<Children>(), None);
-        assert_eq!(
-            world.entity(grandchild_entity).get::<Parent>().unwrap().0,
-            child1_entity
-        );
-        assert_eq!(
-            world.entity(child1_entity).get::<Children>().unwrap().0,
-            [grandchild_entity]
-        );
-        assert_eq!(
-            world.entity(child1_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
-        assert_eq!(world.entity(child2_entity).get::<Children>(), None);
-        assert_eq!(
-            world.entity(child2_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
-        assert_eq!(
-            world.entity(parent_entity).get::<Children>().unwrap().0,
-            [child1_entity, child2_entity]
-        );
-        assert_eq!(world.entity(parent_entity).get::<Parent>(), None);
+        check_children(&world, grandchild_entity, None);
+        check_parent(&world, grandchild_entity, Some(child1_entity));
+        check_children(&world, child1_entity, Some(&[grandchild_entity]));
+        check_parent(&world, child1_entity, Some(parent_entity));
+        check_children(&world, child2_entity, None);
+        check_parent(&world, child2_entity, Some(parent_entity));
+        check_children(&world, parent_entity, Some(&[child1_entity, child2_entity]));
+        check_parent(&world, parent_entity, None);
     }
 
     #[test]
@@ -749,37 +716,24 @@ mod test {
         world
             .entity_mut(parent_entity)
             .insert_child(0, child1_entity);
-        assert_eq!(
-            world.entity(child1_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
-        assert_eq!(
-            world.entity(parent_entity).get::<Children>().unwrap().0,
-            [child1_entity]
-        );
+
+        check_parent(&world, child1_entity, Some(parent_entity));
+        check_children(&world, parent_entity, Some(&[child1_entity]));
 
         world
             .entity_mut(parent_entity)
             .insert_child(1, child3_entity);
-        assert_eq!(
-            world.entity(child3_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
-        assert_eq!(
-            world.entity(parent_entity).get::<Children>().unwrap().0,
-            [child1_entity, child3_entity]
-        );
+        check_parent(&world, child3_entity, Some(parent_entity));
+        check_children(&world, parent_entity, Some(&[child1_entity, child3_entity]));
 
         world
             .entity_mut(parent_entity)
             .insert_child(1, child2_entity);
-        assert_eq!(
-            world.entity(child2_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
-        assert_eq!(
-            world.entity(parent_entity).get::<Children>().unwrap().0,
-            [child1_entity, child2_entity, child3_entity]
+        check_parent(&world, child2_entity, Some(parent_entity));
+        check_children(
+            &world,
+            parent_entity,
+            Some(&[child1_entity, child2_entity, child3_entity]),
         );
     }
 
@@ -796,33 +750,19 @@ mod test {
         world
             .entity_mut(parent_entity)
             .insert_children(0, &[child1_entity, child4_entity]);
-        assert_eq!(
-            world.entity(child1_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
-        assert_eq!(
-            world.entity(child4_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
-        assert_eq!(
-            world.entity(parent_entity).get::<Children>().unwrap().0,
-            [child1_entity, child4_entity]
-        );
+        check_parent(&world, child1_entity, Some(parent_entity));
+        check_parent(&world, child4_entity, Some(parent_entity));
+        check_children(&world, parent_entity, Some(&[child1_entity, child4_entity]));
 
         world
             .entity_mut(parent_entity)
             .insert_children(1, &[child2_entity, child3_entity]);
-        assert_eq!(
-            world.entity(child2_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
-        assert_eq!(
-            world.entity(child3_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
-        assert_eq!(
-            world.entity(parent_entity).get::<Children>().unwrap().0,
-            [child1_entity, child2_entity, child3_entity, child4_entity]
+        check_parent(&world, child2_entity, Some(parent_entity));
+        check_parent(&world, child3_entity, Some(parent_entity));
+        check_children(
+            &world,
+            parent_entity,
+            Some(&[child1_entity, child2_entity, child3_entity, child4_entity]),
         );
     }
 
@@ -837,34 +777,19 @@ mod test {
             .push_children(&[child1_entity, child2_entity])
             .id();
 
-        assert_eq!(
-            world.entity(parent_entity).get::<Children>().unwrap().0,
-            [child1_entity, child2_entity]
-        );
-        assert_eq!(
-            world.entity(child1_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
-        assert_eq!(
-            world.entity(child2_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
+        check_children(&world, parent_entity, Some(&[child1_entity, child2_entity]));
+        check_parent(&world, child1_entity, Some(parent_entity));
+        check_parent(&world, child2_entity, Some(parent_entity));
 
         world.entity_mut(parent_entity).remove_child(child1_entity);
-        assert_eq!(
-            world.entity(parent_entity).get::<Children>().unwrap().0,
-            [child2_entity]
-        );
-        assert_eq!(world.entity(child1_entity).get::<Parent>(), None);
-        assert_eq!(
-            world.entity(child2_entity).get::<Parent>().unwrap().0,
-            parent_entity
-        );
+        check_children(&world, parent_entity, Some(&[child2_entity]));
+        check_parent(&world, child1_entity, None);
+        check_parent(&world, child2_entity, Some(parent_entity));
 
         world.entity_mut(parent_entity).remove_child(child2_entity);
-        assert_eq!(world.entity(parent_entity).get::<Children>().unwrap().0, []);
-        assert_eq!(world.entity(child1_entity).get::<Parent>(), None);
-        assert_eq!(world.entity(child2_entity).get::<Parent>(), None);
+        check_children(&world, parent_entity, Some(&[]));
+        check_parent(&world, child1_entity, None);
+        check_parent(&world, child2_entity, None);
     }
 
     #[test]
@@ -879,18 +804,26 @@ mod test {
             .push_children(&[child1_entity, child2_entity, child3_entity])
             .id();
 
-        check_children(&world, parent_entity, Some(&[child1_entity, child2_entity, child3_entity]));
+        check_children(
+            &world,
+            parent_entity,
+            Some(&[child1_entity, child2_entity, child3_entity]),
+        );
         check_parent(&world, child1_entity, Some(parent_entity));
         check_parent(&world, child2_entity, Some(parent_entity));
         check_parent(&world, child3_entity, Some(parent_entity));
 
-        world.entity_mut(parent_entity).remove_children(&[child2_entity]);
+        world
+            .entity_mut(parent_entity)
+            .remove_children(&[child2_entity]);
         check_children(&world, parent_entity, Some(&[child1_entity, child3_entity]));
         check_parent(&world, child1_entity, Some(parent_entity));
         check_parent(&world, child2_entity, None);
         check_parent(&world, child3_entity, Some(parent_entity));
 
-        world.entity_mut(parent_entity).remove_children(&[child1_entity, child3_entity]);
+        world
+            .entity_mut(parent_entity)
+            .remove_children(&[child1_entity, child3_entity]);
         check_children(&world, parent_entity, Some(&[]));
         check_parent(&world, child1_entity, None);
         check_parent(&world, child2_entity, None);
