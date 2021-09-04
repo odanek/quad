@@ -1,5 +1,6 @@
 pub mod bundle;
 pub mod type_info;
+pub mod ticks;
 
 use std::{
     alloc::Layout,
