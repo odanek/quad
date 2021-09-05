@@ -8,10 +8,6 @@ use crate::ecs::{
 
 use super::Schedule;
 
-pub trait NoSystem {}
-
-impl NoSystem for () {}
-
 pub struct ChainSystem<S, T> {
     meta: SystemMeta,
     left: S,

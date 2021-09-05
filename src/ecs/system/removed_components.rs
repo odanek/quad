@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::ecs::{component::ComponentId, Component, Entity, World};
+use crate::ecs::{Component, Entity, World, component::{ComponentId, ticks::Tick}};
 
 use super::{
     function_system::SystemMeta,
@@ -45,6 +45,7 @@ impl<'a, T: Component> SystemParamFetch<'a> for RemovedComponentsState<T> {
         state: &'a mut Self,
         _system_meta: &SystemMeta,
         world: &'a World,
+        _change_tick: Tick,
     ) -> Self::Item {
         RemovedComponents {
             world,

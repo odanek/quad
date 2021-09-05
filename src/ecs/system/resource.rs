@@ -1,8 +1,4 @@
-use crate::ecs::{
-    resource::{Resource, ResourceId},
-    system::function_system::SystemMeta,
-    World,
-};
+use crate::ecs::{World, component::ticks::Tick, resource::{Resource, ResourceId}, system::function_system::SystemMeta};
 use std::{
     any::type_name,
     fmt::Debug,
@@ -75,6 +71,7 @@ impl<'a, T: Resource> SystemParamFetch<'a> for ResState<T> {
         _state: &'a mut Self,
         system_meta: &SystemMeta,
         world: &'a World,
+        _change_tick: Tick,
     ) -> Self::Item {
         let resource = world.resources().get_unchecked().unwrap_or_else(|| {
             panic!(
@@ -160,6 +157,7 @@ impl<'a, T: Resource> SystemParamFetch<'a> for ResMutState<T> {
         _state: &'a mut Self,
         system_meta: &SystemMeta,
         world: &'a World,
+        _change_tick: Tick,
     ) -> Self::Item {
         let resource = world.resources().get_mut_unchecked().unwrap_or_else(|| {
             panic!(

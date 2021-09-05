@@ -1,16 +1,11 @@
 use std::any::TypeId;
 
-use crate::ecs::{
-    component::Component,
-    query::{
+use crate::ecs::{Entity, World, component::{Component, ticks::Tick}, query::{
         fetch::{Fetch, ReadOnlyFetch, WorldQuery},
         filter::FilterFetch,
         iter::QueryIter,
         state::{QueryEntityError, QueryState},
-    },
-    system::function_system::SystemMeta,
-    Entity, World,
-};
+    }, system::function_system::SystemMeta};
 
 use super::system_param::{SystemParam, SystemParamFetch, SystemParamState};
 
@@ -21,6 +16,8 @@ where
 {
     pub(crate) world: &'w World,
     pub(crate) state: &'w QueryState<Q, F>,
+    last_change_tick: Tick,
+    change_tick: Tick,
 }
 
 impl<'w, Q: WorldQuery, F: WorldQuery> Query<'w, Q, F>
@@ -29,8 +26,8 @@ where
 {
     #[inline]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn new(world: &'w World, state: &'w QueryState<Q, F>) -> Self {
-        Self { world, state }
+    pub unsafe fn new(world: &'w World, state: &'w QueryState<Q, F>, last_change_tick: Tick, change_tick: Tick) -> Self {
+        Self { world, state, last_change_tick, change_tick }
     }
 
     #[inline]
@@ -204,10 +201,11 @@ where
     #[inline]
     unsafe fn get_param(
         state: &'a mut Self,
-        _system_meta: &SystemMeta,
+        system_meta: &SystemMeta,
         world: &'a World,
+        change_tick: Tick,
     ) -> Self::Item {
-        Query::new(world, state)
+        Query::new(world, state, system_meta.last_change_tick, change_tick)
     }
 }
 

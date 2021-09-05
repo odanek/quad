@@ -1,10 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::ecs::{
-    component::{bundle::Bundle, Component},
-    entity::Entities,
-    Entity, World,
-};
+use crate::ecs::{Entity, World, component::{Component, bundle::Bundle, ticks::Tick}, entity::Entities};
 
 use super::{
     function_system::SystemMeta,
@@ -409,6 +405,7 @@ impl<'a> SystemParamFetch<'a> for CommandQueue {
         state: &'a mut Self,
         _system_meta: &SystemMeta,
         world: &'a World,
+        _change_tick: Tick,
     ) -> Self::Item {
         Commands::new(state, world)
     }

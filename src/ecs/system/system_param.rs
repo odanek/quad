@@ -1,4 +1,4 @@
-use crate::ecs::World;
+use crate::ecs::{World, component::ticks::Tick};
 
 use super::function_system::SystemMeta;
 
@@ -19,6 +19,7 @@ pub trait SystemParamFetch<'a>: SystemParamState {
         state: &'a mut Self,
         system_meta: &SystemMeta,
         world: &'a World,
+        change_tick: Tick,
     ) -> Self::Item;
 }
 
@@ -42,15 +43,15 @@ macro_rules! impl_system_param_tuple {
             unsafe fn get_param(
                 state: &'a mut Self,
                 system_meta: &SystemMeta,
-                world: &'a World
+                world: &'a World,
+                change_tick: Tick,
             ) -> Self::Item {
 
                 let ($($param,)*) = state;
-                ($($param::get_param($param, system_meta, world),)*)
+                ($($param::get_param($param, system_meta, world, change_tick),)*)
             }
         }
 
-        /// SAFE: implementors of each SystemParamState in the tuple have validated their impls
         #[allow(non_snake_case)]
         impl<$($param: SystemParamState),*> SystemParamState for ($($param,)*) {
             #[inline]

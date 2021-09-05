@@ -1,20 +1,13 @@
 mod entity_ref;
 
-use std::{any::TypeId, collections::HashMap};
+use std::{any::TypeId, collections::HashMap, sync::atomic::{AtomicU32, Ordering}};
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{
-    component::{bundle::Bundles, Component, ComponentId, Components},
-    entity::{
+use super::{Entity, component::{Component, ComponentId, Components, bundle::Bundles, ticks::Tick}, entity::{
         archetype::{Archetype, ArchetypeId, Archetypes},
         Entities, EntityLocation,
-    },
-    query::{fetch::WorldQuery, state::QueryState},
-    resource::{Resource, ResourceId, Resources},
-    storage::Storages,
-    Entity,
-};
+    }, query::{fetch::WorldQuery, state::QueryState}, resource::{Resource, ResourceId, Resources}, storage::Storages};
 
 #[derive(Default)]
 pub struct World {
@@ -25,6 +18,7 @@ pub struct World {
     storages: Storages,
     bundles: Bundles,
     removed_components: HashMap<ComponentId, Vec<Entity>>,
+    change_tick: AtomicU32,
 }
 
 #[allow(dead_code)]
@@ -228,7 +222,12 @@ impl World {
     pub(crate) fn clear_trackers(&mut self) {
         for entities in self.removed_components.values_mut() {
             entities.clear();
-        }
+        }                
+    }
+
+    #[inline]    
+    pub(crate) fn increment_change_tick(&self) -> Tick {
+        Tick::new(self.change_tick.fetch_add(1, Ordering::AcqRel))
     }
 
     pub(crate) fn flush(&mut self) {

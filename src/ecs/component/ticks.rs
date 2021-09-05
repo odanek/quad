@@ -1,12 +1,21 @@
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default, PartialOrd, Ord)]
+pub struct Tick(u32);
+
+impl Tick {    
+    pub(crate) fn new(tick: u32) -> Self {
+        Tick(tick)
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct ComponentTicks {
-    pub(crate) added: u32,
-    pub(crate) changed: u32,
+    pub(crate) added: Tick,
+    pub(crate) changed: Tick,
 }
 
 impl ComponentTicks {
     #[inline]
-    pub(crate) fn new(change_tick: u32) -> Self {
+    pub(crate) fn new(change_tick: Tick) -> Self {
         Self {
             added: change_tick,
             changed: change_tick,
@@ -14,22 +23,17 @@ impl ComponentTicks {
     }
 
     #[inline]
-    pub fn is_added(&self, last_change_tick: u32, change_tick: u32) -> bool {
-        let component_delta = change_tick.wrapping_sub(self.added);
-        let system_delta = change_tick.wrapping_sub(last_change_tick);
-        component_delta < system_delta
+    pub fn is_added(&self, last_change_tick: Tick) -> bool {
+        self.added > last_change_tick        
     }
 
     #[inline]
-    pub fn is_changed(&self, last_change_tick: u32, change_tick: u32) -> bool {
-        let component_delta = change_tick.wrapping_sub(self.changed);
-        let system_delta = change_tick.wrapping_sub(last_change_tick);
-        component_delta < system_delta
+    pub fn is_changed(&self, last_change_tick: Tick) -> bool {
+        self.changed > last_change_tick
     }
     
-
     #[inline]
-    pub fn set_changed(&mut self, change_tick: u32) {
+    pub fn set_changed(&mut self, change_tick: Tick) {
         self.changed = change_tick;
     }
 }

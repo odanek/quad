@@ -1,4 +1,4 @@
-use crate::ecs::{component::Component, system::function_system::SystemMeta, FromWorld, World};
+use crate::ecs::{FromWorld, World, component::{Component, ticks::Tick}, system::function_system::SystemMeta};
 use std::{
     fmt::Debug,
     ops::{Deref, DerefMut},
@@ -53,6 +53,7 @@ impl<'a, T: Component + FromWorld> SystemParamFetch<'a> for LocalState<T> {
         state: &'a mut Self,
         _system_meta: &SystemMeta,
         _world: &'a World,
+        _change_tick: Tick,
     ) -> Self::Item {
         Local(&mut state.0)
     }
