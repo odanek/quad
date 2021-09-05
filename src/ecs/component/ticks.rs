@@ -1,7 +1,7 @@
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, PartialOrd, Ord)]
 pub struct Tick(u32);
 
-impl Tick {    
+impl Tick {
     pub(crate) fn new(tick: u32) -> Self {
         Tick(tick)
     }
@@ -24,14 +24,14 @@ impl ComponentTicks {
 
     #[inline]
     pub fn is_added(&self, last_change_tick: Tick) -> bool {
-        self.added > last_change_tick        
+        self.added > last_change_tick
     }
 
     #[inline]
     pub fn is_changed(&self, last_change_tick: Tick) -> bool {
         self.changed > last_change_tick
     }
-    
+
     #[inline]
     pub fn set_changed(&mut self, change_tick: Tick) {
         self.changed = change_tick;

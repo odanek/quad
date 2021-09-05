@@ -1,4 +1,9 @@
-use crate::ecs::{World, component::ticks::Tick, resource::{Resource, ResourceId}, system::function_system::SystemMeta};
+use crate::ecs::{
+    component::ticks::Tick,
+    resource::{Resource, ResourceId},
+    system::function_system::SystemMeta,
+    World,
+};
 use std::{
     any::type_name,
     fmt::Debug,

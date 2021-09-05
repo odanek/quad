@@ -1,6 +1,9 @@
 use std::marker::PhantomData;
 
-use crate::ecs::{Component, Entity, World, component::{ComponentId, ticks::Tick}};
+use crate::ecs::{
+    component::{ticks::Tick, ComponentId},
+    Component, Entity, World,
+};
 
 use super::{
     function_system::SystemMeta,

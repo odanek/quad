@@ -1,11 +1,16 @@
 use std::any::TypeId;
 
-use crate::ecs::{Entity, World, component::{Component, ticks::Tick}, query::{
+use crate::ecs::{
+    component::{ticks::Tick, Component},
+    query::{
         fetch::{Fetch, ReadOnlyFetch, WorldQuery},
         filter::FilterFetch,
         iter::QueryIter,
         state::{QueryEntityError, QueryState},
-    }, system::function_system::SystemMeta};
+    },
+    system::function_system::SystemMeta,
+    Entity, World,
+};
 
 use super::system_param::{SystemParam, SystemParamFetch, SystemParamState};
 
@@ -26,8 +31,18 @@ where
 {
     #[inline]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn new(world: &'w World, state: &'w QueryState<Q, F>, last_change_tick: Tick, change_tick: Tick) -> Self {
-        Self { world, state, last_change_tick, change_tick }
+    pub unsafe fn new(
+        world: &'w World,
+        state: &'w QueryState<Q, F>,
+        last_change_tick: Tick,
+        change_tick: Tick,
+    ) -> Self {
+        Self {
+            world,
+            state,
+            last_change_tick,
+            change_tick,
+        }
     }
 
     #[inline]

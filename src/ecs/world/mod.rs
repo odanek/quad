@@ -1,13 +1,24 @@
 mod entity_ref;
 
-use std::{any::TypeId, collections::HashMap, sync::atomic::{AtomicU32, Ordering}};
+use std::{
+    any::TypeId,
+    collections::HashMap,
+    sync::atomic::{AtomicU32, Ordering},
+};
 
 use self::entity_ref::{EntityMut, EntityRef};
 
-use super::{Entity, component::{Component, ComponentId, Components, bundle::Bundles, ticks::Tick}, entity::{
+use super::{
+    component::{bundle::Bundles, ticks::Tick, Component, ComponentId, Components},
+    entity::{
         archetype::{Archetype, ArchetypeId, Archetypes},
         Entities, EntityLocation,
-    }, query::{fetch::WorldQuery, state::QueryState}, resource::{Resource, ResourceId, Resources}, storage::Storages};
+    },
+    query::{fetch::WorldQuery, state::QueryState},
+    resource::{Resource, ResourceId, Resources},
+    storage::Storages,
+    Entity,
+};
 
 #[derive(Default)]
 pub struct World {
@@ -222,10 +233,10 @@ impl World {
     pub(crate) fn clear_trackers(&mut self) {
         for entities in self.removed_components.values_mut() {
             entities.clear();
-        }                
+        }
     }
 
-    #[inline]    
+    #[inline]
     pub(crate) fn increment_change_tick(&self) -> Tick {
         Tick::new(self.change_tick.fetch_add(1, Ordering::AcqRel))
     }

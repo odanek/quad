@@ -1,6 +1,11 @@
 use std::{any::type_name, marker::PhantomData};
 
-use crate::ecs::{World, component::{ComponentId, ticks::Tick}, query::access::{Access, FilteredAccess}, resource::ResourceId};
+use crate::ecs::{
+    component::{ticks::Tick, ComponentId},
+    query::access::{Access, FilteredAccess},
+    resource::ResourceId,
+    World,
+};
 
 use super::{
     system_param::{SystemParam, SystemParamFetch, SystemParamState},
@@ -93,8 +98,13 @@ where
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out {
         let change_tick = world.increment_change_tick();
         self.param_state.update(world, &mut self.system_meta);
-        let result = self.func
-            .run(input, &mut self.param_state, &self.system_meta, world, change_tick);
+        let result = self.func.run(
+            input,
+            &mut self.param_state,
+            &self.system_meta,
+            world,
+            change_tick,
+        );
         self.system_meta.last_change_tick = change_tick;
         result
     }

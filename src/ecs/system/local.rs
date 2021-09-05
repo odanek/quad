@@ -1,4 +1,8 @@
-use crate::ecs::{FromWorld, World, component::{Component, ticks::Tick}, system::function_system::SystemMeta};
+use crate::ecs::{
+    component::{ticks::Tick, Component},
+    system::function_system::SystemMeta,
+    FromWorld, World,
+};
 use std::{
     fmt::Debug,
     ops::{Deref, DerefMut},
