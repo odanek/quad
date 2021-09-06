@@ -1,3 +1,4 @@
+// Assuming 256 fps and 128 systems this will wrap after 36 hours
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, PartialOrd, Ord)]
 pub struct Tick(u32);
 

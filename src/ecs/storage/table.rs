@@ -1,19 +1,13 @@
-use std::{
-    collections::HashMap,
-    ops::{Index, IndexMut},
-    ptr::NonNull,
-};
+use std::{cell::UnsafeCell, collections::HashMap, ops::{Index, IndexMut}, ptr::NonNull};
 
-use crate::ecs::{
-    component::{ComponentId, ComponentInfo, Components},
-    Entity,
-};
+use crate::ecs::{Entity, component::{ComponentId, ComponentInfo, Components, ticks::{ComponentTicks, Tick}}};
 
 use super::BlobVec;
 
 pub struct Column {
     pub(crate) component_id: ComponentId,
     pub(crate) data: BlobVec,
+    pub(crate) ticks: Vec<UnsafeCell<ComponentTicks>>, // TODO: Is UnsafeCelll needed?
 }
 
 impl Column {
@@ -22,47 +16,23 @@ impl Column {
         Column {
             component_id: component_info.id(),
             data: BlobVec::new(component_info.layout(), component_info.drop(), capacity),
+            ticks: Vec::with_capacity(capacity),
         }
     }
 
     #[inline]
-    pub unsafe fn get_data_ptr(&self) -> NonNull<u8> {
-        self.data.get_ptr()
-    }
-
-    #[inline]
-    pub fn reserve_exact(&mut self, additional: usize) {
-        self.data.reserve_exact(additional);
-    }
-
-    #[inline]
-    pub unsafe fn initialize(&mut self, row: usize, data: *mut u8) {
+    pub unsafe fn initialize(&mut self, row: usize, data: *mut u8, ticks: ComponentTicks) {
         self.data.initialize_unchecked(row, data);
+        *self.ticks.get_unchecked_mut(row).get_mut() = ticks;
     }
 
     #[inline]
-    pub unsafe fn replace(&mut self, row: usize, data: *mut u8) {
+    pub unsafe fn replace(&mut self, row: usize, data: *mut u8, change_tick: Tick) {
         self.data.replace_unchecked(row, data);
-    }
-
-    #[inline]
-    pub unsafe fn swap_remove_unchecked(&mut self, row: usize) {
-        self.data.swap_remove_and_drop_unchecked(row);
-    }
-
-    #[inline]
-    pub unsafe fn swap_remove_and_forget_unchecked(&mut self, row: usize) -> *mut u8 {
-        self.data.swap_remove_and_forget_unchecked(row)
-    }
-
-    #[inline]
-    pub unsafe fn get_unchecked(&self, row: usize) -> *mut u8 {
-        self.data.get_unchecked(row)
-    }
-
-    #[inline]
-    pub unsafe fn clear(&mut self) {
-        self.data.clear();
+        self.ticks
+            .get_unchecked_mut(row)
+            .get_mut()
+            .set_changed(change_tick);
     }
 
     #[inline]
@@ -73,6 +43,41 @@ impl Column {
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
+    }    
+
+    #[inline]
+    pub unsafe fn swap_remove_unchecked(&mut self, row: usize) {
+        self.data.swap_remove_and_drop_unchecked(row);
+        self.ticks.swap_remove(row);
+    }
+
+    #[inline]
+    pub unsafe fn swap_remove_and_forget_unchecked(&mut self, row: usize) -> (*mut u8, ComponentTicks) {
+        let data = self.data.swap_remove_and_forget_unchecked(row);
+        let ticks = self.ticks.swap_remove(row).into_inner();
+        (data, ticks)
+    }
+
+    #[inline]
+    pub fn reserve_exact(&mut self, additional: usize) {
+        self.data.reserve_exact(additional);
+        self.ticks.reserve_exact(additional);
+    }
+
+    #[inline]
+    pub unsafe fn get_data_ptr(&self) -> NonNull<u8> {
+        self.data.get_ptr()
+    }
+
+    #[inline]
+    pub unsafe fn get_unchecked(&self, row: usize) -> *mut u8 {
+        self.data.get_unchecked(row)
+    }
+
+    #[inline]
+    pub unsafe fn clear(&mut self) {
+        self.data.clear();
+        self.ticks.clear();
     }
 }
 
@@ -165,6 +170,7 @@ impl Table {
         self.entities.push(entity);
         for column in self.columns.values_mut() {
             column.data.set_len(index + 1);
+            column.ticks.push(UnsafeCell::new(ComponentTicks::new(Default::default())));
         }
         index
     }
@@ -176,16 +182,6 @@ impl Table {
         }
     }
 
-    pub unsafe fn move_to_superset_unchecked(&mut self, row: usize, new_table: &mut Table) {
-        let entity = self.entities.swap_remove(row);
-        let new_row = new_table.allocate(entity);
-        for column in self.columns.values_mut() {
-            let new_column = new_table.get_column_mut(column.component_id).unwrap();
-            let data = column.swap_remove_and_forget_unchecked(row);
-            new_column.initialize(new_row, data);
-        }
-    }
-
     pub unsafe fn move_to_and_forget_missing_unchecked(
         &mut self,
         row: usize,
@@ -194,9 +190,9 @@ impl Table {
         let entity = self.entities.swap_remove(row);
         let new_row = new_table.allocate(entity);
         for column in self.columns.values_mut() {
-            let data = column.swap_remove_and_forget_unchecked(row);
+            let (data, ticks) = column.swap_remove_and_forget_unchecked(row);
             if let Some(new_column) = new_table.get_column_mut(column.component_id) {
-                new_column.initialize(new_row, data);
+                new_column.initialize(new_row, data, ticks);
             }
         }
     }
@@ -206,11 +202,21 @@ impl Table {
         let new_row = new_table.allocate(entity);
         for column in self.columns.values_mut() {
             if let Some(new_column) = new_table.get_column_mut(column.component_id) {
-                let data = column.swap_remove_and_forget_unchecked(row);
-                new_column.initialize(new_row, data);
+                let (data, ticks) = column.swap_remove_and_forget_unchecked(row);
+                new_column.initialize(new_row, data, ticks);
             } else {
                 column.swap_remove_unchecked(row);
             }
+        }
+    }
+
+    pub unsafe fn move_to_superset_unchecked(&mut self, row: usize, new_table: &mut Table) {
+        let entity = self.entities.swap_remove(row);
+        let new_row = new_table.allocate(entity);
+        for column in self.columns.values_mut() {
+            let new_column = new_table.get_column_mut(column.component_id).unwrap();
+            let (data, ticks) = column.swap_remove_and_forget_unchecked(row);
+            new_column.initialize(new_row, data, ticks);
         }
     }
 
