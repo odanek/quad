@@ -3,7 +3,7 @@ use std::{
     collections::HashMap,
 };
 
-use super::query::access::AccessIndex;
+use crate::ecs::query::access::AccessIndex;
 
 pub trait Resource: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Resource for T {}

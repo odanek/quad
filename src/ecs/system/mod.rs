@@ -1,7 +1,6 @@
 use super::{
-    component::ComponentId,
+    component::{ComponentId, ResourceId},
     query::access::{Access, FilteredAccess},
-    resource::ResourceId,
     World,
 };
 

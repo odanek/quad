@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use crate::ecs::{
-    component::{ticks::Tick, ComponentId},
+    component::{ComponentId, Tick},
     Component, Entity, World,
 };
 

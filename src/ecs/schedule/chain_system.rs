@@ -1,7 +1,6 @@
 use crate::ecs::{
-    component::ComponentId,
+    component::{ComponentId, ResourceId},
     query::access::{Access, FilteredAccess},
-    resource::ResourceId,
     system::function_system::SystemMeta,
     System, World,
 };

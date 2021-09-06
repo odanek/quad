@@ -1,7 +1,7 @@
 use std::any::TypeId;
 
 use crate::ecs::{
-    component::{ticks::Tick, Component},
+    component::{Component, Tick},
     query::{
         fetch::{Fetch, ReadOnlyFetch, WorldQuery},
         filter::FilterFetch,

@@ -1,4 +1,4 @@
-use crate::ecs::{component::ticks::Tick, World};
+use crate::ecs::{component::Tick, World};
 
 use super::function_system::SystemMeta;
 

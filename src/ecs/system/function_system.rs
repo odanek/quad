@@ -1,9 +1,8 @@
 use std::{any::type_name, marker::PhantomData};
 
 use crate::ecs::{
-    component::{ticks::Tick, ComponentId},
+    component::{ComponentId, ResourceId, Tick},
     query::access::{Access, FilteredAccess},
-    resource::ResourceId,
     World,
 };
 

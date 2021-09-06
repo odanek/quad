@@ -5,7 +5,11 @@ use std::{
 
 use crate::ecs::storage::Table;
 
-use super::{type_info::TypeInfo, Component, ComponentId, ComponentStatus, Components};
+use super::{
+    component::{Component, ComponentId, ComponentStatus, Components},
+    ticks::{ComponentTicks, Tick},
+    type_info::TypeInfo,
+};
 
 pub trait Bundle: Send + Sync + 'static {
     fn type_info() -> Vec<TypeInfo>;
@@ -71,6 +75,7 @@ impl BundleInfo {
         table_row: usize,
         bundle: T,
         bundle_status: &[ComponentStatus],
+        change_tick: Tick,
     ) {
         let mut bundle_component = 0;
         bundle.get_components(|component_ptr| {
@@ -80,10 +85,10 @@ impl BundleInfo {
 
             match status {
                 ComponentStatus::Added => {
-                    column.initialize(table_row, component_ptr);
+                    column.initialize(table_row, component_ptr, ComponentTicks::new(change_tick));
                 }
                 ComponentStatus::Mutated => {
-                    column.replace(table_row, component_ptr);
+                    column.replace(table_row, component_ptr, change_tick);
                 }
             }
 

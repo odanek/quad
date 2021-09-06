@@ -4,16 +4,14 @@ mod macros;
 mod component;
 mod entity;
 mod query;
-mod resource;
 mod schedule;
 mod storage;
 mod system;
 mod world;
 
-pub use component::Component;
+pub use component::{Component, Resource};
 pub use entity::Entity;
 pub use query::filter::{Or, With, Without};
-pub use resource::Resource;
 pub use schedule::{OptionalSchedule, OptionalScheduleWithInput, Schedule, Scheduler};
 pub use system::{
     command::Commands,

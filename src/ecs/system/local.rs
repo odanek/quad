@@ -1,5 +1,5 @@
 use crate::ecs::{
-    component::{ticks::Tick, Component},
+    component::{Component, Tick},
     system::function_system::SystemMeta,
     FromWorld, World,
 };

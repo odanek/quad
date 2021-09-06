@@ -9,13 +9,14 @@ use std::{
 use self::entity_ref::{EntityMut, EntityRef};
 
 use super::{
-    component::{bundle::Bundles, ticks::Tick, Component, ComponentId, Components},
+    component::{
+        Bundles, Component, ComponentId, Components, Resource, ResourceId, Resources, Tick,
+    },
     entity::{
         archetype::{Archetype, ArchetypeId, Archetypes},
         Entities, EntityLocation,
     },
     query::{fetch::WorldQuery, state::QueryState},
-    resource::{Resource, ResourceId, Resources},
     storage::Storages,
     Entity,
 };

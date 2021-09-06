@@ -1,6 +1,14 @@
-use std::{cell::UnsafeCell, collections::HashMap, ops::{Index, IndexMut}, ptr::NonNull};
+use std::{
+    cell::UnsafeCell,
+    collections::HashMap,
+    ops::{Index, IndexMut},
+    ptr::NonNull,
+};
 
-use crate::ecs::{Entity, component::{ComponentId, ComponentInfo, Components, ticks::{ComponentTicks, Tick}}};
+use crate::ecs::{
+    component::{ComponentId, ComponentInfo, ComponentTicks, Components, Tick},
+    Entity,
+};
 
 use super::BlobVec;
 
@@ -43,7 +51,7 @@ impl Column {
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
-    }    
+    }
 
     #[inline]
     pub unsafe fn swap_remove_unchecked(&mut self, row: usize) {
@@ -52,7 +60,10 @@ impl Column {
     }
 
     #[inline]
-    pub unsafe fn swap_remove_and_forget_unchecked(&mut self, row: usize) -> (*mut u8, ComponentTicks) {
+    pub unsafe fn swap_remove_and_forget_unchecked(
+        &mut self,
+        row: usize,
+    ) -> (*mut u8, ComponentTicks) {
         let data = self.data.swap_remove_and_forget_unchecked(row);
         let ticks = self.ticks.swap_remove(row).into_inner();
         (data, ticks)
@@ -170,7 +181,9 @@ impl Table {
         self.entities.push(entity);
         for column in self.columns.values_mut() {
             column.data.set_len(index + 1);
-            column.ticks.push(UnsafeCell::new(ComponentTicks::new(Default::default())));
+            column
+                .ticks
+                .push(UnsafeCell::new(ComponentTicks::new(Default::default())));
         }
         index
     }

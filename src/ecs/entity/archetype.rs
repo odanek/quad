@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::ecs::{
-    component::{bundle::BundleId, ComponentId, ComponentStatus},
+    component::{BundleId, ComponentId, ComponentStatus},
     storage::TableId,
     Entity,
 };
