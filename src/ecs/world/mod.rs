@@ -10,7 +10,7 @@ use self::entity_ref::{EntityMut, EntityRef};
 
 use super::{
     component::{
-        Bundles, Component, ComponentId, Components, Resource, ResourceId, Resources, Tick,
+        Bundles, Component, ComponentId, Components, Mut, Resource, ResourceId, Resources, Tick,
     },
     entity::{
         archetype::{Archetype, ArchetypeId, Archetypes},
@@ -18,7 +18,7 @@ use super::{
     },
     query::{fetch::WorldQuery, state::QueryState},
     storage::Storages,
-    Entity,
+    Entity, ResMut,
 };
 
 #[derive(Default)]
@@ -116,12 +116,12 @@ impl World {
     }
 
     #[inline]
-    pub fn get_resource_mut<T: Resource>(&mut self) -> Option<&mut T> {
+    pub fn get_resource_mut<'a, T: Resource>(&'a mut self) -> Option<ResMut<'a, T>> {
         self.resources.get_mut()
     }
 
     #[inline]
-    pub fn resource_mut<T: Resource>(&mut self) -> &mut T {
+    pub fn resource_mut<'a, T: Resource>(&'a mut self) -> ResMut<'a, T> {
         self.get_resource_mut().expect("Resource not found")
     }
 
@@ -131,20 +131,20 @@ impl World {
     }
 
     #[inline]
-    pub(crate) fn get_component_mut<T: Component>(
-        &self,
+    pub(crate) fn get_component_mut<'a, T: Component>(
+        &'a self,
         location: EntityLocation,
-    ) -> Option<&mut T> {
+    ) -> Option<Mut<'a, T>> {
         unsafe {
             get_component(self, TypeId::of::<T>(), location).map(|value| &mut *value.cast::<T>())
         }
     }
 
     #[inline]
-    pub(crate) fn component_unchecked_mut<T: Component>(
-        &self,
+    pub(crate) fn component_unchecked_mut<'a, T: Component>(
+        &'a self,
         location: EntityLocation,
-    ) -> Option<&mut T> {
+    ) -> Option<Mut<'a, T>> {
         unsafe {
             get_component(self, TypeId::of::<T>(), location).map(|value| &mut *value.cast::<T>())
         }
@@ -235,6 +235,10 @@ impl World {
         for entities in self.removed_components.values_mut() {
             entities.clear();
         }
+    }
+
+    pub(crate) fn change_tick(&self) -> Tick {
+        Tick::new(self.change_tick.load(Ordering::Acquire))
     }
 
     #[inline]

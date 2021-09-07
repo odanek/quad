@@ -1,5 +1,5 @@
 use crate::ecs::{
-    component::ComponentId,
+    component::{ComponentId, Tick},
     entity::archetype::{ArchetypeGeneration, ArchetypeId},
     Entity, World,
 };
@@ -49,7 +49,8 @@ where
 
     #[inline]
     pub fn is_empty(&self, world: &World) -> bool {
-        unsafe { self.iter_unchecked_manual(world).none_remaining() }
+        let tick = Tick::default();
+        unsafe { self.iter_unchecked_manual(world, tick, tick).none_remaining() }
     }
 
     pub fn update_archetypes(&mut self, world: &World) {
@@ -97,13 +98,16 @@ where
         entity: Entity,
     ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError> {
         self.update_archetypes(world);
-        self.get_unchecked_manual(world, entity)
+        let change_tick = world.change_tick(); // TODO: is_added and is_changed will return false, so Changed<xxx> and Added<xxx> will not work
+        self.get_unchecked_manual(world, entity, change_tick, change_tick)
     }
 
     pub unsafe fn get_unchecked_manual<'w>(
         &self,
         world: &'w World,
         entity: Entity,
+        last_change_tick: Tick,
+        change_tick: Tick,
     ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError> {
         let location = world
             .entities()
@@ -113,8 +117,10 @@ where
             return Err(QueryEntityError::QueryDoesNotMatch);
         }
         let archetype = &world.archetype(location.archetype_id);
-        let mut fetch = <Q::Fetch as Fetch>::new(world, &self.fetch_state);
-        let mut filter = <F::Fetch as Fetch>::new(world, &self.filter_state);
+        let mut fetch =
+            <Q::Fetch as Fetch>::new(world, &self.fetch_state, last_change_tick, change_tick);
+        let mut filter =
+            <F::Fetch as Fetch>::new(world, &self.filter_state, last_change_tick, change_tick);
 
         fetch.set_archetype(&self.fetch_state, archetype, &world.storages().tables);
         filter.set_archetype(&self.filter_state, archetype, &world.storages().tables);
@@ -144,15 +150,18 @@ where
         world: &'w World,
     ) -> QueryIter<'w, 's, Q, F> {
         self.update_archetypes(world);
-        self.iter_unchecked_manual(world)
+        let change_tick = world.change_tick(); // TODO: is_added and is_changed will return false, so Changed<xxx> and Added<xxx> will not work
+        self.iter_unchecked_manual(world, change_tick, change_tick)
     }
 
     #[inline]
     pub unsafe fn iter_unchecked_manual<'w, 's>(
         &'s self,
         world: &'w World,
+        last_change_tick: Tick,
+        change_tick: Tick,
     ) -> QueryIter<'w, 's, Q, F> {
-        QueryIter::new(world, self)
+        QueryIter::new(world, self, last_change_tick, change_tick)
     }
 
     #[inline]
@@ -186,16 +195,19 @@ where
         func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
     ) {
         self.update_archetypes(world);
-        self.for_each_unchecked_manual(world, func);
+        let change_tick = world.change_tick(); // TODO: is_added and is_changed will return false, so Changed<xxx> and Added<xxx> will not work
+        self.for_each_unchecked_manual(world, func, change_tick, change_tick);
     }
 
     pub unsafe fn for_each_unchecked_manual<'w, 's>(
         &'s self,
         world: &'w World,
         mut func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
+        last_change_tick: Tick,
+        change_tick: Tick,
     ) {
-        let mut fetch = <Q::Fetch as Fetch>::new(world, &self.fetch_state);
-        let mut filter = <F::Fetch as Fetch>::new(world, &self.filter_state);
+        let mut fetch = <Q::Fetch as Fetch>::new(world, &self.fetch_state, last_change_tick, change_tick);
+        let mut filter = <F::Fetch as Fetch>::new(world, &self.filter_state, last_change_tick, change_tick);
         let tables = &world.storages().tables;
         for archetype_id in self.matched_archetypes.iter() {
             let archetype = world.archetype(*archetype_id);

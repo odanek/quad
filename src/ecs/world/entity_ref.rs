@@ -1,17 +1,9 @@
 use std::any::TypeId;
 
-use crate::{
-    ecs::{
-        component::{Bundle, BundleInfo, Component, ComponentStatus, Components},
-        entity::{
+use crate::{ecs::{Entity, component::{Bundle, BundleInfo, Component, ComponentStatus, Components, Mut}, entity::{
             archetype::{Archetype, ArchetypeId, Archetypes},
             Entities, EntityLocation,
-        },
-        storage::Storages,
-        Entity,
-    },
-    transform::{Children, Parent},
-};
+        }, storage::Storages}, transform::{Children, Parent}};
 
 use super::World;
 
@@ -105,12 +97,13 @@ impl<'w> EntityMut<'w> {
     }
 
     #[inline]
-    pub fn get_mut<T: Component>(&mut self) -> Option<&mut T> {
+    pub fn get_mut<T: Component>(&mut self) -> Option<Mut<'w, T>> {
         self.world.get_component_mut(self.location)
     }
 
     // TODO: move relevant methods to World (add/remove bundle)
     pub fn insert_bundle<T: Bundle>(&mut self, bundle: T) -> &mut Self {
+        let change_tick = self.world.change_tick();
         let entity = self.entity;
         let entities = &mut self.world.entities;
         let archetypes = &mut self.world.archetypes;
@@ -141,7 +134,13 @@ impl<'w> EntityMut<'w> {
         let table = &mut storages.tables[archetype.table_id()];
 
         unsafe {
-            bundle_info.write_components(table, new_location.index, bundle, &edge.bundle_status)
+            bundle_info.write_components(
+                table,
+                new_location.index,
+                bundle,
+                &edge.bundle_status,
+                change_tick,
+            )
         };
 
         self

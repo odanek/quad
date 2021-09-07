@@ -13,7 +13,7 @@ pub fn transform_propagate_system(
         if let Some(children) = children {
             for child in children.0.iter() {
                 propagate_recursive(
-                    global_transform,
+                    &global_transform,
                     &mut transform_query,
                     &children_query,
                     *child,

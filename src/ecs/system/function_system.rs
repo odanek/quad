@@ -24,7 +24,7 @@ impl SystemMeta {
             name,
             resource_access: Default::default(),
             component_access: Default::default(),
-            last_change_tick: Default::default(), // TODO: Make sure this is ok for the first schedule
+            last_change_tick: Default::default(),
         }
     }
 }

@@ -1,16 +1,11 @@
 use std::any::TypeId;
 
-use crate::ecs::{
-    component::{Component, Tick},
-    query::{
+use crate::ecs::{Entity, World, component::{Component, Mut, Tick}, query::{
         fetch::{Fetch, ReadOnlyFetch, WorldQuery},
         filter::FilterFetch,
         iter::QueryIter,
         state::{QueryEntityError, QueryState},
-    },
-    system::function_system::SystemMeta,
-    Entity, World,
-};
+    }, system::function_system::SystemMeta};
 
 use super::system_param::{SystemParam, SystemParamFetch, SystemParamState};
 
@@ -50,18 +45,18 @@ where
     where
         Q::Fetch: ReadOnlyFetch,
     {
-        unsafe { self.state.iter_unchecked_manual(self.world) }
+        unsafe { self.state.iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick) }
     }
 
     #[inline]
     pub fn iter_mut(&mut self) -> QueryIter<'_, '_, Q, F> {
-        unsafe { self.state.iter_unchecked_manual(self.world) }
+        unsafe { self.state.iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick) }
     }
 
     #[inline]
     #[allow(clippy::missing_safety_doc)]
     pub unsafe fn iter_unsafe(&self) -> QueryIter<'_, '_, Q, F> {
-        self.state.iter_unchecked_manual(self.world)
+        self.state.iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick)
     }
 
     #[inline]
@@ -69,12 +64,12 @@ where
     where
         Q::Fetch: ReadOnlyFetch,
     {
-        unsafe { self.state.for_each_unchecked_manual(self.world, f) };
+        unsafe { self.state.for_each_unchecked_manual(self.world, f, self.last_change_tick, self.change_tick) };
     }
 
     #[inline]
     pub fn for_each_mut(&mut self, f: impl FnMut(<Q::Fetch as Fetch<'w>>::Item)) {
-        unsafe { self.state.for_each_unchecked_manual(self.world, f) };
+        unsafe { self.state.for_each_unchecked_manual(self.world, f, self.last_change_tick, self.change_tick) };
     }
 
     #[inline]
@@ -82,7 +77,14 @@ where
     where
         Q::Fetch: ReadOnlyFetch,
     {
-        unsafe { self.state.get_unchecked_manual(self.world, entity) }
+        unsafe {
+            self.state.get_unchecked_manual(
+                self.world,
+                entity,
+                self.last_change_tick,
+                self.change_tick,
+            )
+        }
     }
 
     #[inline]
@@ -90,7 +92,14 @@ where
         &mut self,
         entity: Entity,
     ) -> Result<<Q::Fetch as Fetch>::Item, QueryEntityError> {
-        unsafe { self.state.get_unchecked_manual(self.world, entity) }
+        unsafe {
+            self.state.get_unchecked_manual(
+                self.world,
+                entity,
+                self.last_change_tick,
+                self.change_tick,
+            )
+        }
     }
 
     #[inline]
@@ -99,7 +108,8 @@ where
         &self,
         entity: Entity,
     ) -> Result<<Q::Fetch as Fetch>::Item, QueryEntityError> {
-        self.state.get_unchecked_manual(self.world, entity)
+        self.state
+            .get_unchecked_manual(self.world, entity, self.last_change_tick, self.change_tick)
     }
 
     #[inline]
@@ -126,7 +136,7 @@ where
     pub fn get_component_mut<T: Component>(
         &mut self,
         entity: Entity,
-    ) -> Result<&mut T, QueryComponentError> {
+    ) -> Result<Mut<'w, T>, QueryComponentError> {
         let world = self.world;
         let location = world
             .entities()
