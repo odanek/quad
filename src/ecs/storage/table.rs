@@ -86,6 +86,11 @@ impl Column {
     }
 
     #[inline]
+    pub unsafe fn get_ticks_mut_ptr_unchecked(&self, row: usize) -> *mut ComponentTicks {
+        self.ticks.get_unchecked(row).get()
+    }
+
+    #[inline]
     pub unsafe fn clear(&mut self) {
         self.data.clear();
         self.ticks.clear();

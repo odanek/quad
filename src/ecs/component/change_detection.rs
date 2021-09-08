@@ -79,12 +79,12 @@ impl<'w, T: Resource> AsMut<T> for ResMut<'w, T> {
     }
 }
 
-pub struct Mut<'a, T> {
+pub struct CmptMut<'a, T> {
     pub(crate) value: &'a mut T,
     pub(crate) ticks: Ticks<'a>,
 }
 
-impl<'a, T> DetectChanges for Mut<'a, T> {
+impl<'a, T> DetectChanges for CmptMut<'a, T> {
     #[inline]
     fn is_added(&self) -> bool {
         self.ticks
@@ -107,7 +107,7 @@ impl<'a, T> DetectChanges for Mut<'a, T> {
     }
 }
 
-impl<'a, T> Deref for Mut<'a, T> {
+impl<'a, T> Deref for CmptMut<'a, T> {
     type Target = T;
 
     #[inline]
@@ -116,7 +116,7 @@ impl<'a, T> Deref for Mut<'a, T> {
     }
 }
 
-impl<'a, T> DerefMut for Mut<'a, T> {
+impl<'a, T> DerefMut for CmptMut<'a, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.set_changed();
@@ -124,14 +124,14 @@ impl<'a, T> DerefMut for Mut<'a, T> {
     }
 }
 
-impl<'a, T> AsRef<T> for Mut<'a, T> {
+impl<'a, T> AsRef<T> for CmptMut<'a, T> {
     #[inline]
     fn as_ref(&self) -> &T {
         self.deref()
     }
 }
 
-impl<'a, T> AsMut<T> for Mut<'a, T> {
+impl<'a, T> AsMut<T> for CmptMut<'a, T> {
     #[inline]
     fn as_mut(&mut self) -> &mut T {
         self.deref_mut()

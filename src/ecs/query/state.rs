@@ -50,7 +50,10 @@ where
     #[inline]
     pub fn is_empty(&self, world: &World) -> bool {
         let tick = Tick::default();
-        unsafe { self.iter_unchecked_manual(world, tick, tick).none_remaining() }
+        unsafe {
+            self.iter_unchecked_manual(world, tick, tick)
+                .none_remaining()
+        }
     }
 
     pub fn update_archetypes(&mut self, world: &World) {
@@ -206,8 +209,10 @@ where
         last_change_tick: Tick,
         change_tick: Tick,
     ) {
-        let mut fetch = <Q::Fetch as Fetch>::new(world, &self.fetch_state, last_change_tick, change_tick);
-        let mut filter = <F::Fetch as Fetch>::new(world, &self.filter_state, last_change_tick, change_tick);
+        let mut fetch =
+            <Q::Fetch as Fetch>::new(world, &self.fetch_state, last_change_tick, change_tick);
+        let mut filter =
+            <F::Fetch as Fetch>::new(world, &self.filter_state, last_change_tick, change_tick);
         let tables = &world.storages().tables;
         for archetype_id in self.matched_archetypes.iter() {
             let archetype = world.archetype(*archetype_id);

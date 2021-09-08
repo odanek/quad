@@ -1,6 +1,11 @@
 use std::marker::PhantomData;
 
-use crate::ecs::{World, component::{Component, ComponentId, Tick}, entity::archetype::Archetype, storage::Tables};
+use crate::ecs::{
+    component::{Component, ComponentId, Tick},
+    entity::archetype::Archetype,
+    storage::Tables,
+    World,
+};
 
 use super::{
     access::FilteredAccess,
@@ -61,7 +66,12 @@ impl<'a, T: Component> Fetch<'a> for WithFetch<T> {
     type Item = bool;
     type State = WithState<T>;
 
-    unsafe fn new(_world: &World, _state: &Self::State, last_change_tick: Tick, change_tick: Tick) -> Self {
+    unsafe fn new(
+        _world: &World,
+        _state: &Self::State,
+        _last_change_tick: Tick,
+        _change_tick: Tick,
+    ) -> Self {
         Self {
             marker: PhantomData,
         }
@@ -122,7 +132,12 @@ impl<'a, T: Component> Fetch<'a> for WithoutFetch<T> {
     type Item = bool;
     type State = WithoutState<T>;
 
-    unsafe fn new(_world: &World, _state: &Self::State, last_change_tick: Tick, change_tick: Tick) -> Self {
+    unsafe fn new(
+        _world: &World,
+        _state: &Self::State,
+        _last_change_tick: Tick,
+        _change_tick: Tick,
+    ) -> Self {
         Self {
             marker: PhantomData,
         }

@@ -66,7 +66,7 @@ impl Context {
         use winit::event::ElementState;
 
         if let Some(keycode) = input.virtual_keycode {
-            let keyboard_input = self.world.resource_mut::<KeyboardInput>();
+            let mut keyboard_input = self.world.resource_mut::<KeyboardInput>();
             match input.state {
                 ElementState::Pressed => keyboard_input.press(keycode.into()),
                 ElementState::Released => keyboard_input.release(keycode.into()),
@@ -75,7 +75,7 @@ impl Context {
     }
 
     pub fn flush_keyboard_events(&mut self) {
-        let keyboard_input = self.world.resource_mut::<KeyboardInput>();
+        let mut keyboard_input = self.world.resource_mut::<KeyboardInput>();
         keyboard_input.flush();
     }
 }

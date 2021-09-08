@@ -5,6 +5,8 @@ use std::{
 
 use crate::ecs::query::access::AccessIndex;
 
+use super::ResMut;
+
 pub trait Resource: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Resource for T {}
 
@@ -90,9 +92,12 @@ impl Resources {
     }
 
     #[inline]
-    pub fn get_mut<T: Resource>(&mut self) -> Option<&mut T> {
+    pub fn get_mut<T: Resource>(&mut self) -> Option<ResMut<T>> {
         let id = self.get_id::<T>()?;
-        self.map.get_mut(&id)?.downcast_mut()
+        self.map
+            .get_mut(&id)?
+            .downcast_mut()
+            .map(|v| ResMut { value: v })
     }
 
     #[inline]

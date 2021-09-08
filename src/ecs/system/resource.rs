@@ -1,8 +1,9 @@
-use crate::ecs::{Res, ResMut, World, component::{Resource, ResourceId, Tick}, system::function_system::SystemMeta};
-use std::{
-    any::type_name,
-    marker::PhantomData,
+use crate::ecs::{
+    component::{Resource, ResourceId, Tick},
+    system::function_system::SystemMeta,
+    Res, ResMut, World,
 };
+use std::{any::type_name, marker::PhantomData};
 
 use super::system_param::{SystemParam, SystemParamFetch, SystemParamState};
 

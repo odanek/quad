@@ -10,15 +10,15 @@ use self::entity_ref::{EntityMut, EntityRef};
 
 use super::{
     component::{
-        Bundles, Component, ComponentId, Components, Mut, Resource, ResourceId, Resources, Tick,
+        Bundles, Component, ComponentId, ComponentTicks, Components, ResMut, Resource, ResourceId,
+        Resources, Tick,
     },
     entity::{
         archetype::{Archetype, ArchetypeId, Archetypes},
-        Entities, EntityLocation,
+        Entities, Entity, EntityLocation,
     },
     query::{fetch::WorldQuery, state::QueryState},
     storage::Storages,
-    Entity, ResMut,
 };
 
 #[derive(Default)]
@@ -112,42 +112,34 @@ impl World {
 
     #[inline]
     pub fn resource<T: Resource>(&self) -> &T {
-        self.get_resource().expect("Resource not found")
+        self.get_resource().unwrap()
     }
 
     #[inline]
-    pub fn get_resource_mut<'a, T: Resource>(&'a mut self) -> Option<ResMut<'a, T>> {
+    pub fn get_resource_mut<T: Resource>(&mut self) -> Option<ResMut<T>> {
         self.resources.get_mut()
     }
 
     #[inline]
-    pub fn resource_mut<'a, T: Resource>(&'a mut self) -> ResMut<'a, T> {
-        self.get_resource_mut().expect("Resource not found")
+    pub fn resource_mut<T: Resource>(&mut self) -> ResMut<T> {
+        self.get_resource_mut().unwrap()
     }
 
     #[inline]
     pub(crate) fn get_component<T: Component>(&self, location: EntityLocation) -> Option<&T> {
-        unsafe { get_component(self, TypeId::of::<T>(), location).map(|value| &*value.cast::<T>()) }
-    }
-
-    #[inline]
-    pub(crate) fn get_component_mut<'a, T: Component>(
-        &'a self,
-        location: EntityLocation,
-    ) -> Option<Mut<'a, T>> {
         unsafe {
-            get_component(self, TypeId::of::<T>(), location).map(|value| &mut *value.cast::<T>())
+            // TODO: No need to get ticks here
+            get_component(self, TypeId::of::<T>(), location)
+                .map(|(data, _ticks)| &*data.cast::<T>())
         }
     }
 
     #[inline]
-    pub(crate) fn component_unchecked_mut<'a, T: Component>(
-        &'a self,
+    pub(crate) unsafe fn get_component_unchecked_mut<T: Component>(
+        &self,
         location: EntityLocation,
-    ) -> Option<Mut<'a, T>> {
-        unsafe {
-            get_component(self, TypeId::of::<T>(), location).map(|value| &mut *value.cast::<T>())
-        }
+    ) -> Option<(*mut u8, *mut ComponentTicks)> {
+        get_component(self, TypeId::of::<T>(), location)
     }
 
     pub fn spawn(&mut self) -> EntityMut {
@@ -274,12 +266,14 @@ unsafe fn get_component(
     world: &World,
     type_id: TypeId,
     location: EntityLocation,
-) -> Option<*mut u8> {
+) -> Option<(*mut u8, *mut ComponentTicks)> {
     let component_id = world.components.get_id(type_id)?;
     let archetype = &world.archetypes[location.archetype_id];
     let table = &world.storages.tables[archetype.table_id()];
     let column = table.get_column(component_id)?;
-    Some(column.get_unchecked(location.index))
+    let data = column.get_unchecked(location.index);
+    let ticks = column.get_ticks_mut_ptr_unchecked(location.index);
+    Some((data, ticks))
 }
 
 #[cfg(test)]

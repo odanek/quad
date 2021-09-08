@@ -1,9 +1,17 @@
 use std::any::TypeId;
 
-use crate::{ecs::{Entity, component::{Bundle, BundleInfo, Component, ComponentStatus, Components, Mut}, entity::{
+use crate::{
+    ecs::{
+        component::{Bundle, BundleInfo, CmptMut, Component, ComponentStatus, Components, Ticks},
+        entity::{
             archetype::{Archetype, ArchetypeId, Archetypes},
             Entities, EntityLocation,
-        }, storage::Storages}, transform::{Children, Parent}};
+        },
+        storage::Storages,
+        Entity,
+    },
+    transform::{Children, Parent},
+};
 
 use super::World;
 
@@ -97,8 +105,23 @@ impl<'w> EntityMut<'w> {
     }
 
     #[inline]
-    pub fn get_mut<T: Component>(&mut self) -> Option<Mut<'w, T>> {
-        self.world.get_component_mut(self.location)
+    pub fn get_mut<T: Component>(&mut self) -> Option<CmptMut<T>> {
+        unsafe {
+            self.world
+                .get_component_unchecked_mut::<T>(self.location)
+                .map(|(data, ticks)| {
+                    // TODO: is_added and is_changed will return false
+                    let change_tick = self.world.change_tick();
+                    CmptMut {
+                        value: &mut *data.cast::<T>(),
+                        ticks: Ticks {
+                            component_ticks: &mut *ticks,
+                            last_change_tick: change_tick,
+                            change_tick,
+                        },
+                    }
+                })
+        }
     }
 
     // TODO: move relevant methods to World (add/remove bundle)
@@ -276,7 +299,7 @@ impl<'w> EntityMut<'w> {
         self.world.entity_mut(child).insert(Parent(self.entity));
         self.refresh_location();
 
-        if let Some(children_component) = self.get_mut::<Children>() {
+        if let Some(mut children_component) = self.get_mut::<Children>() {
             children_component.0.push(child);
         } else {
             self.insert(Children::with(&[child]));
@@ -292,7 +315,7 @@ impl<'w> EntityMut<'w> {
         }
         self.refresh_location();
 
-        if let Some(children_component) = self.get_mut::<Children>() {
+        if let Some(mut children_component) = self.get_mut::<Children>() {
             children_component.0.extend(children.iter().cloned());
         } else {
             self.insert(Children::with(children));
@@ -305,7 +328,7 @@ impl<'w> EntityMut<'w> {
         self.world.entity_mut(child).insert(Parent(self.entity));
         self.refresh_location();
 
-        if let Some(children_component) = self.get_mut::<Children>() {
+        if let Some(mut children_component) = self.get_mut::<Children>() {
             children_component.0.insert(index, child);
         } else {
             self.insert(Children::with(&[child]));
@@ -321,7 +344,7 @@ impl<'w> EntityMut<'w> {
         }
         self.refresh_location();
 
-        if let Some(children_component) = self.get_mut::<Children>() {
+        if let Some(mut children_component) = self.get_mut::<Children>() {
             children_component
                 .0
                 .splice(index..index, children.iter().cloned());
@@ -334,7 +357,7 @@ impl<'w> EntityMut<'w> {
 
     pub fn remove_child(&mut self, child: Entity) -> &mut Self {
         // TODO: Nicer way?
-        if let Some(children) = self.get_mut::<Children>() {
+        if let Some(mut children) = self.get_mut::<Children>() {
             let mut found = false;
             children.0.retain(|item| {
                 if *item == child {
@@ -353,7 +376,7 @@ impl<'w> EntityMut<'w> {
     }
 
     pub fn remove_children(&mut self, children: &[Entity]) -> &mut Self {
-        if let Some(children_component) = self.get_mut::<Children>() {
+        if let Some(mut children_component) = self.get_mut::<Children>() {
             let mut actual_children = Vec::new();
             children_component.0.retain(|item| {
                 if children.contains(item) {
@@ -375,7 +398,7 @@ impl<'w> EntityMut<'w> {
         if let Some(&Parent(parent_entity)) = self.get::<Parent>() {
             let child = self.entity;
             let mut parent = self.world.entity_mut(parent_entity);
-            let parent_children = parent.get_mut::<Children>().unwrap();
+            let mut parent_children = parent.get_mut::<Children>().unwrap();
             parent_children.0.retain(|item| *item != child);
             self.remove::<Parent>();
         }
@@ -388,8 +411,8 @@ impl<'w> EntityMut<'w> {
 }
 
 fn despawn_recursive(world: &mut World, entity: Entity) {
-    if let Some(Children(children)) = world.entity_mut(entity).get_mut::<Children>() {
-        for child in std::mem::take(children) {
+    if let Some(mut children) = world.entity_mut(entity).get_mut::<Children>() {
+        for child in std::mem::take(&mut children.0) {
             despawn_recursive(world, child);
         }
     }

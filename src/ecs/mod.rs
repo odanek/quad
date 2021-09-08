@@ -9,15 +9,12 @@ mod storage;
 mod system;
 mod world;
 
-pub use component::{Component, Resource, Res, ResMut};
+pub use component::{Component, Res, ResMut, Resource};
 pub use entity::Entity;
 pub use query::filter::{Or, With, Without};
 pub use schedule::{OptionalSchedule, OptionalScheduleWithInput, Schedule, Scheduler};
 pub use system::{
-    command::Commands,
-    local::Local,
-    query::Query,
-    removed_components::RemovedComponents,
+    command::Commands, local::Local, query::Query, removed_components::RemovedComponents,
     IntoSystem, System,
 };
 pub use world::{FromWorld, World};

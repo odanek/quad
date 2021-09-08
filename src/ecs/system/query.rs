@@ -1,11 +1,16 @@
 use std::any::TypeId;
 
-use crate::ecs::{Entity, World, component::{Component, Mut, Tick}, query::{
+use crate::ecs::{
+    component::{CmptMut, Component, Tick, Ticks},
+    query::{
         fetch::{Fetch, ReadOnlyFetch, WorldQuery},
         filter::FilterFetch,
         iter::QueryIter,
         state::{QueryEntityError, QueryState},
-    }, system::function_system::SystemMeta};
+    },
+    system::function_system::SystemMeta,
+    Entity, World,
+};
 
 use super::system_param::{SystemParam, SystemParamFetch, SystemParamState};
 
@@ -45,18 +50,25 @@ where
     where
         Q::Fetch: ReadOnlyFetch,
     {
-        unsafe { self.state.iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick) }
+        unsafe {
+            self.state
+                .iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick)
+        }
     }
 
     #[inline]
     pub fn iter_mut(&mut self) -> QueryIter<'_, '_, Q, F> {
-        unsafe { self.state.iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick) }
+        unsafe {
+            self.state
+                .iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick)
+        }
     }
 
     #[inline]
     #[allow(clippy::missing_safety_doc)]
     pub unsafe fn iter_unsafe(&self) -> QueryIter<'_, '_, Q, F> {
-        self.state.iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick)
+        self.state
+            .iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick)
     }
 
     #[inline]
@@ -64,12 +76,26 @@ where
     where
         Q::Fetch: ReadOnlyFetch,
     {
-        unsafe { self.state.for_each_unchecked_manual(self.world, f, self.last_change_tick, self.change_tick) };
+        unsafe {
+            self.state.for_each_unchecked_manual(
+                self.world,
+                f,
+                self.last_change_tick,
+                self.change_tick,
+            )
+        };
     }
 
     #[inline]
     pub fn for_each_mut(&mut self, f: impl FnMut(<Q::Fetch as Fetch<'w>>::Item)) {
-        unsafe { self.state.for_each_unchecked_manual(self.world, f, self.last_change_tick, self.change_tick) };
+        unsafe {
+            self.state.for_each_unchecked_manual(
+                self.world,
+                f,
+                self.last_change_tick,
+                self.change_tick,
+            )
+        };
     }
 
     #[inline]
@@ -136,7 +162,7 @@ where
     pub fn get_component_mut<T: Component>(
         &mut self,
         entity: Entity,
-    ) -> Result<Mut<'w, T>, QueryComponentError> {
+    ) -> Result<CmptMut<T>, QueryComponentError> {
         let world = self.world;
         let location = world
             .entities()
@@ -147,9 +173,19 @@ where
             .get_id(TypeId::of::<T>())
             .ok_or(QueryComponentError::MissingComponent)?;
         if self.state.component_access.has_write(component_id) {
-            world
-                .component_unchecked_mut(location)
-                .ok_or(QueryComponentError::MissingComponent)
+            unsafe {
+                world
+                    .get_component_unchecked_mut::<T>(location)
+                    .map(|(data, ticks)| CmptMut {
+                        value: &mut *data.cast::<T>(),
+                        ticks: Ticks {
+                            component_ticks: &mut *ticks,
+                            last_change_tick: self.last_change_tick,
+                            change_tick: self.change_tick,
+                        },
+                    })
+                    .ok_or(QueryComponentError::MissingComponent)
+            }
         } else {
             Err(QueryComponentError::MissingWriteAccess)
         }
