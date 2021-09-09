@@ -260,7 +260,6 @@ unsafe impl<T: Component> FetchState for AddedState<T> {
 
     #[inline]
     fn update_component_access(&self, access: &mut FilteredAccess<ComponentId>) {
-        // TODO: Why is this a problem?
         if access.access().has_write(self.component_id) {
             panic!("$state_name<{}> conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
                 std::any::type_name::<T>());
@@ -301,5 +300,77 @@ impl<'w, T: Component> Fetch<'w> for AddedFetch<T> {
     unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> bool {
         let ticks = &*(&*self.table_ticks.add(archetype_index)).get();
         ticks.is_added(self.system_ticks.last_change_tick)
+    }
+}
+
+pub struct Changed<T>(PhantomData<T>);
+
+pub struct ChangedFetch<T> {
+    table_ticks: *const UnsafeCell<ComponentTicks>,
+    marker: PhantomData<T>,
+    system_ticks: SystemTicks,
+}
+
+pub struct ChangedState<T> {
+    component_id: ComponentId,
+    marker: PhantomData<T>,
+}
+
+impl<T: Component> WorldQuery for Changed<T> {
+    type Fetch = ChangedFetch<T>;
+    type State = ChangedState<T>;
+}
+
+unsafe impl<T: Component> FetchState for ChangedState<T> {
+    fn new(world: &mut World) -> Self {
+        let component_id = world.register_component::<T>();
+        Self {
+            component_id,
+            marker: PhantomData,
+        }
+    }
+
+    #[inline]
+    fn update_component_access(&self, access: &mut FilteredAccess<ComponentId>) {
+        if access.access().has_write(self.component_id) {
+            panic!("$state_name<{}> conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
+                std::any::type_name::<T>());
+        }
+        access.add_read(self.component_id);
+    }
+
+    fn matches_archetype(&self, archetype: &Archetype) -> bool {
+        archetype.contains(self.component_id)
+    }
+}
+
+impl<'w, T: Component> Fetch<'w> for ChangedFetch<T> {
+    type State = ChangedState<T>;
+    type Item = bool;
+
+    unsafe fn new(_world: &World, _state: &Self::State, system_ticks: SystemTicks) -> Self {
+        Self {
+            table_ticks: ptr::null::<UnsafeCell<ComponentTicks>>(),
+            marker: PhantomData,
+            system_ticks,
+        }
+    }
+
+    unsafe fn set_archetype(
+        &mut self,
+        state: &Self::State,
+        archetype: &Archetype,
+        tables: &Tables,
+    ) {
+        let table = &tables[archetype.table_id()];
+        self.table_ticks = table
+            .get_column(state.component_id)
+            .unwrap()
+            .get_ticks_ptr();
+    }
+
+    unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> bool {
+        let ticks = &*(&*self.table_ticks.add(archetype_index)).get();
+        ticks.is_changed(self.system_ticks.last_change_tick)
     }
 }
