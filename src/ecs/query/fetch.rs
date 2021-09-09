@@ -6,9 +6,10 @@ use std::{
 };
 
 use crate::ecs::{
-    component::{CmptMut, Component, ComponentId, ComponentTicks, Tick, Ticks},
+    component::{CmptMut, Component, ComponentId, ComponentTicks},
     entity::archetype::Archetype,
     storage::Tables,
+    system::SystemTicks,
     Entity, World,
 };
 
@@ -23,12 +24,7 @@ pub trait Fetch<'w>: Sized {
     type Item;
     type State: FetchState;
 
-    unsafe fn new(
-        world: &World,
-        state: &Self::State,
-        last_change_tick: Tick,
-        change_tick: Tick,
-    ) -> Self;
+    unsafe fn new(world: &World, state: &Self::State, system_ticks: SystemTicks) -> Self;
 
     unsafe fn set_archetype(&mut self, state: &Self::State, archetype: &Archetype, tables: &Tables);
 
@@ -73,12 +69,7 @@ impl<'w> Fetch<'w> for EntityFetch {
     type Item = Entity;
     type State = EntityState;
 
-    unsafe fn new(
-        _world: &World,
-        _state: &Self::State,
-        _last_change_tick: Tick,
-        _change_tick: Tick,
-    ) -> Self {
+    unsafe fn new(_world: &World, _state: &Self::State, _system_ticks: SystemTicks) -> Self {
         Self {
             entities: std::ptr::null::<Entity>(),
         }
@@ -150,12 +141,7 @@ impl<'w, T: Component> Fetch<'w> for ReadFetch<T> {
     type Item = &'w T;
     type State = ReadState<T>;
 
-    unsafe fn new(
-        _world: &World,
-        _state: &Self::State,
-        _last_change_tick: Tick,
-        _change_tick: Tick,
-    ) -> Self {
+    unsafe fn new(_world: &World, _state: &Self::State, _system_ticks: SystemTicks) -> Self {
         Self {
             table_components: NonNull::dangling(),
         }
@@ -189,8 +175,7 @@ impl<T: Component> WorldQuery for &mut T {
 pub struct WriteFetch<T> {
     table_components: NonNull<T>,
     table_ticks: *const UnsafeCell<ComponentTicks>,
-    last_change_tick: Tick,
-    change_tick: Tick,
+    system_ticks: SystemTicks,
 }
 
 impl<T> Clone for WriteFetch<T> {
@@ -198,8 +183,7 @@ impl<T> Clone for WriteFetch<T> {
         Self {
             table_components: self.table_components,
             table_ticks: self.table_ticks,
-            last_change_tick: self.last_change_tick,
-            change_tick: self.change_tick,
+            system_ticks: self.system_ticks,
         }
     }
 }
@@ -235,17 +219,11 @@ impl<'w, T: Component> Fetch<'w> for WriteFetch<T> {
     type Item = CmptMut<'w, T>;
     type State = WriteState<T>;
 
-    unsafe fn new(
-        _world: &World,
-        _state: &Self::State,
-        last_change_tick: Tick,
-        change_tick: Tick,
-    ) -> Self {
+    unsafe fn new(_world: &World, _state: &Self::State, system_ticks: SystemTicks) -> Self {
         Self {
             table_components: NonNull::dangling(),
             table_ticks: ptr::null::<UnsafeCell<ComponentTicks>>(),
-            last_change_tick,
-            change_tick,
+            system_ticks,
         }
     }
 
@@ -264,14 +242,9 @@ impl<'w, T: Component> Fetch<'w> for WriteFetch<T> {
 
     #[inline]
     unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item {
-        CmptMut {
-            value: &mut *self.table_components.as_ptr().add(archetype_index),
-            ticks: Ticks {
-                component_ticks: &mut *(&*self.table_ticks.add(archetype_index)).get(),
-                change_tick: self.change_tick,
-                last_change_tick: self.last_change_tick,
-            },
-        }
+        let value = &mut *self.table_components.as_ptr().add(archetype_index);
+        let component_ticks = &mut *(&*self.table_ticks.add(archetype_index)).get();
+        CmptMut::new(value, component_ticks, self.system_ticks)
     }
 }
 
@@ -312,14 +285,9 @@ impl<'w, T: Fetch<'w>> Fetch<'w> for OptionFetch<T> {
     type Item = Option<T::Item>;
     type State = OptionState<T::State>;
 
-    unsafe fn new(
-        world: &World,
-        state: &Self::State,
-        last_change_tick: Tick,
-        change_tick: Tick,
-    ) -> Self {
+    unsafe fn new(world: &World, state: &Self::State, system_ticks: SystemTicks) -> Self {
         Self {
-            fetch: T::new(world, &state.state, last_change_tick, change_tick),
+            fetch: T::new(world, &state.state, system_ticks),
             matches: false,
         }
     }
@@ -355,9 +323,9 @@ macro_rules! impl_tuple_fetch {
             type State = ($($name::State,)*);
 
             #[allow(clippy::unused_unit)]
-            unsafe fn new(_world: &World, state: &Self::State, _last_change_tick: Tick, _change_tick: Tick) -> Self {
+            unsafe fn new(_world: &World, state: &Self::State, _system_ticks: SystemTicks) -> Self {
                 let ($($name,)*) = state;
-                ($($name::new(_world, $name, _last_change_tick, _change_tick),)*)
+                ($($name::new(_world, $name, _system_ticks),)*)
             }
 
             #[inline]

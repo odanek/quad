@@ -1,5 +1,5 @@
 use super::{
-    component::{ComponentId, ResourceId},
+    component::{ComponentId, ResourceId, Tick},
     query::access::{Access, FilteredAccess},
     World,
 };
@@ -24,6 +24,29 @@ pub trait System: Send + Sync + 'static {
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out;
 
     fn apply_buffers(&mut self, world: &mut World);
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct SystemTicks {
+    pub(crate) last_change_tick: Tick,
+    pub(crate) change_tick: Tick,
+}
+
+impl SystemTicks {
+    pub(crate) fn new(last_change_tick: Tick, change_tick: Tick) -> Self {
+        Self {
+            last_change_tick,
+            change_tick,
+        }
+    }
+
+    // TODO: Where this is used is_added and is_changed will return false, so Changed<xxx> and Added<xxx> will not work
+    pub(crate) fn new_unknown_last(change_tick: Tick) -> Self {
+        Self {
+            last_change_tick: change_tick,
+            change_tick,
+        }
+    }
 }
 
 pub trait IntoSystem<In, Out, Params> {

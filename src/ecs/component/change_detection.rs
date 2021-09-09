@@ -3,18 +3,14 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use super::{ComponentTicks, Resource, Tick};
+use crate::ecs::system::SystemTicks;
+
+use super::{ComponentTicks, Resource};
 
 pub trait DetectChanges {
     fn is_added(&self) -> bool;
     fn is_changed(&self) -> bool;
     fn set_changed(&mut self);
-}
-
-pub struct Ticks<'a> {
-    pub(crate) component_ticks: &'a mut ComponentTicks,
-    pub(crate) last_change_tick: Tick,
-    pub(crate) change_tick: Tick,
 }
 
 pub struct Res<'w, T: Resource> {
@@ -81,29 +77,42 @@ impl<'w, T: Resource> AsMut<T> for ResMut<'w, T> {
 
 pub struct CmptMut<'a, T> {
     pub(crate) value: &'a mut T,
-    pub(crate) ticks: Ticks<'a>,
+    pub(crate) component_ticks: &'a mut ComponentTicks,
+    pub(crate) system_ticks: SystemTicks,
+}
+
+impl<'a, T> CmptMut<'a, T> {
+    #[inline]
+    pub(crate) fn new(
+        value: &'a mut T,
+        component_ticks: &'a mut ComponentTicks,
+        system_ticks: SystemTicks,
+    ) -> Self {
+        Self {
+            value,
+            component_ticks,
+            system_ticks,
+        }
+    }
 }
 
 impl<'a, T> DetectChanges for CmptMut<'a, T> {
     #[inline]
     fn is_added(&self) -> bool {
-        self.ticks
-            .component_ticks
-            .is_added(self.ticks.last_change_tick)
+        self.component_ticks
+            .is_added(self.system_ticks.last_change_tick)
     }
 
     #[inline]
     fn is_changed(&self) -> bool {
-        self.ticks
-            .component_ticks
-            .is_changed(self.ticks.last_change_tick)
+        self.component_ticks
+            .is_changed(self.system_ticks.last_change_tick)
     }
 
     #[inline]
     fn set_changed(&mut self) {
-        self.ticks
-            .component_ticks
-            .set_changed(self.ticks.change_tick);
+        self.component_ticks
+            .set_changed(self.system_ticks.change_tick);
     }
 }
 

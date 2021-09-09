@@ -1,9 +1,9 @@
 use std::slice::Iter;
 
 use crate::ecs::{
-    component::Tick,
     entity::archetype::{ArchetypeId, Archetypes},
     storage::Tables,
+    system::SystemTicks,
     World,
 };
 
@@ -35,21 +35,10 @@ where
     pub unsafe fn new(
         world: &'w World,
         query_state: &'s QueryState<Q, F>,
-        last_change_tick: Tick,
-        change_tick: Tick,
+        system_ticks: SystemTicks,
     ) -> Self {
-        let fetch = <Q::Fetch as Fetch>::new(
-            world,
-            &query_state.fetch_state,
-            last_change_tick,
-            change_tick,
-        );
-        let filter = <F::Fetch as Fetch>::new(
-            world,
-            &query_state.filter_state,
-            last_change_tick,
-            change_tick,
-        );
+        let fetch = <Q::Fetch as Fetch>::new(world, &query_state.fetch_state, system_ticks);
+        let filter = <F::Fetch as Fetch>::new(world, &query_state.filter_state, system_ticks);
 
         QueryIter {
             world,

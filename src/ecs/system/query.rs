@@ -1,7 +1,7 @@
 use std::any::TypeId;
 
 use crate::ecs::{
-    component::{CmptMut, Component, Tick, Ticks},
+    component::{CmptMut, Component, Tick},
     query::{
         fetch::{Fetch, ReadOnlyFetch, WorldQuery},
         filter::FilterFetch,
@@ -12,17 +12,19 @@ use crate::ecs::{
     Entity, World,
 };
 
-use super::system_param::{SystemParam, SystemParamFetch, SystemParamState};
+use super::{
+    system_param::{SystemParam, SystemParamFetch, SystemParamState},
+    SystemTicks,
+};
 
 // TODO: This definition allows to have With, Without, Or in Q, while it should be possible only in F
 pub struct Query<'w, Q: WorldQuery, F: WorldQuery = ()>
 where
     F::Fetch: FilterFetch,
 {
-    pub(crate) world: &'w World,
-    pub(crate) state: &'w QueryState<Q, F>,
-    last_change_tick: Tick,
-    change_tick: Tick,
+    world: &'w World,
+    state: &'w QueryState<Q, F>,
+    system_ticks: SystemTicks,
 }
 
 impl<'w, Q: WorldQuery, F: WorldQuery> Query<'w, Q, F>
@@ -34,14 +36,12 @@ where
     pub unsafe fn new(
         world: &'w World,
         state: &'w QueryState<Q, F>,
-        last_change_tick: Tick,
-        change_tick: Tick,
+        system_ticks: SystemTicks,
     ) -> Self {
         Self {
             world,
             state,
-            last_change_tick,
-            change_tick,
+            system_ticks,
         }
     }
 
@@ -52,7 +52,7 @@ where
     {
         unsafe {
             self.state
-                .iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick)
+                .iter_unchecked_manual(self.world, self.system_ticks)
         }
     }
 
@@ -60,7 +60,7 @@ where
     pub fn iter_mut(&mut self) -> QueryIter<'_, '_, Q, F> {
         unsafe {
             self.state
-                .iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick)
+                .iter_unchecked_manual(self.world, self.system_ticks)
         }
     }
 
@@ -68,7 +68,7 @@ where
     #[allow(clippy::missing_safety_doc)]
     pub unsafe fn iter_unsafe(&self) -> QueryIter<'_, '_, Q, F> {
         self.state
-            .iter_unchecked_manual(self.world, self.last_change_tick, self.change_tick)
+            .iter_unchecked_manual(self.world, self.system_ticks)
     }
 
     #[inline]
@@ -77,24 +77,16 @@ where
         Q::Fetch: ReadOnlyFetch,
     {
         unsafe {
-            self.state.for_each_unchecked_manual(
-                self.world,
-                f,
-                self.last_change_tick,
-                self.change_tick,
-            )
+            self.state
+                .for_each_unchecked_manual(self.world, f, self.system_ticks)
         };
     }
 
     #[inline]
     pub fn for_each_mut(&mut self, f: impl FnMut(<Q::Fetch as Fetch<'w>>::Item)) {
         unsafe {
-            self.state.for_each_unchecked_manual(
-                self.world,
-                f,
-                self.last_change_tick,
-                self.change_tick,
-            )
+            self.state
+                .for_each_unchecked_manual(self.world, f, self.system_ticks)
         };
     }
 
@@ -104,12 +96,8 @@ where
         Q::Fetch: ReadOnlyFetch,
     {
         unsafe {
-            self.state.get_unchecked_manual(
-                self.world,
-                entity,
-                self.last_change_tick,
-                self.change_tick,
-            )
+            self.state
+                .get_unchecked_manual(self.world, entity, self.system_ticks)
         }
     }
 
@@ -119,12 +107,8 @@ where
         entity: Entity,
     ) -> Result<<Q::Fetch as Fetch>::Item, QueryEntityError> {
         unsafe {
-            self.state.get_unchecked_manual(
-                self.world,
-                entity,
-                self.last_change_tick,
-                self.change_tick,
-            )
+            self.state
+                .get_unchecked_manual(self.world, entity, self.system_ticks)
         }
     }
 
@@ -135,7 +119,7 @@ where
         entity: Entity,
     ) -> Result<<Q::Fetch as Fetch>::Item, QueryEntityError> {
         self.state
-            .get_unchecked_manual(self.world, entity, self.last_change_tick, self.change_tick)
+            .get_unchecked_manual(self.world, entity, self.system_ticks)
     }
 
     #[inline]
@@ -176,13 +160,8 @@ where
             unsafe {
                 world
                     .get_component_unchecked_mut::<T>(location)
-                    .map(|(data, ticks)| CmptMut {
-                        value: &mut *data.cast::<T>(),
-                        ticks: Ticks {
-                            component_ticks: &mut *ticks,
-                            last_change_tick: self.last_change_tick,
-                            change_tick: self.change_tick,
-                        },
+                    .map(|(data, ticks)| {
+                        CmptMut::new(&mut *data.cast::<T>(), &mut *ticks, self.system_ticks)
                     })
                     .ok_or(QueryComponentError::MissingComponent)
             }
@@ -266,7 +245,11 @@ where
         world: &'a World,
         change_tick: Tick,
     ) -> Self::Item {
-        Query::new(world, state, system_meta.last_change_tick, change_tick)
+        Query::new(
+            world,
+            state,
+            SystemTicks::new(system_meta.last_change_tick, change_tick),
+        )
     }
 }
 

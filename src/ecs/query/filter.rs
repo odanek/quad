@@ -1,9 +1,10 @@
 use std::marker::PhantomData;
 
 use crate::ecs::{
-    component::{Component, ComponentId, Tick},
+    component::{Component, ComponentId},
     entity::archetype::Archetype,
     storage::Tables,
+    system::SystemTicks,
     World,
 };
 
@@ -66,12 +67,7 @@ impl<'a, T: Component> Fetch<'a> for WithFetch<T> {
     type Item = bool;
     type State = WithState<T>;
 
-    unsafe fn new(
-        _world: &World,
-        _state: &Self::State,
-        _last_change_tick: Tick,
-        _change_tick: Tick,
-    ) -> Self {
+    unsafe fn new(_world: &World, _state: &Self::State, _system_ticks: SystemTicks) -> Self {
         Self {
             marker: PhantomData,
         }
@@ -132,12 +128,7 @@ impl<'a, T: Component> Fetch<'a> for WithoutFetch<T> {
     type Item = bool;
     type State = WithoutState<T>;
 
-    unsafe fn new(
-        _world: &World,
-        _state: &Self::State,
-        _last_change_tick: Tick,
-        _change_tick: Tick,
-    ) -> Self {
+    unsafe fn new(_world: &World, _state: &Self::State, _system_ticks: SystemTicks) -> Self {
         Self {
             marker: PhantomData,
         }
@@ -191,10 +182,10 @@ macro_rules! impl_query_filter_tuple {
             type State = Or<($(<$filter as Fetch<'a>>::State,)*)>;
             type Item = bool;
 
-            unsafe fn new(world: &World, state: &Self::State, last_change_tick: Tick, change_tick: Tick) -> Self {
+            unsafe fn new(world: &World, state: &Self::State, system_ticks: SystemTicks) -> Self {
                 let ($($filter,)*) = &state.0;
                 Or(($(OrFetch {
-                    fetch: $filter::new(world, $filter, last_change_tick, change_tick),
+                    fetch: $filter::new(world, $filter, system_ticks),
                     matches: false,
                 },)*))
             }

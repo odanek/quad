@@ -2,12 +2,13 @@ use std::any::TypeId;
 
 use crate::{
     ecs::{
-        component::{Bundle, BundleInfo, CmptMut, Component, ComponentStatus, Components, Ticks},
+        component::{Bundle, BundleInfo, CmptMut, Component, ComponentStatus, Components},
         entity::{
             archetype::{Archetype, ArchetypeId, Archetypes},
             Entities, EntityLocation,
         },
         storage::Storages,
+        system::SystemTicks,
         Entity,
     },
     transform::{Children, Parent},
@@ -110,16 +111,12 @@ impl<'w> EntityMut<'w> {
             self.world
                 .get_component_unchecked_mut::<T>(self.location)
                 .map(|(data, ticks)| {
-                    // TODO: is_added and is_changed will return false
                     let change_tick = self.world.change_tick();
-                    CmptMut {
-                        value: &mut *data.cast::<T>(),
-                        ticks: Ticks {
-                            component_ticks: &mut *ticks,
-                            last_change_tick: change_tick,
-                            change_tick,
-                        },
-                    }
+                    CmptMut::new(
+                        &mut *data.cast::<T>(),
+                        &mut *ticks,
+                        SystemTicks::new_unknown_last(change_tick),
+                    )
                 })
         }
     }
