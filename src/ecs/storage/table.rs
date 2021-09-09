@@ -81,6 +81,11 @@ impl Column {
     }
 
     #[inline]
+    pub fn get_ticks_ptr(&self) -> *const UnsafeCell<ComponentTicks> {
+        self.ticks.as_ptr()
+    }
+
+    #[inline]
     pub unsafe fn get_unchecked(&self, row: usize) -> *mut u8 {
         self.data.get_unchecked(row)
     }
