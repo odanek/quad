@@ -42,20 +42,20 @@ pub trait Command: Send + Sync + 'static {
     fn write(self: Box<Self>, world: &mut World);
 }
 
-pub struct Commands<'a> {
-    queue: &'a mut CommandQueue,
-    entities: &'a Entities,
+pub struct Commands<'w, 's> {
+    queue: &'s mut CommandQueue,
+    entities: &'w Entities,
 }
 
-impl<'a> Commands<'a> {
-    pub fn new(queue: &'a mut CommandQueue, world: &'a World) -> Self {
+impl<'w, 's> Commands<'w, 's> {
+    pub fn new(queue: &'s mut CommandQueue, world: &'w World) -> Self {
         Self {
             queue,
             entities: world.entities(),
         }
     }
 
-    pub fn spawn(&mut self) -> EntityCommands<'a, '_> {
+    pub fn spawn(&mut self) -> EntityCommands<'w, 's, '_> {
         let entity = self.entities.reserve_entity();
         EntityCommands {
             entity,
@@ -63,13 +63,13 @@ impl<'a> Commands<'a> {
         }
     }
 
-    pub fn spawn_bundle<'b, T: Bundle>(&'b mut self, bundle: T) -> EntityCommands<'a, 'b> {
+    pub fn spawn_bundle<T: Bundle>(&mut self, bundle: T) -> EntityCommands<'w, 's, '_> {
         let mut entity = self.spawn();
         entity.insert_bundle(bundle);
         entity
     }
 
-    pub fn entity(&mut self, entity: Entity) -> EntityCommands<'a, '_> {
+    pub fn entity(&mut self, entity: Entity) -> EntityCommands<'w, 's, '_> {
         EntityCommands {
             entity,
             commands: self,
@@ -91,19 +91,19 @@ impl<'a> Commands<'a> {
     }
 }
 
-pub struct EntityCommands<'a, 'b> {
+pub struct EntityCommands<'w, 's, 'a> {
     entity: Entity,
-    commands: &'b mut Commands<'a>,
+    commands: &'a mut Commands<'w, 's>,
 }
 
-impl<'a, 'b> EntityCommands<'a, 'b> {
+impl<'w, 's, 'a> EntityCommands<'w, 's, 'a> {
     #[inline]
     pub fn id(&self) -> Entity {
         self.entity
     }
 
     #[inline]
-    pub(crate) fn commands(&mut self) -> &mut Commands<'a> {
+    pub(crate) fn commands(&mut self) -> &mut Commands<'w, 's> {
         self.commands
     }
 
@@ -387,7 +387,7 @@ impl Command for RemoveFromParent {
     }
 }
 
-impl<'a> SystemParam for Commands<'a> {
+impl<'w, 's> SystemParam for Commands<'w, 's> {
     type Fetch = CommandQueue;
 }
 
@@ -401,14 +401,14 @@ impl SystemParamState for CommandQueue {
     }
 }
 
-impl<'a> SystemParamFetch<'a> for CommandQueue {
-    type Item = Commands<'a>;
+impl<'w, 's> SystemParamFetch<'w, 's> for CommandQueue {
+    type Item = Commands<'w, 's>;
 
     #[inline]
     unsafe fn get_param(
-        state: &'a mut Self,
+        state: &'s mut Self,
         _system_meta: &SystemMeta,
-        world: &'a World,
+        world: &'w World,
         _change_tick: Tick,
     ) -> Self::Item {
         Commands::new(state, world)

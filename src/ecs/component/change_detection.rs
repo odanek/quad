@@ -41,8 +41,8 @@ impl<'w, T: Resource> AsRef<T> for Res<'w, T> {
     }
 }
 
-pub struct ResMut<'a, T: Resource> {
-    pub(crate) value: &'a mut T,
+pub struct ResMut<'w, T: Resource> {
+    pub(crate) value: &'w mut T,
 }
 
 impl<'w, T: Resource> Deref for ResMut<'w, T> {

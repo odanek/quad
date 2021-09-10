@@ -49,14 +49,14 @@ impl<T: Component + FromWorld> SystemParamState for LocalState<T> {
     }
 }
 
-impl<'a, T: Component + FromWorld> SystemParamFetch<'a> for LocalState<T> {
-    type Item = Local<'a, T>;
+impl<'w, 's, T: Component + FromWorld> SystemParamFetch<'w, 's> for LocalState<T> {
+    type Item = Local<'s, T>;
 
     #[inline]
     unsafe fn get_param(
-        state: &'a mut Self,
+        state: &'s mut Self,
         _system_meta: &SystemMeta,
-        _world: &'a World,
+        _world: &'w World,
         _change_tick: Tick,
     ) -> Self::Item {
         Local(&mut state.0)

@@ -75,11 +75,11 @@ where
     }
 
     #[inline]
-    pub fn get<'w>(
-        &mut self,
+    pub fn get<'w, 's>(
+        &'s mut self,
         world: &'w World,
         entity: Entity,
-    ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError>
+    ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError>
     where
         Q::Fetch: ReadOnlyFetch,
     {
@@ -87,31 +87,31 @@ where
     }
 
     #[inline]
-    pub fn get_mut<'w>(
-        &mut self,
+    pub fn get_mut<'w, 's>(
+        &'s mut self,
         world: &'w mut World,
         entity: Entity,
-    ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError> {
+    ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError> {
         unsafe { self.get_unchecked(world, entity) }
     }
 
     #[inline]
-    pub unsafe fn get_unchecked<'w>(
-        &mut self,
+    pub unsafe fn get_unchecked<'w, 's>(
+        &'s mut self,
         world: &'w World,
         entity: Entity,
-    ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError> {
+    ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError> {
         self.update_archetypes(world);
         let change_tick = world.change_tick();
         self.get_unchecked_manual(world, entity, SystemTicks::new_unknown_last(change_tick))
     }
 
-    pub unsafe fn get_unchecked_manual<'w>(
-        &self,
+    pub unsafe fn get_unchecked_manual<'w, 's>(
+        &'s self,
         world: &'w World,
         entity: Entity,
         system_ticks: SystemTicks,
-    ) -> Result<<Q::Fetch as Fetch<'w>>::Item, QueryEntityError> {
+    ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError> {
         let location = world
             .entities()
             .get(entity)
@@ -165,10 +165,10 @@ where
     }
 
     #[inline]
-    pub fn for_each<'w>(
-        &mut self,
+    pub fn for_each<'w, 's>(
+        &'s mut self,
         world: &'w World,
-        func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
+        func: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item),
     ) where
         Q::Fetch: ReadOnlyFetch,
     {
@@ -178,10 +178,10 @@ where
     }
 
     #[inline]
-    pub fn for_each_mut<'w>(
-        &mut self,
+    pub fn for_each_mut<'w, 's>(
+        &'s mut self,
         world: &'w mut World,
-        func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
+        func: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item),
     ) {
         unsafe {
             self.for_each_unchecked(world, func);
@@ -189,10 +189,10 @@ where
     }
 
     #[inline]
-    pub unsafe fn for_each_unchecked<'w>(
-        &mut self,
+    pub unsafe fn for_each_unchecked<'w, 's>(
+        &'s mut self,
         world: &'w World,
-        func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
+        func: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item),
     ) {
         self.update_archetypes(world);
         let change_tick = world.change_tick();
@@ -202,7 +202,7 @@ where
     pub unsafe fn for_each_unchecked_manual<'w, 's>(
         &'s self,
         world: &'w World,
-        mut func: impl FnMut(<Q::Fetch as Fetch<'w>>::Item),
+        mut func: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item),
         system_ticks: SystemTicks,
     ) {
         let mut fetch = <Q::Fetch as Fetch>::new(world, &self.fetch_state, system_ticks);

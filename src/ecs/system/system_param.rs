@@ -12,19 +12,19 @@ pub trait SystemParamState: Send + Sync + 'static {
     fn apply(&mut self, _world: &mut World) {}
 }
 
-pub trait SystemParamFetch<'a>: SystemParamState {
+pub trait SystemParamFetch<'w, 's>: SystemParamState {
     type Item;
 
     unsafe fn get_param(
-        state: &'a mut Self,
+        state: &'s mut Self,
         system_meta: &SystemMeta,
-        world: &'a World,
+        world: &'w World,
         change_tick: Tick,
     ) -> Self::Item;
 }
 
 pub trait SystemParam: Sized {
-    type Fetch: for<'a> SystemParamFetch<'a>;
+    type Fetch: for<'w, 's> SystemParamFetch<'w, 's>;
 }
 
 macro_rules! impl_system_param_tuple {
@@ -35,15 +35,15 @@ macro_rules! impl_system_param_tuple {
 
         #[allow(unused_variables)]
         #[allow(non_snake_case)]
-        impl<'a, $($param: SystemParamFetch<'a>),*> SystemParamFetch<'a> for ($($param,)*) {
+        impl<'w, 's, $($param: SystemParamFetch<'w, 's>),*> SystemParamFetch<'w, 's> for ($($param,)*) {
             type Item = ($($param::Item,)*);
 
             #[inline]
             #[allow(clippy::unused_unit)]
             unsafe fn get_param(
-                state: &'a mut Self,
+                state: &'s mut Self,
                 system_meta: &SystemMeta,
-                world: &'a World,
+                world: &'w World,
                 change_tick: Tick,
             ) -> Self::Item {
 

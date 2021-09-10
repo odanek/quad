@@ -13,13 +13,13 @@ use super::{
     fetch::{Fetch, FetchState, WorldQuery},
 };
 
-pub trait FilterFetch: for<'a> Fetch<'a> {
+pub trait FilterFetch: for<'w, 's> Fetch<'w, 's> {
     unsafe fn archetype_filter_fetch(&mut self, archetype_index: usize) -> bool;
 }
 
 impl<T> FilterFetch for T
 where
-    T: for<'a> Fetch<'a, Item = bool>,
+    T: for<'w, 's> Fetch<'w, 's, Item = bool>,
 {
     #[inline]
     unsafe fn archetype_filter_fetch(&mut self, archetype_index: usize) -> bool {
@@ -63,7 +63,7 @@ unsafe impl<T: Component> FetchState for WithState<T> {
     }
 }
 
-impl<'a, T: Component> Fetch<'a> for WithFetch<T> {
+impl<'w, 's, T: Component> Fetch<'w, 's> for WithFetch<T> {
     type Item = bool;
     type State = WithState<T>;
 
@@ -124,7 +124,7 @@ unsafe impl<T: Component> FetchState for WithoutState<T> {
     }
 }
 
-impl<'a, T: Component> Fetch<'a> for WithoutFetch<T> {
+impl<'w, 's, T: Component> Fetch<'w, 's> for WithoutFetch<T> {
     type Item = bool;
     type State = WithoutState<T>;
 
@@ -178,8 +178,8 @@ macro_rules! impl_query_filter_tuple {
 
         #[allow(unused_variables)]
         #[allow(non_snake_case)]
-        impl<'a, $($filter: FilterFetch),*> Fetch<'a> for Or<($(OrFetch<$filter>,)*)> {
-            type State = Or<($(<$filter as Fetch<'a>>::State,)*)>;
+        impl<'w, 's, $($filter: FilterFetch),*> Fetch<'w, 's> for Or<($(OrFetch<$filter>,)*)> {
+            type State = Or<($(<$filter as Fetch<'w, 's>>::State,)*)>;
             type Item = bool;
 
             unsafe fn new(world: &World, state: &Self::State, system_ticks: SystemTicks) -> Self {
@@ -272,7 +272,7 @@ unsafe impl<T: Component> FetchState for AddedState<T> {
     }
 }
 
-impl<'w, T: Component> Fetch<'w> for AddedFetch<T> {
+impl<'w, 's, T: Component> Fetch<'w, 's> for AddedFetch<T> {
     type State = AddedState<T>;
     type Item = bool;
 
@@ -344,7 +344,7 @@ unsafe impl<T: Component> FetchState for ChangedState<T> {
     }
 }
 
-impl<'w, T: Component> Fetch<'w> for ChangedFetch<T> {
+impl<'w, 's, T: Component> Fetch<'w, 's> for ChangedFetch<T> {
     type State = ChangedState<T>;
     type Item = bool;
 

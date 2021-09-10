@@ -16,11 +16,11 @@ use crate::ecs::{
 use super::access::FilteredAccess;
 
 pub trait WorldQuery {
-    type Fetch: for<'a> Fetch<'a, State = Self::State>;
+    type Fetch: for<'w, 's> Fetch<'w, 's, State = Self::State>;
     type State: FetchState;
 }
 
-pub trait Fetch<'w>: Sized {
+pub trait Fetch<'w, 's>: Sized {
     type Item;
     type State: FetchState;
 
@@ -65,7 +65,7 @@ unsafe impl FetchState for EntityState {
     }
 }
 
-impl<'w> Fetch<'w> for EntityFetch {
+impl<'w, 's> Fetch<'w, 's> for EntityFetch {
     type Item = Entity;
     type State = EntityState;
 
@@ -137,7 +137,7 @@ impl<T> Clone for ReadFetch<T> {
 
 unsafe impl<T> ReadOnlyFetch for ReadFetch<T> {}
 
-impl<'w, T: Component> Fetch<'w> for ReadFetch<T> {
+impl<'w, 's, T: Component> Fetch<'w, 's> for ReadFetch<T> {
     type Item = &'w T;
     type State = ReadState<T>;
 
@@ -215,7 +215,7 @@ unsafe impl<T: Component> FetchState for WriteState<T> {
     }
 }
 
-impl<'w, T: Component> Fetch<'w> for WriteFetch<T> {
+impl<'w, 's, T: Component> Fetch<'w, 's> for WriteFetch<T> {
     type Item = CmptMut<'w, T>;
     type State = WriteState<T>;
 
@@ -281,7 +281,7 @@ unsafe impl<T: FetchState> FetchState for OptionState<T> {
     }
 }
 
-impl<'w, T: Fetch<'w>> Fetch<'w> for OptionFetch<T> {
+impl<'w, 's, T: Fetch<'w, 's>> Fetch<'w, 's> for OptionFetch<T> {
     type Item = Option<T::Item>;
     type State = OptionState<T::State>;
 
@@ -318,7 +318,7 @@ impl<'w, T: Fetch<'w>> Fetch<'w> for OptionFetch<T> {
 macro_rules! impl_tuple_fetch {
     ($(($name: ident, $state: ident)),*) => {
         #[allow(non_snake_case)]
-        impl<'a, $($name: Fetch<'a>),*> Fetch<'a> for ($($name,)*) {
+        impl<'w, 's, $($name: Fetch<'w, 's>),*> Fetch<'w, 's> for ($($name,)*) {
             type Item = ($($name::Item,)*);
             type State = ($($name::State,)*);
 

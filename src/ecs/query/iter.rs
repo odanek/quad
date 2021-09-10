@@ -87,7 +87,7 @@ impl<'w, 's, Q: WorldQuery, F: WorldQuery> Iterator for QueryIter<'w, 's, Q, F>
 where
     F::Fetch: FilterFetch,
 {
-    type Item = <Q::Fetch as Fetch<'w>>::Item;
+    type Item = <Q::Fetch as Fetch<'w, 's>>::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {

@@ -10,13 +10,13 @@ use super::{
     system_param::{SystemParam, SystemParamFetch, SystemParamState},
 };
 
-pub struct RemovedComponents<'a, T> {
-    world: &'a World,
+pub struct RemovedComponents<'w, T> {
+    world: &'w World,
     component_id: ComponentId,
     marker: PhantomData<T>,
 }
 
-impl<'a, T> RemovedComponents<'a, T> {
+impl<'w, T> RemovedComponents<'w, T> {
     pub fn iter(&self) -> std::iter::Cloned<std::slice::Iter<'_, Entity>> {
         self.world.removed_with_id(self.component_id)
     }
@@ -40,14 +40,14 @@ impl<T: Component> SystemParamState for RemovedComponentsState<T> {
     }
 }
 
-impl<'a, T: Component> SystemParamFetch<'a> for RemovedComponentsState<T> {
-    type Item = RemovedComponents<'a, T>;
+impl<'w, 's, T: Component> SystemParamFetch<'w, 's> for RemovedComponentsState<T> {
+    type Item = RemovedComponents<'w, T>;
 
     #[inline]
     unsafe fn get_param(
-        state: &'a mut Self,
+        state: &'s mut Self,
         _system_meta: &SystemMeta,
-        world: &'a World,
+        world: &'w World,
         _change_tick: Tick,
     ) -> Self::Item {
         RemovedComponents {

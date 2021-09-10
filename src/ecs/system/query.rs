@@ -18,16 +18,16 @@ use super::{
 };
 
 // TODO: This definition allows to have With, Without, Or in Q, while it should be possible only in F
-pub struct Query<'w, Q: WorldQuery, F: WorldQuery = ()>
+pub struct Query<'w, 's, Q: WorldQuery, F: WorldQuery = ()>
 where
     F::Fetch: FilterFetch,
 {
     world: &'w World,
-    state: &'w QueryState<Q, F>,
+    state: &'s QueryState<Q, F>,
     system_ticks: SystemTicks,
 }
 
-impl<'w, Q: WorldQuery, F: WorldQuery> Query<'w, Q, F>
+impl<'w, 's, Q: WorldQuery, F: WorldQuery> Query<'w, 's, Q, F>
 where
     F::Fetch: FilterFetch,
 {
@@ -35,7 +35,7 @@ where
     #[allow(clippy::missing_safety_doc)]
     pub unsafe fn new(
         world: &'w World,
-        state: &'w QueryState<Q, F>,
+        state: &'s QueryState<Q, F>,
         system_ticks: SystemTicks,
     ) -> Self {
         Self {
@@ -46,7 +46,7 @@ where
     }
 
     #[inline]
-    pub fn iter(&self) -> QueryIter<'_, '_, Q, F>
+    pub fn iter(&self) -> QueryIter<'w, 's, Q, F>
     where
         Q::Fetch: ReadOnlyFetch,
     {
@@ -57,7 +57,7 @@ where
     }
 
     #[inline]
-    pub fn iter_mut(&mut self) -> QueryIter<'_, '_, Q, F> {
+    pub fn iter_mut(&mut self) -> QueryIter<'w, 's, Q, F> {
         unsafe {
             self.state
                 .iter_unchecked_manual(self.world, self.system_ticks)
@@ -72,7 +72,7 @@ where
     }
 
     #[inline]
-    pub fn for_each(&self, f: impl FnMut(<Q::Fetch as Fetch<'w>>::Item))
+    pub fn for_each(&self, f: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item))
     where
         Q::Fetch: ReadOnlyFetch,
     {
@@ -83,7 +83,7 @@ where
     }
 
     #[inline]
-    pub fn for_each_mut(&mut self, f: impl FnMut(<Q::Fetch as Fetch<'w>>::Item)) {
+    pub fn for_each_mut(&mut self, f: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item)) {
         unsafe {
             self.state
                 .for_each_unchecked_manual(self.world, f, self.system_ticks)
@@ -170,7 +170,7 @@ where
         }
     }
 
-    pub fn single(&self) -> Result<<Q::Fetch as Fetch<'_>>::Item, QuerySingleError>
+    pub fn single(&self) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QuerySingleError>
     where
         Q::Fetch: ReadOnlyFetch,
     {
@@ -185,7 +185,7 @@ where
         }
     }
 
-    pub fn single_mut(&mut self) -> Result<<Q::Fetch as Fetch<'_>>::Item, QuerySingleError> {
+    pub fn single_mut(&mut self) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QuerySingleError> {
         let mut query = self.iter_mut();
         let first = query.next();
         let extra = query.next().is_some();
@@ -203,7 +203,7 @@ where
     }
 }
 
-impl<'a, Q: WorldQuery + 'static, F: WorldQuery + 'static> SystemParam for Query<'a, Q, F>
+impl<'w, 's, Q: WorldQuery + 'static, F: WorldQuery + 'static> SystemParam for Query<'w, 's, Q, F>
 where
     F::Fetch: FilterFetch,
 {
@@ -232,17 +232,18 @@ where
     }
 }
 
-impl<'a, Q: WorldQuery + 'static, F: WorldQuery + 'static> SystemParamFetch<'a> for QueryState<Q, F>
+impl<'w, 's, Q: WorldQuery + 'static, F: WorldQuery + 'static> SystemParamFetch<'w, 's>
+    for QueryState<Q, F>
 where
     F::Fetch: FilterFetch,
 {
-    type Item = Query<'a, Q, F>;
+    type Item = Query<'w, 's, Q, F>;
 
     #[inline]
     unsafe fn get_param(
-        state: &'a mut Self,
+        state: &'s mut Self,
         system_meta: &SystemMeta,
-        world: &'a World,
+        world: &'w World,
         change_tick: Tick,
     ) -> Self::Item {
         Query::new(

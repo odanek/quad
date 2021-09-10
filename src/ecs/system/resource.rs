@@ -12,7 +12,7 @@ pub struct ResState<T> {
     marker: PhantomData<T>,
 }
 
-impl<'a, T: Resource> SystemParam for Res<'a, T> {
+impl<'w, T: Resource> SystemParam for Res<'w, T> {
     type Fetch = ResState<T>;
 }
 
@@ -34,14 +34,14 @@ impl<T: Resource> SystemParamState for ResState<T> {
     }
 }
 
-impl<'a, T: Resource> SystemParamFetch<'a> for ResState<T> {
-    type Item = Res<'a, T>;
+impl<'w, 's, T: Resource> SystemParamFetch<'w, 's> for ResState<T> {
+    type Item = Res<'w, T>;
 
     #[inline]
     unsafe fn get_param(
-        _state: &'a mut Self,
+        _state: &'s mut Self,
         system_meta: &SystemMeta,
-        world: &'a World,
+        world: &'w World,
         _change_tick: Tick,
     ) -> Self::Item {
         let resource = world.resources().get_unchecked().unwrap_or_else(|| {
@@ -86,14 +86,14 @@ impl<T: Resource> SystemParamState for ResMutState<T> {
     }
 }
 
-impl<'a, T: Resource> SystemParamFetch<'a> for ResMutState<T> {
-    type Item = ResMut<'a, T>;
+impl<'w, 's, T: Resource> SystemParamFetch<'w, 's> for ResMutState<T> {
+    type Item = ResMut<'w, T>;
 
     #[inline]
     unsafe fn get_param(
-        _state: &'a mut Self,
+        _state: &'s mut Self,
         system_meta: &SystemMeta,
-        world: &'a World,
+        world: &'w World,
         _change_tick: Tick,
     ) -> Self::Item {
         let resource = world.resources().get_mut_unchecked().unwrap_or_else(|| {
