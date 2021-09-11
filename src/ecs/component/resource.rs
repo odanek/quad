@@ -1,11 +1,12 @@
 use std::{
     any::{type_name, Any, TypeId},
+    cell::UnsafeCell,
     collections::HashMap,
 };
 
-use crate::ecs::query::access::AccessIndex;
+use crate::ecs::{query::access::AccessIndex, system::SystemTicks};
 
-use super::ResMut;
+use super::{ComponentTicks, ResMut, Tick};
 
 pub trait Resource: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Resource for T {}
@@ -44,11 +45,25 @@ impl ResourceInfo {
     }
 }
 
+struct ResourceWrapper {
+    resource: UnsafeCell<Box<dyn Any>>,
+    ticks: UnsafeCell<ComponentTicks>,
+}
+
+impl ResourceWrapper {
+    fn new<T: Resource>(resource: T, change_tick: Tick) -> Self {
+        Self {
+            resource: UnsafeCell::new(Box::new(resource)),
+            ticks: UnsafeCell::new(ComponentTicks::new(change_tick)),
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct Resources {
     resources: Vec<ResourceInfo>,
     id_map: HashMap<TypeId, ResourceId>,
-    map: HashMap<ResourceId, Box<dyn Any>>,
+    map: HashMap<ResourceId, ResourceWrapper>,
 }
 
 #[allow(dead_code)]
@@ -65,10 +80,13 @@ impl Resources {
     }
 
     #[inline]
-    pub fn add<T: Resource>(&mut self, resource: T) -> Option<T> {
+    pub fn add<T: Resource>(&mut self, resource: T, change_tick: Tick) -> Option<T> {
         let id = self.get_or_insert_id::<T>();
-        self.map
-            .insert(id, Box::new(resource))?
+        let wrapper = ResourceWrapper::new(resource, change_tick);
+        let old_wrapper = self.map.insert(id, wrapper)?;
+        old_wrapper
+            .resource
+            .into_inner()
             .downcast()
             .ok()
             .map(|v| *v)
@@ -77,13 +95,16 @@ impl Resources {
     #[inline]
     pub fn remove<T: Resource>(&mut self) -> Option<T> {
         let id = self.get_id::<T>()?;
-        self.map.remove(&id)?.downcast().ok().map(|v| *v)
+        let wrapper = self.map.remove(&id)?;
+        wrapper.resource.into_inner().downcast().ok().map(|v| *v)
     }
 
     #[inline]
     pub fn get<T: Resource>(&self) -> Option<&T> {
         let id = self.get_id::<T>()?;
-        self.map.get(&id)?.downcast_ref()
+        let wrapper = self.map.get(&id)?;
+        let resource = unsafe { &*wrapper.resource.get() };
+        resource.downcast_ref()
     }
 
     #[inline]
@@ -92,17 +113,21 @@ impl Resources {
     }
 
     #[inline]
-    pub fn get_mut<T: Resource>(&mut self) -> Option<ResMut<T>> {
+    pub fn get_mut<T: Resource>(&mut self, system_ticks: SystemTicks) -> Option<ResMut<T>> {
         let id = self.get_id::<T>()?;
-        self.map
-            .get_mut(&id)?
-            .downcast_mut()
-            .map(|v| ResMut { value: v })
+        let wrapper = self.map.get_mut(&id)?;
+        let resource = wrapper.resource.get_mut().downcast_mut()?;
+        let ticks = wrapper.ticks.get_mut();
+        Some(ResMut::new(resource, ticks, system_ticks))
     }
 
     #[inline]
-    pub fn get_mut_unchecked<T: Resource>(&self) -> Option<*mut T> {
-        self.get::<T>().map(|r| r as *const T as _)
+    pub fn get_mut_unchecked<T: Resource>(&self) -> Option<(*mut T, *mut ComponentTicks)> {
+        let id = self.get_id::<T>()?;
+        let wrapper = self.map.get(&id)?;
+        let resource = unsafe { &mut *wrapper.resource.get() }.downcast_mut::<T>()?;
+        let ticks = wrapper.ticks.get();
+        Some((resource as *mut T, ticks))
     }
 
     pub fn get_or_insert_id<T: Resource>(&mut self) -> ResourceId {

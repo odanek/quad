@@ -5,7 +5,10 @@ use crate::ecs::{
 };
 use std::{any::type_name, marker::PhantomData};
 
-use super::system_param::{SystemParam, SystemParamFetch, SystemParamState};
+use super::{
+    system_param::{SystemParam, SystemParamFetch, SystemParamState},
+    SystemTicks,
+};
 
 pub struct ResState<T> {
     _resource_id: ResourceId,
@@ -94,17 +97,16 @@ impl<'w, 's, T: Resource> SystemParamFetch<'w, 's> for ResMutState<T> {
         _state: &'s mut Self,
         system_meta: &SystemMeta,
         world: &'w World,
-        _change_tick: Tick,
+        change_tick: Tick,
     ) -> Self::Item {
-        let resource = world.resources().get_mut_unchecked().unwrap_or_else(|| {
+        let (resource, ticks) = world.resources().get_mut_unchecked().unwrap_or_else(|| {
             panic!(
                 "Resource requested by {} does not exist: {}",
                 system_meta.name,
                 type_name::<T>()
             )
         });
-        ResMut {
-            value: &mut *resource,
-        }
+        let system_ticks = SystemTicks::new(system_meta.last_change_tick, change_tick);
+        ResMut::new(&mut *resource, &mut *ticks, system_ticks)
     }
 }

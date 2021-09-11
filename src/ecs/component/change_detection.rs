@@ -5,7 +5,7 @@ use std::{
 
 use crate::ecs::system::SystemTicks;
 
-use super::{ComponentTicks, Resource};
+use super::{Component, ComponentTicks, Resource};
 
 pub trait DetectChanges {
     fn is_added(&self) -> bool;
@@ -43,6 +43,43 @@ impl<'w, T: Resource> AsRef<T> for Res<'w, T> {
 
 pub struct ResMut<'w, T: Resource> {
     pub(crate) value: &'w mut T,
+    pub(crate) component_ticks: &'w mut ComponentTicks,
+    pub(crate) system_ticks: SystemTicks,
+}
+
+impl<'w, T: Resource> ResMut<'w, T> {
+    #[inline]
+    pub(crate) fn new(
+        value: &'w mut T,
+        component_ticks: &'w mut ComponentTicks,
+        system_ticks: SystemTicks,
+    ) -> Self {
+        Self {
+            value,
+            component_ticks,
+            system_ticks,
+        }
+    }
+}
+
+impl<'w, T: Resource> DetectChanges for ResMut<'w, T> {
+    #[inline]
+    fn is_added(&self) -> bool {
+        self.component_ticks
+            .is_added(self.system_ticks.last_change_tick)
+    }
+
+    #[inline]
+    fn is_changed(&self) -> bool {
+        self.component_ticks
+            .is_changed(self.system_ticks.last_change_tick)
+    }
+
+    #[inline]
+    fn set_changed(&mut self) {
+        self.component_ticks
+            .set_changed(self.system_ticks.change_tick);
+    }
 }
 
 impl<'w, T: Resource> Deref for ResMut<'w, T> {
@@ -75,17 +112,17 @@ impl<'w, T: Resource> AsMut<T> for ResMut<'w, T> {
     }
 }
 
-pub struct CmptMut<'a, T> {
-    pub(crate) value: &'a mut T,
-    pub(crate) component_ticks: &'a mut ComponentTicks,
+pub struct CmptMut<'w, T: Component> {
+    pub(crate) value: &'w mut T,
+    pub(crate) component_ticks: &'w mut ComponentTicks,
     pub(crate) system_ticks: SystemTicks,
 }
 
-impl<'a, T> CmptMut<'a, T> {
+impl<'w, T: Component> CmptMut<'w, T> {
     #[inline]
     pub(crate) fn new(
-        value: &'a mut T,
-        component_ticks: &'a mut ComponentTicks,
+        value: &'w mut T,
+        component_ticks: &'w mut ComponentTicks,
         system_ticks: SystemTicks,
     ) -> Self {
         Self {
@@ -96,7 +133,7 @@ impl<'a, T> CmptMut<'a, T> {
     }
 }
 
-impl<'a, T> DetectChanges for CmptMut<'a, T> {
+impl<'w, T: Component> DetectChanges for CmptMut<'w, T> {
     #[inline]
     fn is_added(&self) -> bool {
         self.component_ticks
@@ -116,7 +153,7 @@ impl<'a, T> DetectChanges for CmptMut<'a, T> {
     }
 }
 
-impl<'a, T> Deref for CmptMut<'a, T> {
+impl<'w, T: Component> Deref for CmptMut<'w, T> {
     type Target = T;
 
     #[inline]
@@ -125,7 +162,7 @@ impl<'a, T> Deref for CmptMut<'a, T> {
     }
 }
 
-impl<'a, T> DerefMut for CmptMut<'a, T> {
+impl<'w, T: Component> DerefMut for CmptMut<'w, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.set_changed();
@@ -133,14 +170,14 @@ impl<'a, T> DerefMut for CmptMut<'a, T> {
     }
 }
 
-impl<'a, T> AsRef<T> for CmptMut<'a, T> {
+impl<'w, T: Component> AsRef<T> for CmptMut<'w, T> {
     #[inline]
     fn as_ref(&self) -> &T {
         self.deref()
     }
 }
 
-impl<'a, T> AsMut<T> for CmptMut<'a, T> {
+impl<'w, T: Component> AsMut<T> for CmptMut<'w, T> {
     #[inline]
     fn as_mut(&mut self) -> &mut T {
         self.deref_mut()

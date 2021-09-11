@@ -19,6 +19,7 @@ use super::{
     },
     query::{fetch::WorldQuery, state::QueryState},
     storage::Storages,
+    system::SystemTicks,
 };
 
 #[derive(Default)]
@@ -97,7 +98,7 @@ impl World {
 
     #[inline]
     pub fn insert_resource<T: Resource>(&mut self, resource: T) -> Option<T> {
-        self.resources.add(resource)
+        self.resources.add(resource, self.change_tick())
     }
 
     #[inline]
@@ -117,7 +118,8 @@ impl World {
 
     #[inline]
     pub fn get_resource_mut<T: Resource>(&mut self) -> Option<ResMut<T>> {
-        self.resources.get_mut()
+        self.resources
+            .get_mut(SystemTicks::new_unknown_last(self.change_tick()))
     }
 
     #[inline]
