@@ -238,6 +238,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for WriteFetch<T> {
             .get_column(state.component_id)
             .unwrap();
         self.table_components = column.get_data_ptr().cast::<T>();
+        self.table_ticks = column.get_ticks_ptr();
     }
 
     #[inline]
