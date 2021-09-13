@@ -1,4 +1,4 @@
-use crate::window::Window;
+use crate::{core::SceneResult, window::Window};
 
 use super::{builder::QuadBuilder, context::Context, scene::Scene};
 
@@ -29,8 +29,7 @@ impl Quad {
             match event {
                 Event::MainEventsCleared => {
                     if !exit {
-                        exit = context.handle_scene_update();
-                        context.flush_keyboard_events();
+                        exit = matches!(context.update_scene(), SceneResult::Quit);
                     }
                 }
                 Event::WindowEvent { event, .. } => match event {

@@ -1,4 +1,4 @@
-use crate::{ecs::World, input::KeyboardInput};
+use crate::{ecs::World, input::KeyboardInput, time::Time};
 
 use super::{scene::SceneContext, Scene, SceneResult};
 
@@ -18,6 +18,7 @@ impl Context {
 
     pub fn insert_resources(&mut self) {
         self.world.insert_resource(KeyboardInput::default());
+        self.world.insert_resource(Time::default());
     }
 
     pub fn start_scene(&mut self) {
@@ -37,21 +38,15 @@ impl Context {
     }
 
     pub fn update_scene(&mut self) -> SceneResult {
-        let result = self.scene.update(SceneContext::new(&mut self.world));
-        result
-    }
+        self.before_scene_update();
 
-    pub fn handle_scene_update(&mut self) -> bool {
-        let result = self.update_scene();
-        if matches!(result, SceneResult::Quit) {
-            return true;
+        let context = SceneContext::new(&mut self.world);
+        let result = self.scene.update(context);
+        if !matches!(result, SceneResult::Quit) {
+            self.after_scene_update();
         }
 
-        // Physics, animations, ...
-        // Draw
-
-        self.world.clear_trackers();
-        false
+        result
     }
 
     pub fn handle_window_resize(&mut self, _size: winit::dpi::PhysicalSize<u32>) {
@@ -74,7 +69,24 @@ impl Context {
         }
     }
 
-    pub fn flush_keyboard_events(&mut self) {
+    fn before_scene_update(&mut self) {
+        self.advance_time();
+    }
+
+    fn after_scene_update(&mut self) {
+        // Physics, animations, ...
+        // Draw
+
+        self.flush_keyboard_events();
+        self.world.clear_trackers();
+    }
+
+    fn advance_time(&mut self) {
+        let mut time = self.world.resource_mut::<Time>();
+        time.update();
+    }
+
+    fn flush_keyboard_events(&mut self) {
         let mut keyboard_input = self.world.resource_mut::<KeyboardInput>();
         keyboard_input.flush();
     }
