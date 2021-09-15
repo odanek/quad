@@ -15,6 +15,40 @@ pub trait DetectChanges {
 
 pub struct Res<'w, T: Resource> {
     pub(crate) value: &'w T,
+    pub(crate) component_ticks: &'w ComponentTicks,
+    pub(crate) system_ticks: SystemTicks,
+}
+
+impl<'w, T: Component> Res<'w, T> {
+    #[inline]
+    pub(crate) fn new(
+        value: &'w T,
+        component_ticks: &'w ComponentTicks,
+        system_ticks: SystemTicks,
+    ) -> Self {
+        Self {
+            value,
+            component_ticks,
+            system_ticks,
+        }
+    }
+
+    #[inline]
+    pub fn is_added(&self) -> bool {
+        self.component_ticks
+            .is_added(self.system_ticks.last_change_tick)
+    }
+
+    #[inline]
+    pub fn is_changed(&self) -> bool {
+        self.component_ticks
+            .is_changed(self.system_ticks.last_change_tick)
+    }
+
+    #[inline]
+    pub fn into_inner(self) -> &'w T {
+        self.value
+    }
 }
 
 impl<'w, T: Resource> Debug for Res<'w, T>
@@ -59,6 +93,11 @@ impl<'w, T: Resource> ResMut<'w, T> {
             component_ticks,
             system_ticks,
         }
+    }
+
+    #[inline]
+    pub fn into_inner(self) -> &'w mut T {
+        self.value
     }
 }
 

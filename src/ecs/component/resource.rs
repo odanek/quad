@@ -108,8 +108,14 @@ impl Resources {
     }
 
     #[inline]
-    pub fn get_unchecked<T: Resource>(&self) -> Option<*const T> {
-        self.get::<T>().map(|r| r as _)
+    pub fn get_unchecked<T: Resource>(
+        &self,
+        id: ResourceId,
+    ) -> Option<(*const T, *const ComponentTicks)> {
+        let wrapper = self.map.get(&id)?;
+        let resource = unsafe { &*wrapper.resource.get() }.downcast_ref::<T>()?;
+        let ticks = wrapper.ticks.get();
+        Some((resource as *const T, ticks))
     }
 
     #[inline]
@@ -122,8 +128,10 @@ impl Resources {
     }
 
     #[inline]
-    pub fn get_mut_unchecked<T: Resource>(&self) -> Option<(*mut T, *mut ComponentTicks)> {
-        let id = self.get_id::<T>()?;
+    pub fn get_mut_unchecked<T: Resource>(
+        &self,
+        id: ResourceId,
+    ) -> Option<(*mut T, *mut ComponentTicks)> {
         let wrapper = self.map.get(&id)?;
         let resource = unsafe { &mut *wrapper.resource.get() }.downcast_mut::<T>()?;
         let ticks = wrapper.ticks.get();
