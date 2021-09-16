@@ -1,8 +1,8 @@
 use crate::ecs::{
     component::{ComponentId, ResourceId},
     query::access::{Access, FilteredAccess},
-    system::function_system::SystemMeta,
-    System, World,
+    system::{function_system::SystemMeta},
+    IntoSystem, System, World,
 };
 
 use super::Schedule;
@@ -16,7 +16,7 @@ pub struct ChainSystem<S, T> {
 impl<S, T> ChainSystem<S, T>
 where
     S: System,
-    T: System,
+    T: System<In = S::Out>,
 {
     pub fn new(left: S, right: T) -> Self {
         let name = format!("Chain: {} -> {}", left.name(), right.name());
@@ -62,36 +62,45 @@ where
     }
 }
 
-pub struct EmptyChainBuilder {}
+pub struct EmptyChainBuilder<'w> {
+    world: &'w mut World,
+}
 
-impl Default for EmptyChainBuilder {
-    fn default() -> Self {
-        Self {}
+impl<'w> EmptyChainBuilder<'w> {
+    pub fn new(world: &'w mut World) -> Self {
+        Self { world }
     }
 }
 
-impl EmptyChainBuilder {
-    pub fn add<S>(self, system: S) -> ChainBuilder<S>
+impl<'w> EmptyChainBuilder<'w> {
+    pub fn add<In, Out, Param, S>(self, input: S) -> ChainBuilder<'w, S::System>
     where
-        S: System,
+        S: IntoSystem<In, Out, Param>,
     {
-        ChainBuilder { system }
+        let system = input.system(self.world);
+        ChainBuilder {
+            world: self.world,
+            system,
+        }
     }
 }
 
-pub struct ChainBuilder<T> {
+pub struct ChainBuilder<'w, T> {
+    world: &'w mut World,
     system: T,
 }
 
-impl<T> ChainBuilder<T>
+impl<'w, T> ChainBuilder<'w, T>
 where
     T: System,
 {
-    pub fn add<S>(self, system: S) -> ChainBuilder<ChainSystem<T, S>>
+    pub fn add<Out, Param, S>(self, input: S) -> ChainBuilder<'w, ChainSystem<T, S::System>>
     where
-        S: System<In = T::Out>,
+        S: IntoSystem<T::Out, Out, Param>,
     {
+        let system = input.system(self.world);
         ChainBuilder {
+            world: self.world,
             system: ChainSystem::new(self.system, system),
         }
     }

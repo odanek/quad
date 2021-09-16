@@ -106,8 +106,8 @@ impl Scheduler {
         Schedule::new(system)
     }
 
-    pub fn chain() -> EmptyChainBuilder {
-        Default::default()
+    pub fn chain(world: &mut World) -> EmptyChainBuilder {
+        EmptyChainBuilder::new(world)
     }
 
     // pub fn parallel() -> ParallelBuilder {

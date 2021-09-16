@@ -54,3 +54,13 @@ pub trait IntoSystem<In, Out, Params> {
 
     fn system(self, world: &mut World) -> Self::System;
 }
+
+pub struct AlreadyWasSystem;
+
+impl<In, Out, Sys: System<In = In, Out = Out>> IntoSystem<In, Out, AlreadyWasSystem> for Sys {
+    type System = Sys;
+
+    fn system(self, _world: &mut World) -> Sys {
+        self
+    }
+}
