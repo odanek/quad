@@ -316,6 +316,110 @@ impl<'w, 's, T: Fetch<'w, 's>> Fetch<'w, 's> for OptionFetch<T> {
     }
 }
 
+#[derive(Clone)]
+pub struct ChangeTrackers<T: Component> {
+    component_ticks: ComponentTicks,
+    system_ticks: SystemTicks,
+    marker: PhantomData<T>,
+}
+
+impl<T: Component> ChangeTrackers<T> {
+    pub fn is_added(&self) -> bool {
+        self.component_ticks
+            .is_added(self.system_ticks.last_change_tick)
+    }
+
+    pub fn is_changed(&self) -> bool {
+        self.component_ticks
+            .is_changed(self.system_ticks.last_change_tick)
+    }
+}
+
+impl<T: Component> WorldQuery for ChangeTrackers<T> {
+    type Fetch = ChangeTrackersFetch<T>;
+    type State = ChangeTrackersState<T>;
+}
+
+pub struct ChangeTrackersState<T> {
+    component_id: ComponentId,
+    marker: PhantomData<T>,
+}
+
+unsafe impl<T: Component> FetchState for ChangeTrackersState<T> {
+    fn new(world: &mut World) -> Self {
+        let component_id = world.register_component::<T>();
+        Self {
+            component_id,
+            marker: PhantomData,
+        }
+    }
+
+    fn update_component_access(&self, access: &mut FilteredAccess<ComponentId>) {
+        if access.access().has_write(self.component_id) {
+            panic!("ChangeTrackers<{}> conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
+                std::any::type_name::<T>());
+        }
+        access.add_read(self.component_id)
+    }
+
+    fn matches_archetype(&self, archetype: &Archetype) -> bool {
+        archetype.contains(self.component_id)
+    }
+}
+
+pub struct ChangeTrackersFetch<T> {
+    table_ticks: *const ComponentTicks,
+    system_ticks: SystemTicks,
+    marker: PhantomData<T>,
+}
+
+impl<T> Clone for ChangeTrackersFetch<T> {
+    fn clone(&self) -> Self {
+        Self {
+            table_ticks: self.table_ticks,
+            marker: self.marker,
+            system_ticks: self.system_ticks,
+        }
+    }
+}
+
+unsafe impl<T> ReadOnlyFetch for ChangeTrackersFetch<T> {}
+
+impl<'w, 's, T: Component> Fetch<'w, 's> for ChangeTrackersFetch<T> {
+    type Item = ChangeTrackers<T>;
+    type State = ChangeTrackersState<T>;
+
+    unsafe fn new(_world: &World, _state: &Self::State, system_ticks: SystemTicks) -> Self {
+        Self {
+            table_ticks: ptr::null::<ComponentTicks>(),
+            system_ticks,
+            marker: PhantomData,
+        }
+    }
+
+    #[inline]
+    unsafe fn set_archetype(
+        &mut self,
+        state: &Self::State,
+        archetype: &Archetype,
+        tables: &Tables,
+    ) {
+        self.table_ticks = tables[archetype.table_id()]
+            .get_column(state.component_id)
+            .unwrap()
+            .get_ticks_const_ptr();
+    }
+
+    #[inline]
+    unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item {
+        ChangeTrackers {
+            component_ticks: (&*self.table_ticks.add(archetype_index)).clone(),
+            system_ticks: self.system_ticks,
+            marker: PhantomData,
+        }
+    }
+}
+
 macro_rules! impl_tuple_fetch {
     ($(($name: ident, $state: ident)),*) => {
         #[allow(non_snake_case)]

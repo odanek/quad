@@ -10,8 +10,8 @@ impl Tick {
 
 #[derive(Clone, Debug)]
 pub struct ComponentTicks {
-    pub(crate) added: Tick,
-    pub(crate) changed: Tick,
+    added: Tick,
+    changed: Tick,
 }
 
 impl ComponentTicks {

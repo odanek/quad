@@ -1,5 +1,5 @@
-#[allow(clippy::module_inception)]
 mod stopwatch;
+#[allow(clippy::module_inception)]
 mod time;
 mod timer;
 
