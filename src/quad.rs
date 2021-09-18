@@ -1,4 +1,4 @@
-use crate::{core::SceneResult, window::Window};
+use crate::{window::Window, SceneResult};
 
 use super::{builder::QuadBuilder, context::Context, scene::Scene};
 
