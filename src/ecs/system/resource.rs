@@ -25,8 +25,10 @@ impl<T: Resource> SystemParamState for ResState<T> {
         let access = &mut system_meta.resource_access;
         if access.has_write(resource_id) {
             panic!(
-                "Res<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
-                type_name::<T>(), system_meta.name);
+                "Res<{}> in system {} conflicts with a previous ResMut<{0}> access.",
+                type_name::<T>(),
+                system_meta.name
+            );
         }
         access.add_read(resource_id);
 
@@ -105,12 +107,16 @@ impl<T: Resource> SystemParamState for ResMutState<T> {
         let access = &mut system_meta.resource_access;
         if access.has_write(resource_id) {
             panic!(
-                "ResMut<{}> in system {} conflicts with a previous ResMut<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
-                type_name::<T>(), system_meta.name);
+                "ResMut<{}> in system {} conflicts with a previous ResMut<{0}> access.",
+                type_name::<T>(),
+                system_meta.name
+            );
         } else if access.has_read(resource_id) {
             panic!(
-                "ResMut<{}> in system {} conflicts with a previous Res<{0}> access. Allowing this would break Rust's mutability rules. Consider removing the duplicate access.",
-                type_name::<T>(), system_meta.name);
+                "ResMut<{}> in system {} conflicts with a previous Res<{0}> access.",
+                type_name::<T>(),
+                system_meta.name
+            );
         }
         access.add_write(resource_id);
 

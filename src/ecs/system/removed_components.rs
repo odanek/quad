@@ -27,7 +27,7 @@ pub struct RemovedComponentsState<T> {
     marker: PhantomData<T>,
 }
 
-impl<'a, T: Component> SystemParam for RemovedComponents<'a, T> {
+impl<'w, T: Component> SystemParam for RemovedComponents<'w, T> {
     type Fetch = RemovedComponentsState<T>;
 }
 

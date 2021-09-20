@@ -5,6 +5,7 @@ use super::{
 };
 
 pub mod command;
+pub mod event;
 pub mod function_system;
 pub mod local;
 pub mod query;

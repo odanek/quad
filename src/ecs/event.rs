@@ -1,8 +1,6 @@
 use std::{fmt, marker::PhantomData};
 
-use log::trace;
-
-use super::{Local, Res, ResMut};
+use super::ResMut;
 
 pub trait Event: Send + Sync + 'static {}
 
@@ -75,21 +73,37 @@ fn map_instance_event_with_id<T>(event_instance: &EventInstance<T>) -> (&T, Even
     (&event_instance.event, event_instance.event_id)
 }
 
-// #[derive(SystemParam)] TODO
 pub struct EventReader<'w, 's, T: Event> {
-    last_event_count: Local<'s, (usize, PhantomData<T>)>,
-    events: Res<'w, Events<T>>,
+    events: &'w Events<T>,
+    last_event_count: &'s mut usize,
 }
 
-/// Sends events of type `T`.
-// #[derive(SystemParam)] TODO
-pub struct EventWriter<'w, 's, T: Event> {
-    events: ResMut<'w, Events<T>>,
-    // #[system_param(ignore)] TODO
-    marker: PhantomData<&'s usize>,
+impl<'w, 's, T: Event> EventReader<'w, 's, T> {
+    pub(crate) fn new(events: &'w Events<T>, last_event_count: &'s mut usize) -> Self {
+        Self {
+            events,
+            last_event_count,
+        }
+    }
+
+    pub fn iter(&mut self) -> impl DoubleEndedIterator<Item = &T> {
+        self.iter_with_id().map(|(event, _id)| event)
+    }
+
+    pub fn iter_with_id(&mut self) -> impl DoubleEndedIterator<Item = (&T, EventId<T>)> {
+        internal_event_reader(self.last_event_count, self.events)
+    }
 }
 
-impl<'w, 's, T: Event> EventWriter<'w, 's, T> {
+pub struct EventWriter<'w, T: Event> {
+    events: &'w mut Events<T>,
+}
+
+impl<'w, T: Event> EventWriter<'w, T> {
+    pub(crate) fn new(events: &'w mut Events<T>) -> Self {
+        Self { events }
+    }
+
     pub fn send(&mut self, event: T) {
         self.events.send(event);
     }
@@ -143,16 +157,6 @@ fn internal_event_reader<'a, T>(
                     .iter()
                     .map(map_instance_event_with_id),
             ),
-    }
-}
-
-impl<'w, 's, T: Event> EventReader<'w, 's, T> {
-    pub fn iter(&mut self) -> impl DoubleEndedIterator<Item = &T> {
-        self.iter_with_id().map(|(event, _id)| event)
-    }
-
-    pub fn iter_with_id(&mut self) -> impl DoubleEndedIterator<Item = (&T, EventId<T>)> {
-        internal_event_reader(&mut self.last_event_count.0, &self.events)
     }
 }
 
@@ -250,11 +254,6 @@ impl<T> std::iter::Extend<T> for Events<T> {
             State::B => self.events_b.extend(events),
         }
 
-        trace!(
-            "Events::extend() -> ids: ({}..{})",
-            self.event_count,
-            event_count
-        );
         self.event_count = event_count;
     }
 }
