@@ -52,7 +52,7 @@ where
     pub fn is_empty(&self, world: &World) -> bool {
         let tick = Tick::default();
         unsafe {
-            self.iter_unchecked_manual(world, SystemTicks::new_unknown_last(tick))
+            self.iter_unchecked_manual(world, SystemTicks::new(tick, tick))
                 .none_remaining()
         }
     }
@@ -102,8 +102,11 @@ where
         entity: Entity,
     ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError> {
         self.update_archetypes(world);
-        let change_tick = world.change_tick();
-        self.get_unchecked_manual(world, entity, SystemTicks::new_unknown_last(change_tick))
+        self.get_unchecked_manual(
+            world,
+            entity,
+            SystemTicks::new(world.last_change_tick(), world.change_tick()),
+        )
     }
 
     pub unsafe fn get_unchecked_manual<'w, 's>(
@@ -151,8 +154,10 @@ where
         world: &'w World,
     ) -> QueryIter<'w, 's, Q, F> {
         self.update_archetypes(world);
-        let change_tick = world.change_tick();
-        self.iter_unchecked_manual(world, SystemTicks::new_unknown_last(change_tick))
+        self.iter_unchecked_manual(
+            world,
+            SystemTicks::new(world.last_change_tick(), world.change_tick()),
+        )
     }
 
     #[inline]
@@ -195,8 +200,11 @@ where
         func: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item),
     ) {
         self.update_archetypes(world);
-        let change_tick = world.change_tick();
-        self.for_each_unchecked_manual(world, func, SystemTicks::new_unknown_last(change_tick));
+        self.for_each_unchecked_manual(
+            world,
+            func,
+            SystemTicks::new(world.last_change_tick(), world.change_tick()),
+        );
     }
 
     pub unsafe fn for_each_unchecked_manual<'w, 's>(

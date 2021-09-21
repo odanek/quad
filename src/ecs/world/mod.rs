@@ -31,6 +31,7 @@ pub struct World {
     storages: Storages,
     bundles: Bundles,
     removed_components: HashMap<ComponentId, Vec<Entity>>,
+    last_change_tick: Tick,
     change_tick: AtomicU32,
 }
 
@@ -118,8 +119,10 @@ impl World {
 
     #[inline]
     pub fn get_resource_mut<T: Resource>(&mut self) -> Option<ResMut<T>> {
-        self.resources
-            .get_mut(SystemTicks::new_unknown_last(self.change_tick()))
+        self.resources.get_mut(SystemTicks::new(
+            self.last_change_tick(),
+            self.change_tick(),
+        ))
     }
 
     #[inline]
@@ -229,10 +232,15 @@ impl World {
         for entities in self.removed_components.values_mut() {
             entities.clear();
         }
+        self.last_change_tick = self.increment_change_tick();
     }
 
     pub(crate) fn change_tick(&self) -> Tick {
         Tick::new(self.change_tick.load(Ordering::Acquire))
+    }
+
+    pub(crate) fn last_change_tick(&self) -> Tick {
+        self.last_change_tick
     }
 
     #[inline]

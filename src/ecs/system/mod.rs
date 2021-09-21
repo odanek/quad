@@ -40,14 +40,6 @@ impl SystemTicks {
             change_tick,
         }
     }
-
-    // TODO: Where this is used is_added and is_changed will return false, so Changed<xxx> and Added<xxx> will not work
-    pub(crate) fn new_unknown_last(change_tick: Tick) -> Self {
-        Self {
-            last_change_tick: change_tick,
-            change_tick,
-        }
-    }
 }
 
 pub trait IntoSystem<In, Out, Params> {

@@ -111,11 +111,12 @@ impl<'w> EntityMut<'w> {
             self.world
                 .get_component_unchecked_mut::<T>(self.location)
                 .map(|(data, ticks)| {
+                    let last_change_tick = self.world.last_change_tick();
                     let change_tick = self.world.change_tick();
                     CmptMut::new(
                         &mut *data.cast::<T>(),
                         &mut *ticks,
-                        SystemTicks::new_unknown_last(change_tick),
+                        SystemTicks::new(last_change_tick, change_tick),
                     )
                 })
         }
