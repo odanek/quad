@@ -20,6 +20,7 @@ use super::{
     query::{fetch::WorldQuery, state::QueryState},
     storage::Storages,
     system::SystemTicks,
+    Res,
 };
 
 #[derive(Default)]
@@ -108,12 +109,15 @@ impl World {
     }
 
     #[inline]
-    pub fn get_resource<T: Resource>(&self) -> Option<&T> {
-        self.resources.get()
+    pub fn get_resource<T: Resource>(&self) -> Option<Res<T>> {
+        self.resources.get(SystemTicks::new(
+            self.last_change_tick(),
+            self.change_tick(),
+        ))
     }
 
     #[inline]
-    pub fn resource<T: Resource>(&self) -> &T {
+    pub fn resource<T: Resource>(&self) -> Res<T> {
         self.get_resource().unwrap()
     }
 
@@ -128,6 +132,16 @@ impl World {
     #[inline]
     pub fn resource_mut<T: Resource>(&mut self) -> ResMut<T> {
         self.get_resource_mut().unwrap()
+    }
+
+    #[inline]
+    pub fn is_resource_added<T: Component>(&self) -> bool {
+        self.get_resource::<T>().unwrap().is_added()
+    }
+
+    #[inline]
+    pub fn is_resource_changed<T: Component>(&self) -> bool {
+        self.get_resource::<T>().unwrap().is_changed()
     }
 
     #[inline]

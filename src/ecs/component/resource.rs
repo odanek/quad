@@ -6,7 +6,7 @@ use std::{
 
 use crate::ecs::{query::access::AccessIndex, system::SystemTicks};
 
-use super::{ComponentTicks, ResMut, Tick};
+use super::{ComponentTicks, Res, ResMut, Tick};
 
 pub trait Resource: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Resource for T {}
@@ -100,11 +100,12 @@ impl Resources {
     }
 
     #[inline]
-    pub fn get<T: Resource>(&self) -> Option<&T> {
+    pub fn get<T: Resource>(&self, system_ticks: SystemTicks) -> Option<Res<T>> {
         let id = self.get_id::<T>()?;
         let wrapper = self.map.get(&id)?;
-        let resource = unsafe { &*wrapper.resource.get() };
-        resource.downcast_ref()
+        let resource = unsafe { &*wrapper.resource.get() }.downcast_ref::<T>()?;
+        let ticks = unsafe { &*wrapper.ticks.get() };
+        Some(Res::new(resource, ticks, system_ticks))
     }
 
     #[inline]
