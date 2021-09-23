@@ -1,14 +1,14 @@
-use crate::{window::Window, SceneResult};
+use crate::{app::SceneResult, window::Window};
 
-use super::{builder::QuadBuilder, context::Context, scene::Scene};
+use super::{Scene, builder::AppBuilder, context::Context};
 
-pub struct Quad {
+pub struct App {
     pub(crate) main_window: Window,
 }
 
-impl Quad {
-    pub fn builder() -> QuadBuilder {
-        QuadBuilder::default()
+impl App {
+    pub fn builder() -> AppBuilder {
+        AppBuilder::default()
     }
 
     pub fn run(self, scene: Box<dyn Scene>) {

@@ -1,27 +1,27 @@
 use crate::window::WindowBuilder;
 
-use super::Quad;
+use super::App;
 
-pub struct QuadBuilder {
+pub struct AppBuilder {
     main_window: WindowBuilder,
 }
 
-impl Default for QuadBuilder {
+impl Default for AppBuilder {
     fn default() -> Self {
-        QuadBuilder {
+        Self {
             main_window: WindowBuilder::default(),
         }
     }
 }
 
-impl QuadBuilder {
-    pub fn main_window(mut self, window: WindowBuilder) -> QuadBuilder {
+impl AppBuilder {
+    pub fn main_window(mut self, window: WindowBuilder) -> AppBuilder {
         self.main_window = window;
         self
     }
 
-    pub fn build(self) -> Quad {
-        Quad {
+    pub fn build(self) -> App {
+        App {
             main_window: self.main_window.build(),
         }
     }
