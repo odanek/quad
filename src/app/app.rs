@@ -1,6 +1,6 @@
 use crate::{app::SceneResult, window::Window};
 
-use super::{Scene, builder::AppBuilder, context::Context};
+use super::{builder::AppBuilder, context::Context, Scene};
 
 pub struct App {
     pub(crate) main_window: Window,
