@@ -1,9 +1,15 @@
-use crate::{app::SceneResult, window::Window};
+use crate::{
+    app::SceneResult,
+    ecs::{EventSystems, World},
+    window::Window,
+};
 
-use super::{builder::AppBuilder, context::Context, Scene};
+use super::{builder::AppBuilder, context::AppContext, Scene};
 
 pub struct App {
     pub(crate) main_window: Window,
+    pub(crate) world: Box<World>,
+    pub(crate) events: EventSystems,
 }
 
 impl App {
@@ -16,7 +22,7 @@ impl App {
         let event_loop = window.event_loop;
         let mut exit = false;
 
-        let mut context = Context::new(scene);
+        let mut context = AppContext::new(self.world, self.events, scene);
         context.insert_resources();
         context.start_scene();
 

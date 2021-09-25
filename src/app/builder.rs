@@ -1,15 +1,22 @@
-use crate::window::WindowBuilder;
+use crate::{
+    ecs::{Event, EventSystems, World},
+    window::WindowBuilder,
+};
 
 use super::App;
 
 pub struct AppBuilder {
     main_window: WindowBuilder,
+    world: Box<World>,
+    events: EventSystems,
 }
 
 impl Default for AppBuilder {
     fn default() -> Self {
         Self {
             main_window: WindowBuilder::default(),
+            world: Box::new(World::default()),
+            events: Default::default(),
         }
     }
 }
@@ -20,9 +27,16 @@ impl AppBuilder {
         self
     }
 
+    pub fn add_event<T: Event>(mut self) -> AppBuilder {
+        self.events.add::<T>(&mut self.world);
+        self
+    }
+
     pub fn build(self) -> App {
         App {
             main_window: self.main_window.build(),
+            world: self.world,
+            events: self.events,
         }
     }
 }

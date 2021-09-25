@@ -135,6 +135,7 @@ impl World {
     }
 
     #[inline]
+
     pub fn is_resource_added<T: Component>(&self) -> bool {
         self.get_resource::<T>().unwrap().is_added()
     }

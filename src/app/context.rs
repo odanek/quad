@@ -1,17 +1,22 @@
-use crate::{ecs::World, input::KeyboardInput, time::Time};
+use crate::{
+    ecs::{EventSystems, World},
+    input::KeyboardInput,
+    time::Time,
+};
 
 use super::{scene::SceneContext, Scene, SceneResult};
 
-// TODO: World should not be owned by Context. Remove Context entirely?
-pub struct Context {
-    pub world: Box<World>,
-    pub scene: Box<dyn Scene>,
+pub struct AppContext {
+    world: Box<World>,
+    scene: Box<dyn Scene>,
+    events: EventSystems,
 }
 
-impl Context {
-    pub fn new(scene: Box<dyn Scene>) -> Self {
-        Context {
-            world: Box::new(Default::default()),
+impl AppContext {
+    pub fn new(world: Box<World>, events: EventSystems, scene: Box<dyn Scene>) -> Self {
+        Self {
+            world,
+            events,
             scene,
         }
     }
@@ -71,6 +76,7 @@ impl Context {
 
     fn before_scene_update(&mut self) {
         self.advance_time();
+        self.events.update(&mut self.world);
     }
 
     fn after_scene_update(&mut self) {

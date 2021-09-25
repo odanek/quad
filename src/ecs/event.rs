@@ -1,6 +1,6 @@
-use std::{fmt, marker::PhantomData};
+use std::{collections::HashMap, fmt, marker::PhantomData};
 
-use super::ResMut;
+use super::{component::ResourceId, IntoSystem, ResMut, System, World};
 
 pub trait Event: Send + Sync + 'static {}
 
@@ -255,5 +255,30 @@ impl<T> std::iter::Extend<T> for Events<T> {
         }
 
         self.event_count = event_count;
+    }
+}
+
+#[derive(Default)]
+pub struct EventSystems {
+    map: HashMap<ResourceId, Box<dyn System<In = (), Out = ()>>>,
+}
+
+// TODO: Should this file or this struct be part of ecs module?
+impl EventSystems {
+    pub fn add<T: Event>(&mut self, world: &mut World) {
+        let id = world.register_resource::<Events<T>>();
+        if !self.map.contains_key(&id) {
+            world.insert_resource(Events::<T>::default());
+            let system = Box::new(Events::<T>::update_system.system(world));
+            self.map.insert(id, system);
+        }
+    }
+
+    pub fn update(&mut self, world: &mut World) {
+        for system in self.map.values_mut() {
+            unsafe {
+                system.run((), world);
+            }
+        }
     }
 }
