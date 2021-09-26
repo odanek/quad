@@ -1,15 +1,11 @@
-use crate::{
-    app::SceneResult,
-    ecs::{EventSystems, World},
-    window::Window,
-};
+use crate::{app::SceneResult, ecs::World, window::Window};
 
-use super::{builder::AppBuilder, context::AppContext, Scene};
+use super::{builder::AppBuilder, context::AppContext, event::AppEvents, Scene};
 
 pub struct App {
     pub(crate) main_window: Window,
     pub(crate) world: Box<World>,
-    pub(crate) events: EventSystems,
+    pub(crate) events: AppEvents,
 }
 
 impl App {

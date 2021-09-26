@@ -1,19 +1,15 @@
-use crate::{
-    ecs::{EventSystems, World},
-    input::KeyboardInput,
-    time::Time,
-};
+use crate::{ecs::World, input::KeyboardInput, time::Time};
 
-use super::{scene::SceneContext, Scene, SceneResult};
+use super::{event::AppEvents, scene::SceneContext, Scene, SceneResult};
 
 pub struct AppContext {
     world: Box<World>,
     scene: Box<dyn Scene>,
-    events: EventSystems,
+    events: AppEvents,
 }
 
 impl AppContext {
-    pub fn new(world: Box<World>, events: EventSystems, scene: Box<dyn Scene>) -> Self {
+    pub fn new(world: Box<World>, events: AppEvents, scene: Box<dyn Scene>) -> Self {
         Self {
             world,
             events,

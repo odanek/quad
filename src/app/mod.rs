@@ -2,6 +2,7 @@
 mod app;
 mod builder;
 mod context;
+mod event;
 mod scene;
 
 pub use app::App;

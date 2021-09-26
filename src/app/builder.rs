@@ -1,14 +1,14 @@
 use crate::{
-    ecs::{Event, EventSystems, World},
+    ecs::{Event, World},
     window::WindowBuilder,
 };
 
-use super::App;
+use super::{event::AppEvents, App};
 
 pub struct AppBuilder {
     main_window: WindowBuilder,
     world: Box<World>,
-    events: EventSystems,
+    events: AppEvents,
 }
 
 impl Default for AppBuilder {

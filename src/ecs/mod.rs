@@ -10,9 +10,9 @@ mod storage;
 mod system;
 mod world;
 
-pub use component::{Component, Res, ResMut, Resource};
+pub use component::{Component, ComponentId, Res, ResMut, Resource, ResourceId};
 pub use entity::Entity;
-pub use event::{Event, EventId, EventReader, EventSystems, EventWriter, Events};
+pub use event::{Event, EventId, EventReader, EventWriter, Events};
 pub use query::{
     fetch::ChangeTrackers,
     filter::{Added, Changed, Or, With, Without},
