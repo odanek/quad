@@ -3,6 +3,7 @@ use std::{collections::HashMap, fmt, marker::PhantomData};
 use super::{component::ResourceId, IntoSystem, ResMut, System, World};
 
 pub trait Event: Send + Sync + 'static {}
+impl<T: Send + Sync + 'static> Event for T {}
 
 #[derive(Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct EventId<T> {
@@ -267,11 +268,11 @@ pub struct EventSystems {
 impl EventSystems {
     pub fn add<T: Event>(&mut self, world: &mut World) {
         let id = world.register_resource::<Events<T>>();
-        if !self.map.contains_key(&id) {
+        
+        self.map.entry(id).or_insert_with(|| {
             world.insert_resource(Events::<T>::default());
-            let system = Box::new(Events::<T>::update_system.system(world));
-            self.map.insert(id, system);
-        }
+            Box::new(Events::<T>::update_system.system(world))
+        });
     }
 
     pub fn update(&mut self, world: &mut World) {
@@ -280,5 +281,131 @@ impl EventSystems {
                 system.run((), world);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+    struct TestEvent {
+        i: usize,
+    }
+
+    pub struct ManualEventReader<T> {
+        last_event_count: usize,
+        _marker: PhantomData<T>,
+    }
+
+    impl<T: Event> ManualEventReader<T> {
+        pub fn new() -> Self {
+            ManualEventReader {
+                last_event_count: 0,
+                _marker: PhantomData,
+            }
+        }
+
+        pub fn iter<'a>(
+            &mut self,
+            events: &'a Events<T>,
+        ) -> impl DoubleEndedIterator<Item = &'a T> {
+            internal_event_reader(&mut self.last_event_count, events).map(|(e, _)| e)
+        }
+    }
+
+    fn get_events(
+        events: &Events<TestEvent>,
+        reader: &mut ManualEventReader<TestEvent>,
+    ) -> Vec<TestEvent> {
+        reader.iter(events).cloned().collect::<Vec<TestEvent>>()
+    }
+
+    #[test]
+    fn test_events() {
+        let mut events = Events::<TestEvent>::default();
+        let event_0 = TestEvent { i: 0 };
+        let event_1 = TestEvent { i: 1 };
+        let event_2 = TestEvent { i: 2 };
+
+        let mut reader_missed = ManualEventReader::new();
+        let mut reader_a = ManualEventReader::new();
+
+        events.send(event_0);
+
+        assert_eq!(
+            get_events(&events, &mut reader_a),
+            vec![event_0],
+            "reader_a created before event receives event"
+        );
+        assert_eq!(
+            get_events(&events, &mut reader_a),
+            vec![],
+            "second iteration of reader_a created before event results in zero events"
+        );
+
+        let mut reader_b = ManualEventReader::new();
+
+        assert_eq!(
+            get_events(&events, &mut reader_b),
+            vec![event_0],
+            "reader_b created after event receives event"
+        );
+        assert_eq!(
+            get_events(&events, &mut reader_b),
+            vec![],
+            "second iteration of reader_b created after event results in zero events"
+        );
+
+        events.send(event_1);
+
+        let mut reader_c = ManualEventReader::new();
+
+        assert_eq!(
+            get_events(&events, &mut reader_c),
+            vec![event_0, event_1],
+            "reader_c created after two events receives both events"
+        );
+        assert_eq!(
+            get_events(&events, &mut reader_c),
+            vec![],
+            "second iteration of reader_c created after two event results in zero events"
+        );
+
+        assert_eq!(
+            get_events(&events, &mut reader_a),
+            vec![event_1],
+            "reader_a receives next unread event"
+        );
+
+        events.update();
+
+        let mut reader_d = ManualEventReader::new();
+
+        events.send(event_2);
+
+        assert_eq!(
+            get_events(&events, &mut reader_a),
+            vec![event_2],
+            "reader_a receives event created after update"
+        );
+        assert_eq!(
+            get_events(&events, &mut reader_b),
+            vec![event_1, event_2],
+            "reader_b receives events created before and after update"
+        );
+        assert_eq!(
+            get_events(&events, &mut reader_d),
+            vec![event_0, event_1, event_2],
+            "reader_d receives all events created before and after update"
+        );
+
+        events.update();
+
+        assert_eq!(
+            get_events(&events, &mut reader_missed),
+            vec![event_2],
+            "reader_missed missed events unread after two update() calls"
+        );
     }
 }
