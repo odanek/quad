@@ -1,24 +1,6 @@
 use crate::ty::Vec2;
 
-pub struct MouseInput {}
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum MouseButtonState {
-    Pressed,
-    Released,
-}
-
-impl MouseButtonState {
-    pub fn is_pressed(&self) -> bool {
-        matches!(self, MouseButtonState::Pressed)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct MouseButtonInput {
-    pub button: MouseButton,
-    pub state: MouseButtonState,
-}
+use super::button::{ButtonState, Buttons};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MouseButton {
@@ -26,6 +8,40 @@ pub enum MouseButton {
     Right,
     Middle,
     Other(u16),
+}
+
+pub struct MouseInput {
+    buttons: Buttons<MouseButton>,
+}
+
+impl MouseInput {
+    pub(crate) fn press(&mut self, button: MouseButton) {
+        self.buttons.press(button);
+    }
+
+    pub(crate) fn release(&mut self, button: MouseButton) {
+        self.buttons.release(button);
+    }
+
+    pub(crate) fn flush(&mut self) {
+        self.buttons.flush();
+    }
+
+    pub fn pressed(&self, button: MouseButton) -> bool {
+        self.buttons.pressed(button)
+    }
+
+    pub fn just_pressed(&self, button: MouseButton) -> bool {
+        self.buttons.just_pressed(button)
+    }
+
+    pub fn just_released(&self, button: MouseButton) -> bool {
+        self.buttons.just_released(button)
+    }
+
+    pub fn button_state(&self, button: MouseButton) -> ButtonState {
+        self.buttons.button_state(button)
+    }
 }
 
 #[derive(Debug, Clone)]

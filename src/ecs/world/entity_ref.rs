@@ -294,6 +294,8 @@ impl<'w> EntityMut<'w> {
     }
 
     pub fn push_child(&mut self, child: Entity) -> &mut Self {
+        // TODO: What if child already has a parent?
+        // TODO: Uniqueness
         self.world.entity_mut(child).insert(Parent(self.entity));
         self.refresh_location();
 
@@ -307,6 +309,8 @@ impl<'w> EntityMut<'w> {
     }
 
     pub fn push_children(&mut self, children: &[Entity]) -> &mut Self {
+        // TODO: What if child already has a parent?
+        // TODO: Uniqueness
         let parent = self.entity;
         for child in children.iter() {
             self.world.entity_mut(*child).insert(Parent(parent));
@@ -323,6 +327,8 @@ impl<'w> EntityMut<'w> {
     }
 
     pub fn insert_child(&mut self, index: usize, child: Entity) -> &mut Self {
+        // TODO: What if child already has a parent?
+        // TODO: Uniqueness
         self.world.entity_mut(child).insert(Parent(self.entity));
         self.refresh_location();
 
@@ -336,6 +342,8 @@ impl<'w> EntityMut<'w> {
     }
 
     pub fn insert_children(&mut self, index: usize, children: &[Entity]) -> &mut Self {
+        // TODO: What if child already has a parent?
+        // TODO: Uniqueness
         let parent = self.entity;
         for child in children.iter() {
             self.world.entity_mut(*child).insert(Parent(parent));
