@@ -16,12 +16,8 @@ impl Default for KeyboardInput {
 }
 
 impl KeyboardInput {
-    pub(crate) fn press(&mut self, key: KeyCode) {
-        self.buttons.press(key);
-    }
-
-    pub(crate) fn release(&mut self, key: KeyCode) {
-        self.buttons.release(key);
+    pub(crate) fn toggle(&mut self, key: KeyCode, state: ButtonState) {
+        self.buttons.toggle(key, state);
     }
 
     pub(crate) fn flush(&mut self) {

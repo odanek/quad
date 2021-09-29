@@ -1,4 +1,8 @@
-use crate::{ecs::World, input::KeyboardInput, time::Time};
+use crate::{
+    ecs::World,
+    input::{KeyboardInput, MouseInput},
+    time::Time,
+};
 
 use super::{event::AppEvents, scene::SceneContext, Scene, SceneResult};
 
@@ -19,6 +23,7 @@ impl AppContext {
 
     pub fn insert_resources(&mut self) {
         self.world.insert_resource(KeyboardInput::default());
+        self.world.insert_resource(MouseInput::default());
         self.world.insert_resource(Time::default());
     }
 
@@ -59,15 +64,21 @@ impl AppContext {
     }
 
     pub fn handle_keyboard_event(&mut self, input: winit::event::KeyboardInput) {
-        use winit::event::ElementState;
-
         if let Some(keycode) = input.virtual_keycode {
-            let mut keyboard_input = self.world.resource_mut::<KeyboardInput>();
-            match input.state {
-                ElementState::Pressed => keyboard_input.press(keycode.into()),
-                ElementState::Released => keyboard_input.release(keycode.into()),
-            }
+            self.world
+                .resource_mut::<KeyboardInput>()
+                .toggle(keycode.into(), input.state.into());
         }
+    }
+
+    pub fn handle_mouse_button(
+        &mut self,
+        button: winit::event::MouseButton,
+        state: winit::event::ElementState,
+    ) {
+        self.world
+            .resource_mut::<MouseInput>()
+            .toggle(button.into(), state.into());
     }
 
     fn before_scene_update(&mut self) {
@@ -79,7 +90,7 @@ impl AppContext {
         // Physics, animations, ...
         // Draw
 
-        self.flush_keyboard_events();
+        self.flush_input_events();
         self.world.clear_trackers();
     }
 
@@ -88,8 +99,8 @@ impl AppContext {
         time.update();
     }
 
-    fn flush_keyboard_events(&mut self) {
-        let mut keyboard_input = self.world.resource_mut::<KeyboardInput>();
-        keyboard_input.flush();
+    fn flush_input_events(&mut self) {
+        self.world.resource_mut::<KeyboardInput>().flush();
+        self.world.resource_mut::<MouseInput>().flush();
     }
 }

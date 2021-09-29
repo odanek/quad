@@ -10,17 +10,32 @@ pub enum MouseButton {
     Other(u16),
 }
 
+impl From<winit::event::MouseButton> for MouseButton {
+    fn from(button: winit::event::MouseButton) -> Self {
+        match button {
+            winit::event::MouseButton::Left => MouseButton::Left,
+            winit::event::MouseButton::Right => MouseButton::Right,
+            winit::event::MouseButton::Middle => MouseButton::Middle,
+            winit::event::MouseButton::Other(val) => MouseButton::Other(val),
+        }
+    }
+}
+
 pub struct MouseInput {
     buttons: Buttons<MouseButton>,
 }
 
-impl MouseInput {
-    pub(crate) fn press(&mut self, button: MouseButton) {
-        self.buttons.press(button);
+impl Default for MouseInput {
+    fn default() -> Self {
+        Self {
+            buttons: Default::default(),
+        }
     }
+}
 
-    pub(crate) fn release(&mut self, button: MouseButton) {
-        self.buttons.release(button);
+impl MouseInput {
+    pub(crate) fn toggle(&mut self, button: MouseButton, state: ButtonState) {
+        self.buttons.toggle(button, state);
     }
 
     pub(crate) fn flush(&mut self) {

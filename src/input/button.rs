@@ -7,6 +7,15 @@ pub enum ButtonState {
     Released,
 }
 
+impl From<winit::event::ElementState> for ButtonState {
+    fn from(element_state: winit::event::ElementState) -> Self {
+        match element_state {
+            winit::event::ElementState::Pressed => ButtonState::Pressed,
+            winit::event::ElementState::Released => ButtonState::Released,
+        }
+    }
+}
+
 impl ButtonState {
     pub fn is_pressed(&self) -> bool {
         matches!(self, ButtonState::Pressed)
@@ -41,6 +50,13 @@ where
     pub(crate) fn release(&mut self, button: T) {
         self.pressed.remove(&button);
         self.just_released.insert(button);
+    }
+
+    pub(crate) fn toggle(&mut self, button: T, state: ButtonState) {
+        match state {
+            ButtonState::Pressed => self.press(button),
+            ButtonState::Released => self.release(button),
+        }
     }
 
     pub(crate) fn flush(&mut self) {

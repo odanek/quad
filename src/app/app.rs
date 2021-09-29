@@ -36,7 +36,10 @@ impl App {
                 }
                 Event::WindowEvent { event, .. } => match event {
                     WindowEvent::KeyboardInput { input, .. } => {
-                        context.handle_keyboard_event(input)
+                        context.handle_keyboard_event(input);
+                    }
+                    WindowEvent::MouseInput { button, state, .. } => {
+                        context.handle_mouse_button(button, state);
                     }
                     WindowEvent::CloseRequested => exit = true,
                     WindowEvent::Resized(size) => context.handle_window_resize(size),
