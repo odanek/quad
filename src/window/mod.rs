@@ -1,8 +1,13 @@
 mod builder;
+pub mod event;
 mod size;
 
 pub use builder::WindowBuilder; // TODO: Shouldn't be exposed from the crate
 pub use size::{FullScreen, LogicalSize, PhysicalSize, Size};
+
+// TODO: Window ids, multiple window handling
+#[derive(Debug, Copy, Clone)]
+pub struct WindowId(u32);
 
 pub struct Window {
     _window: winit::window::Window,

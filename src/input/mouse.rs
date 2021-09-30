@@ -1,4 +1,4 @@
-use crate::ty::Vec2;
+use crate::{ty::Vec2, window::WindowId};
 
 use super::button::{ButtonState, Buttons};
 
@@ -77,16 +77,24 @@ pub struct MouseWheel {
     pub y: f32,
 }
 
-// TODO: Handle in AppContext
-// pub fn mouse_button_input_system(
-//     mut mouse_button_input: ResMut<Input<MouseButton>>,
-//     mut mouse_button_input_events: EventReader<MouseButtonInput>,
-// ) {
-//     mouse_button_input.clear();
-//     for event in mouse_button_input_events.iter() {
-//         match event.state {
-//             MouseButtonState::Pressed => mouse_button_input.press(event.button),
-//             MouseButtonState::Released => mouse_button_input.release(event.button),
-//         }
-//     }
-// }
+#[derive(Debug, Clone)]
+pub struct CursorMoved {
+    pub id: WindowId,
+    pub position: Vec2,
+}
+
+#[derive(Debug, Clone)]
+pub struct CursorEntered {
+    pub id: WindowId,
+}
+
+#[derive(Debug, Clone)]
+pub struct CursorLeft {
+    pub id: WindowId,
+}
+
+#[derive(Debug, Clone)]
+pub struct ReceivedCharacter {
+    pub id: WindowId,
+    pub char: char,
+}
