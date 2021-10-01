@@ -1,6 +1,6 @@
 use crate::{
-    ecs::World,
-    input::{KeyboardInput, MouseInput},
+    ecs::{Events, World},
+    input::{KeyboardInput, MouseButtonInput, MouseInput},
     time::Time,
 };
 
@@ -79,6 +79,12 @@ impl AppContext {
         self.world
             .resource_mut::<MouseInput>()
             .toggle(button.into(), state.into());
+        self.world
+            .resource_mut::<Events<MouseButtonInput>>()
+            .send(MouseButtonInput {
+                button: button.into(),
+                state: state.into(),
+            });
     }
 
     fn before_scene_update(&mut self) {

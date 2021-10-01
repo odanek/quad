@@ -60,6 +60,12 @@ impl MouseInput {
 }
 
 #[derive(Debug, Clone)]
+pub struct MouseButtonInput {
+    pub button: MouseButton,
+    pub state: ButtonState,
+}
+
+#[derive(Debug, Clone)]
 pub struct MouseMotion {
     pub delta: Vec2,
 }
