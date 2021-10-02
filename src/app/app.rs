@@ -14,7 +14,11 @@ pub struct App {
 }
 
 impl App {
-    pub(crate) fn new(window_spec: WindowBuilder, world: Box<World>, events: Box<AppEvents>) -> Self {
+    pub(crate) fn new(
+        window_spec: WindowBuilder,
+        world: Box<World>,
+        events: Box<AppEvents>,
+    ) -> Self {
         let event_loop = winit::event_loop::EventLoop::new();
         let main_window_id = WindowId::new(0);
         let main_window = window_spec.build(main_window_id, &event_loop);

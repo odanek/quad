@@ -1,4 +1,8 @@
-use crate::{ecs::{Event, World}, input::{KeyInput, MouseButtonInput}, window::WindowBuilder};
+use crate::{
+    ecs::{Event, World},
+    input::{KeyInput, MouseButtonInput},
+    window::WindowBuilder,
+};
 
 use super::{event::AppEvents, App};
 
