@@ -1,4 +1,4 @@
-use super::{Size, Window};
+use super::{Size, Window, WindowId};
 
 #[derive(Default)]
 pub struct WindowBuilder {
@@ -17,8 +17,11 @@ impl WindowBuilder {
         self
     }
 
-    pub fn build(&self) -> Window {
-        let event_loop = winit::event_loop::EventLoop::new();
+    pub(crate) fn build(
+        &self,
+        id: WindowId,
+        event_loop: &winit::event_loop::EventLoop<()>,
+    ) -> Window {
         let mut builder = winit::window::WindowBuilder::new().with_title(self.title.clone());
 
         match self.size {
@@ -36,10 +39,7 @@ impl WindowBuilder {
             }
         }
 
-        let window = builder.build(&event_loop).expect("Unable to create window");
-        Window {
-            _window: window,
-            event_loop,
-        }
+        let winit_window = builder.build(event_loop).expect("Unable to create window");
+        Window { id, winit_window }
     }
 }

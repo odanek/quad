@@ -1,6 +1,6 @@
 use crate::{
     ecs::{Events, World},
-    input::{KeyboardInput, MouseButtonInput, MouseInput},
+    input::{KeyInput, KeyboardInput, MouseButtonInput, MouseInput},
     time::Time,
 };
 
@@ -9,11 +9,11 @@ use super::{event::AppEvents, scene::SceneContext, Scene, SceneResult};
 pub struct AppContext {
     world: Box<World>,
     scene: Box<dyn Scene>,
-    events: AppEvents,
+    events: Box<AppEvents>,
 }
 
 impl AppContext {
-    pub fn new(world: Box<World>, events: AppEvents, scene: Box<dyn Scene>) -> Self {
+    pub fn new(world: Box<World>, events: Box<AppEvents>, scene: Box<dyn Scene>) -> Self {
         Self {
             world,
             events,
@@ -69,6 +69,13 @@ impl AppContext {
                 .resource_mut::<KeyboardInput>()
                 .toggle(keycode.into(), input.state.into());
         }
+        self.world
+            .resource_mut::<Events<KeyInput>>()
+            .send(KeyInput {
+                scan_code: input.scancode,
+                state: input.state.into(),
+                key_code: input.virtual_keycode.map(Into::into),
+            });
     }
 
     pub fn handle_mouse_button(

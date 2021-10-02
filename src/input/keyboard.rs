@@ -40,3 +40,10 @@ impl KeyboardInput {
         self.buttons.button_state(key)
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct KeyInput {
+    pub scan_code: u32,
+    pub key_code: Option<KeyCode>,
+    pub state: ButtonState,
+}

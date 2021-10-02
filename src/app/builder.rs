@@ -1,15 +1,11 @@
-use crate::{
-    ecs::{Event, World},
-    input::MouseButtonInput,
-    window::WindowBuilder,
-};
+use crate::{ecs::{Event, World}, input::{KeyInput, MouseButtonInput}, window::WindowBuilder};
 
 use super::{event::AppEvents, App};
 
 pub struct AppBuilder {
     main_window: WindowBuilder,
     world: Box<World>,
-    events: AppEvents,
+    events: Box<AppEvents>,
 }
 
 impl Default for AppBuilder {
@@ -25,7 +21,7 @@ impl Default for AppBuilder {
 
 impl AppBuilder {
     pub(crate) fn add_default_events(self) -> Self {
-        self.add_event::<MouseButtonInput>()
+        self.add_event::<MouseButtonInput>().add_event::<KeyInput>()
     }
 
     pub fn main_window(mut self, window: WindowBuilder) -> Self {
@@ -39,10 +35,6 @@ impl AppBuilder {
     }
 
     pub fn build(self) -> App {
-        App {
-            main_window: self.main_window.build(),
-            world: self.world,
-            events: self.events,
-        }
+        App::new(self.main_window, self.world, self.events)
     }
 }
