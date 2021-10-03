@@ -1,30 +1,37 @@
 use crate::{
-    ecs::{Events, World},
+    ecs::{Event, Events, Resource, World},
     input::{KeyInput, KeyboardInput, MouseButtonInput, MouseInput},
     time::Time,
+    window::Window,
 };
 
 use super::{event::AppEvents, scene::SceneContext, Scene, SceneResult};
 
 pub struct AppContext {
     world: Box<World>,
-    scene: Box<dyn Scene>,
     events: Box<AppEvents>,
+    main_window: Window,
+    scene: Box<dyn Scene>,
 }
 
 impl AppContext {
-    pub fn new(world: Box<World>, events: Box<AppEvents>, scene: Box<dyn Scene>) -> Self {
-        Self {
+    pub fn new(
+        world: Box<World>,
+        events: Box<AppEvents>,
+        scene: Box<dyn Scene>,
+        main_window: Window,
+    ) -> Self {
+        let mut ctx = Self {
+            main_window,
             world,
             events,
             scene,
-        }
-    }
+        };
 
-    pub fn insert_resources(&mut self) {
-        self.world.insert_resource(KeyboardInput::default());
-        self.world.insert_resource(MouseInput::default());
-        self.world.insert_resource(Time::default());
+        ctx.add_default_resources();
+        ctx.add_default_events();
+
+        ctx
     }
 
     pub fn start_scene(&mut self) {
@@ -53,6 +60,14 @@ impl AppContext {
         }
 
         result
+    }
+
+    pub fn find_window(&self, id: winit::window::WindowId) -> Option<&Window> {
+        if self.main_window.winit_id() == id {
+            Some(&self.main_window)
+        } else {
+            None
+        }
     }
 
     pub fn handle_window_resize(&mut self, _size: winit::dpi::PhysicalSize<u32>) {
@@ -115,5 +130,24 @@ impl AppContext {
     fn flush_input_events(&mut self) {
         self.world.resource_mut::<KeyboardInput>().flush();
         self.world.resource_mut::<MouseInput>().flush();
+    }
+
+    fn add_default_resources(&mut self) {
+        self.add_default_resource::<KeyboardInput>();
+        self.add_default_resource::<MouseInput>();
+        self.add_default_resource::<Time>();
+    }
+
+    fn add_default_events(&mut self) {
+        self.add_default_event::<MouseButtonInput>();
+        self.add_default_event::<KeyInput>();
+    }
+
+    fn add_default_resource<T: Resource + Default>(&mut self) {
+        self.world.insert_resource(T::default());
+    }
+
+    fn add_default_event<T: Event>(&mut self) {
+        self.events.add::<T>(&mut self.world);
     }
 }
