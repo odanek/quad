@@ -32,7 +32,7 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                 window_id: winit_window_id,
                 ..
             } => {
-                let _window_id = if let Some(window) = context.find_window(winit_window_id) {
+                let window_id = if let Some(window) = context.get_window(winit_window_id) {
                     window.id()
                 } else {
                     log::debug!(
@@ -44,13 +44,15 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
 
                 match event {
                     WindowEvent::KeyboardInput { input, .. } => {
-                        context.handle_keyboard_event(input);
+                        context.handle_keyboard_event(input)
                     }
                     WindowEvent::MouseInput { button, state, .. } => {
-                        context.handle_mouse_button(button, state);
+                        context.handle_mouse_button(button, state)
                     }
                     WindowEvent::CloseRequested => exit = true,
-                    WindowEvent::Resized(size) => context.handle_window_resize(size),
+                    WindowEvent::Resized(size) => {
+                        context.handle_window_resize(window_id, size.width, size.height)
+                    }
                     _ => (),
                 }
             }

@@ -2,7 +2,7 @@ use crate::{
     ecs::{Event, Events, Resource, World},
     input::{KeyInput, KeyboardInput, MouseButtonInput, MouseInput},
     time::Time,
-    window::Window,
+    window::{event::WindowResized, Window, WindowId},
 };
 
 use super::{event::AppEvents, scene::SceneContext, Scene, SceneResult};
@@ -62,7 +62,7 @@ impl AppContext {
         result
     }
 
-    pub fn find_window(&self, id: winit::window::WindowId) -> Option<&Window> {
+    pub fn get_window(&self, id: winit::window::WindowId) -> Option<&Window> {
         if self.main_window.winit_id() == id {
             Some(&self.main_window)
         } else {
@@ -70,7 +70,19 @@ impl AppContext {
         }
     }
 
-    pub fn handle_window_resize(&mut self, _size: winit::dpi::PhysicalSize<u32>) {
+    pub fn handle_window_resize(&mut self, id: WindowId, width: u32, height: u32) {
+        debug_assert!(id == self.main_window.id());
+
+        let main_window = &mut self.main_window;
+        main_window.update_physical_size(width, height);
+
+        let mut resize_events = self.world.resource_mut::<Events<WindowResized>>();
+        resize_events.send(WindowResized {
+            id,
+            width: main_window.width(),
+            height: main_window.height(),
+        });
+
         // if size.width != 0 || size.height != 0 {
         //     // Resized
         // } else {
@@ -141,6 +153,7 @@ impl AppContext {
     fn add_default_events(&mut self) {
         self.add_default_event::<MouseButtonInput>();
         self.add_default_event::<KeyInput>();
+        self.add_default_event::<WindowResized>()
     }
 
     fn add_default_resource<T: Resource + Default>(&mut self) {
