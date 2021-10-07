@@ -2,10 +2,7 @@ use std::ops::Mul;
 
 use cgm::{ElementWise, InnerSpace, One, Zero};
 
-use crate::{
-    transform::Transform,
-    ty::{Mat3, Mat4, Quat, Vec3},
-};
+use crate::{ecs::Component, transform::Transform, ty::{Mat3, Mat4, Quat, Vec3}};
 
 use super::transform::IDENTITY_SCALE;
 
@@ -15,6 +12,7 @@ pub struct GlobalTransform {
     pub rotation: Quat,
     pub scale: Vec3,
 }
+impl Component for GlobalTransform {}
 
 impl GlobalTransform {
     #[doc(hidden)]

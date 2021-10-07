@@ -19,7 +19,7 @@ pub struct Res<'w, T: Resource> {
     pub(crate) system_ticks: SystemTicks,
 }
 
-impl<'w, T: Component> Res<'w, T> {
+impl<'w, T: Resource> Res<'w, T> {
     #[inline]
     pub(crate) fn new(
         value: &'w T,

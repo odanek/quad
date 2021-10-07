@@ -9,7 +9,6 @@ use crate::ecs::query::access::AccessIndex;
 use super::type_info::TypeInfo;
 
 pub trait Component: Send + Sync + 'static {}
-impl<T: Send + Sync + 'static> Component for T {}
 
 #[derive(Debug, Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
 pub struct ComponentId(usize);

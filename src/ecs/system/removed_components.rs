@@ -60,21 +60,25 @@ impl<'w, 's, T: Component> SystemParamFetch<'w, 's> for RemovedComponentsState<T
 
 #[cfg(test)]
 mod test {
-    use crate::ecs::{Entity, IntoSystem, RemovedComponents, Res, ResMut, Scheduler, World};
+    use crate::ecs::{Component, Entity, IntoSystem, RemovedComponents, Res, ResMut, Scheduler, World};
+
+    struct Despawned(Entity);
+    struct Text(String);
+    impl Component for Text {}
+    struct Number(i32);
+    impl Component for Number {}
 
     #[test]
     fn remove_tracking() {
         let mut world = World::new();
-        struct Despawned(Entity);
-        let a = world.spawn().insert_bundle(("abc", 123)).id();
-        world.spawn().insert_bundle(("abc", 123));
+        let a = world.spawn().insert_bundle((Text("abc".to_owned()), Number(123))).id();        
         world.insert_resource(false);
         world.insert_resource(Despawned(a));
 
         world.entity_mut(a).despawn();
 
         fn validate_removed(
-            removed_i32: RemovedComponents<i32>,
+            removed_i32: RemovedComponents<Number>,
             despawned: Res<Despawned>,
             mut ran: ResMut<bool>,
         ) {

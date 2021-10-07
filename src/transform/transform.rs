@@ -1,6 +1,6 @@
 use std::ops::Mul;
 
-use crate::ty::{Mat3, Mat4, Quat, Vec3};
+use crate::{ecs::Component, ty::{Mat3, Mat4, Quat, Vec3}};
 use cgm::{ElementWise, InnerSpace, One, Zero};
 
 use super::global_transform::GlobalTransform;
@@ -11,6 +11,7 @@ pub struct Transform {
     pub rotation: Quat,
     pub scale: Vec3,
 }
+impl Component for Transform {}
 
 pub const IDENTITY_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
 

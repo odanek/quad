@@ -1,9 +1,10 @@
 use std::ops::Deref;
 
-use crate::ecs::Entity;
+use crate::ecs::{Component, Entity};
 
 #[derive(Eq, PartialEq, Clone, Debug, Default)]
 pub struct Children(pub(crate) Vec<Entity>);
+impl Component for Children {}
 
 impl Children {
     pub fn with(entity: &[Entity]) -> Self {

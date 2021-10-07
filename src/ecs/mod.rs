@@ -10,6 +10,7 @@ mod storage;
 mod system;
 mod world;
 
+pub use quad_macros::Component;
 pub use component::{Component, ComponentId, Res, ResMut, Resource, ResourceId};
 pub use entity::Entity;
 pub use event::{Event, EventId, EventReader, EventWriter, Events};
