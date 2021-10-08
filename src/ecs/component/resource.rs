@@ -9,7 +9,6 @@ use crate::ecs::{query::access::AccessIndex, system::SystemTicks};
 use super::{ComponentTicks, Res, ResMut, Tick};
 
 pub trait Resource: Send + Sync + 'static {}
-impl<T: Send + Sync + 'static> Resource for T {}
 
 #[derive(Debug, Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
 pub struct ResourceId(usize);

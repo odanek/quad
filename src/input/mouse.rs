@@ -1,4 +1,4 @@
-use crate::{ty::Vec2, window::WindowId};
+use crate::{ecs::Resource, ty::Vec2, window::WindowId};
 
 use super::button::{ButtonState, Buttons};
 
@@ -32,6 +32,8 @@ impl Default for MouseInput {
         }
     }
 }
+
+impl Resource for MouseInput {}
 
 impl MouseInput {
     pub(crate) fn toggle(&mut self, button: MouseButton, state: ButtonState) {

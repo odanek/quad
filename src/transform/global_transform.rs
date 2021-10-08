@@ -2,7 +2,11 @@ use std::ops::Mul;
 
 use cgm::{ElementWise, InnerSpace, One, Zero};
 
-use crate::{ecs::Component, transform::Transform, ty::{Mat3, Mat4, Quat, Vec3}};
+use crate::{
+    ecs::Component,
+    transform::Transform,
+    ty::{Mat3, Mat4, Quat, Vec3},
+};
 
 use super::transform::IDENTITY_SCALE;
 

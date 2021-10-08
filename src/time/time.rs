@@ -1,5 +1,7 @@
 use std::time::{Duration, Instant};
 
+use crate::ecs::Resource;
+
 #[derive(Debug, Clone)]
 pub struct Time {
     delta: Duration,
@@ -22,6 +24,8 @@ impl Default for Time {
         }
     }
 }
+
+impl Resource for Time {}
 
 impl Time {
     #[inline]

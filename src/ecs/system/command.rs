@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use crate::ecs::{
     component::{Bundle, Component, Tick},
     entity::Entities,
-    Entity, World,
+    Entity, Resource, World,
 };
 
 use super::{
@@ -76,11 +76,11 @@ impl<'w, 's> Commands<'w, 's> {
         }
     }
 
-    pub fn insert_resource<T: Component>(&mut self, resource: T) {
+    pub fn insert_resource<T: Resource>(&mut self, resource: T) {
         self.queue.push(InsertResource { resource })
     }
 
-    pub fn remove_resource<T: Component>(&mut self) {
+    pub fn remove_resource<T: Resource>(&mut self) {
         self.queue.push(RemoveResource::<T> {
             phantom: PhantomData,
         });
@@ -283,21 +283,21 @@ where
     }
 }
 
-pub struct InsertResource<T: Component> {
+pub struct InsertResource<T: Resource> {
     pub resource: T,
 }
 
-impl<T: Component> Command for InsertResource<T> {
+impl<T: Resource> Command for InsertResource<T> {
     fn write(self: Box<Self>, world: &mut World) {
         world.insert_resource(self.resource);
     }
 }
 
-pub struct RemoveResource<T: Component> {
+pub struct RemoveResource<T: Resource> {
     pub phantom: PhantomData<T>,
 }
 
-impl<T: Component> Command for RemoveResource<T> {
+impl<T: Resource> Command for RemoveResource<T> {
     fn write(self: Box<Self>, world: &mut World) {
         world.remove_resource::<T>();
     }

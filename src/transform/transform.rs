@@ -1,6 +1,9 @@
 use std::ops::Mul;
 
-use crate::{ecs::Component, ty::{Mat3, Mat4, Quat, Vec3}};
+use crate::{
+    ecs::Component,
+    ty::{Mat3, Mat4, Quat, Vec3},
+};
 use cgm::{ElementWise, InnerSpace, One, Zero};
 
 use super::global_transform::GlobalTransform;

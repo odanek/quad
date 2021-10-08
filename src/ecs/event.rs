@@ -1,6 +1,6 @@
 use std::{fmt, marker::PhantomData};
 
-use super::ResMut;
+use super::{ResMut, Resource};
 
 pub trait Event: Send + Sync + 'static {}
 impl<T: Send + Sync + 'static> Event for T {}
@@ -69,6 +69,8 @@ impl<T> Default for Events<T> {
         }
     }
 }
+
+impl<T> Resource for Events<T> where T: Send + Sync + 'static {}
 
 fn map_instance_event_with_id<T>(event_instance: &EventInstance<T>) -> (&T, EventId<T>) {
     (&event_instance.event, event_instance.event_id)

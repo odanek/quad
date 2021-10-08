@@ -136,12 +136,12 @@ impl World {
 
     #[inline]
 
-    pub fn is_resource_added<T: Component>(&self) -> bool {
+    pub fn is_resource_added<T: Resource>(&self) -> bool {
         self.get_resource::<T>().unwrap().is_added()
     }
 
     #[inline]
-    pub fn is_resource_changed<T: Component>(&self) -> bool {
+    pub fn is_resource_changed<T: Resource>(&self) -> bool {
         self.get_resource::<T>().unwrap().is_changed()
     }
 

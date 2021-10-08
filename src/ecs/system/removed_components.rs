@@ -60,9 +60,16 @@ impl<'w, 's, T: Component> SystemParamFetch<'w, 's> for RemovedComponentsState<T
 
 #[cfg(test)]
 mod test {
-    use crate::ecs::{Component, Entity, IntoSystem, RemovedComponents, Res, ResMut, Scheduler, World};
+    use crate::ecs::{
+        Component, Entity, IntoSystem, RemovedComponents, Res, ResMut, Resource, Scheduler, World,
+    };
+
+    struct Ran(pub bool);
+    impl Resource for Ran {}
 
     struct Despawned(Entity);
+    impl Resource for Despawned {}
+
     struct Text(String);
     impl Component for Text {}
     struct Number(i32);
@@ -71,8 +78,11 @@ mod test {
     #[test]
     fn remove_tracking() {
         let mut world = World::new();
-        let a = world.spawn().insert_bundle((Text("abc".to_owned()), Number(123))).id();        
-        world.insert_resource(false);
+        let a = world
+            .spawn()
+            .insert_bundle((Text("abc".to_owned()), Number(123)))
+            .id();
+        world.insert_resource(Ran(false));
         world.insert_resource(Despawned(a));
 
         world.entity_mut(a).despawn();
@@ -80,7 +90,7 @@ mod test {
         fn validate_removed(
             removed_i32: RemovedComponents<Number>,
             despawned: Res<Despawned>,
-            mut ran: ResMut<bool>,
+            mut ran: ResMut<Ran>,
         ) {
             assert_eq!(
                 removed_i32.iter().collect::<Vec<_>>(),
@@ -88,10 +98,10 @@ mod test {
                 "despawning results in 'removed component' state"
             );
 
-            *ran = true;
+            ran.0 = true;
         }
 
         Scheduler::single(validate_removed.system(&mut world)).run(&mut world);
-        assert!(*world.get_resource::<bool>().unwrap(), "system ran");
+        assert!(world.get_resource::<Ran>().unwrap().0, "system ran");
     }
 }

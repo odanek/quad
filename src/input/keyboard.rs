@@ -1,3 +1,5 @@
+use crate::ecs::Resource;
+
 use super::{
     button::{ButtonState, Buttons},
     KeyCode,
@@ -14,6 +16,8 @@ impl Default for KeyboardInput {
         }
     }
 }
+
+impl Resource for KeyboardInput {}
 
 impl KeyboardInput {
     pub(crate) fn toggle(&mut self, key: KeyCode, state: ButtonState) {
