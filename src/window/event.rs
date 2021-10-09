@@ -1,3 +1,5 @@
+use crate::ecs::Event;
+
 use super::WindowId;
 
 #[derive(Debug, Clone)]
@@ -6,6 +8,8 @@ pub struct WindowResized {
     pub width: f32,
     pub height: f32,
 }
+
+impl Event for WindowResized {}
 
 #[derive(Debug, Clone)]
 pub struct CloseWindow {

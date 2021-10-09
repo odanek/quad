@@ -3,7 +3,6 @@ use std::{fmt, marker::PhantomData};
 use super::{ResMut, Resource};
 
 pub trait Event: Send + Sync + 'static {}
-impl<T: Send + Sync + 'static> Event for T {}
 
 #[derive(Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct EventId<T> {
@@ -269,6 +268,8 @@ mod tests {
     struct TestEvent {
         i: usize,
     }
+
+    impl Event for TestEvent {}
 
     pub struct ManualEventReader<T> {
         last_event_count: usize,

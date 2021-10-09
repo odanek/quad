@@ -1,4 +1,4 @@
-use crate::ecs::Resource;
+use crate::ecs::{Event, Resource};
 
 use super::{
     button::{ButtonState, Buttons},
@@ -51,3 +51,5 @@ pub struct KeyInput {
     pub key_code: Option<KeyCode>,
     pub state: ButtonState,
 }
+
+impl Event for KeyInput {}

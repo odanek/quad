@@ -1,8 +1,4 @@
-use crate::ecs::{
-    component::{Resource, Tick},
-    system::function_system::SystemMeta,
-    FromWorld, World,
-};
+use crate::ecs::{component::Tick, system::function_system::SystemMeta, FromWorld, World};
 use std::{
     fmt::Debug,
     ops::{Deref, DerefMut},
@@ -10,9 +6,12 @@ use std::{
 
 use super::system_param::{SystemParam, SystemParamFetch, SystemParamState};
 
-pub struct Local<'a, T: Resource>(&'a mut T);
+pub trait LocalResource: Send + Sync + 'static {}
+impl<T> LocalResource for T where T: Send + Sync + 'static {}
 
-impl<'a, T: Resource> Debug for Local<'a, T>
+pub struct Local<'a, T: LocalResource>(&'a mut T);
+
+impl<'a, T: LocalResource> Debug for Local<'a, T>
 where
     T: Debug,
 {
@@ -21,7 +20,7 @@ where
     }
 }
 
-impl<'a, T: Resource> Deref for Local<'a, T> {
+impl<'a, T: LocalResource> Deref for Local<'a, T> {
     type Target = T;
 
     #[inline]
@@ -30,26 +29,26 @@ impl<'a, T: Resource> Deref for Local<'a, T> {
     }
 }
 
-impl<'a, T: Resource> DerefMut for Local<'a, T> {
+impl<'a, T: LocalResource> DerefMut for Local<'a, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.0
     }
 }
 
-pub struct LocalState<T: Resource>(T);
+pub struct LocalState<T: LocalResource>(T);
 
-impl<'a, T: Resource + FromWorld> SystemParam for Local<'a, T> {
+impl<'a, T: LocalResource + FromWorld> SystemParam for Local<'a, T> {
     type Fetch = LocalState<T>;
 }
 
-impl<T: Resource + FromWorld> SystemParamState for LocalState<T> {
+impl<T: LocalResource + FromWorld> SystemParamState for LocalState<T> {
     fn new(world: &mut World, _system_meta: &mut SystemMeta) -> Self {
         Self(T::from_world(world))
     }
 }
 
-impl<'w, 's, T: Resource + FromWorld> SystemParamFetch<'w, 's> for LocalState<T> {
+impl<'w, 's, T: LocalResource + FromWorld> SystemParamFetch<'w, 's> for LocalState<T> {
     type Item = Local<'s, T>;
 
     #[inline]

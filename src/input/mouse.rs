@@ -1,4 +1,8 @@
-use crate::{ecs::Resource, ty::Vec2, window::WindowId};
+use crate::{
+    ecs::{Event, Resource},
+    ty::Vec2,
+    window::WindowId,
+};
 
 use super::button::{ButtonState, Buttons};
 
@@ -66,6 +70,8 @@ pub struct MouseButtonInput {
     pub button: MouseButton,
     pub state: ButtonState,
 }
+
+impl Event for MouseButtonInput {}
 
 #[derive(Debug, Clone)]
 pub struct MouseMotion {
