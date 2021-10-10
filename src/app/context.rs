@@ -1,6 +1,6 @@
 use crate::{
     ecs::{Event, Events, Resource, World},
-    input::{KeyInput, KeyboardInput, MouseButtonInput, MouseInput},
+    input::{CursorEntered, CursorLeft, KeyInput, KeyboardInput, MouseButtonInput, MouseInput},
     time::Time,
     window::{event::WindowResized, Window, WindowId},
 };
@@ -121,6 +121,23 @@ impl AppContext {
             });
     }
 
+    pub fn handle_cursor_enter(&mut self, id: WindowId) {
+        debug_assert!(id == self.main_window.id());
+        self.world
+            .resource_mut::<Events<CursorEntered>>()
+            .send(CursorEntered { id });
+    }
+
+    pub fn handle_cursor_leave(&mut self, id: WindowId) {
+        debug_assert!(id == self.main_window.id());
+
+        self.main_window.update_cursor_position(None);
+
+        self.world
+            .resource_mut::<Events<CursorLeft>>()
+            .send(CursorLeft { id });
+    }
+
     fn before_scene_update(&mut self) {
         self.advance_time();
         self.events.update(&mut self.world);
@@ -151,9 +168,11 @@ impl AppContext {
     }
 
     fn add_default_events(&mut self) {
-        self.add_default_event::<MouseButtonInput>();
+        self.add_default_event::<WindowResized>();
         self.add_default_event::<KeyInput>();
-        self.add_default_event::<WindowResized>()
+        self.add_default_event::<MouseButtonInput>();
+        self.add_default_event::<CursorEntered>();
+        self.add_default_event::<CursorLeft>();
     }
 
     fn add_default_resource<T: Resource + Default>(&mut self) {

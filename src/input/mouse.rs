@@ -102,11 +102,14 @@ pub struct CursorEntered {
     pub id: WindowId,
 }
 
+impl Event for CursorEntered {}
+
 #[derive(Debug, Clone)]
 pub struct CursorLeft {
     pub id: WindowId,
 }
 
+impl Event for CursorLeft {}
 #[derive(Debug, Clone)]
 pub struct ReceivedCharacter {
     pub id: WindowId,

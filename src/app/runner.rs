@@ -53,6 +53,12 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                     WindowEvent::Resized(size) => {
                         context.handle_window_resize(window_id, size.width, size.height)
                     }
+                    WindowEvent::CursorEntered { .. } => {
+                        context.handle_cursor_enter(window_id);
+                    }
+                    WindowEvent::CursorLeft { .. } => {
+                        context.handle_cursor_leave(window_id);
+                    }
                     _ => (),
                 }
             }

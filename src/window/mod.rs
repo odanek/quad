@@ -5,6 +5,8 @@ mod size;
 pub(crate) use builder::WindowBuilder;
 pub use size::{FullScreen, LogicalSize, PhysicalSize, Size};
 
+use crate::ty::Vec2;
+
 // TODO: Window ids, multiple window handling
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct WindowId(u32);
@@ -20,6 +22,7 @@ pub struct Window {
     physical_width: u32,
     physical_height: u32,
     backend_scale_factor: f64,
+    cursor_position: Option<Vec2>,
     winit_window: winit::window::Window,
 }
 
@@ -52,6 +55,11 @@ impl Window {
     pub(crate) fn update_physical_size(&mut self, width: u32, height: u32) {
         self.physical_width = width;
         self.physical_height = height;
+    }
+
+    #[inline]
+    pub(crate) fn update_cursor_position(&mut self, position: Option<Vec2>) {
+        self.cursor_position = position;
     }
 
     #[inline]
