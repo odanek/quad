@@ -78,6 +78,8 @@ pub struct MouseMotion {
     pub delta: Vec2,
 }
 
+impl Event for MouseMotion {}
+
 #[derive(Debug, Clone, Copy)]
 pub enum MouseScrollUnit {
     Line,
@@ -91,11 +93,15 @@ pub struct MouseWheel {
     pub y: f32,
 }
 
+impl Event for MouseWheel {}
+
 #[derive(Debug, Clone)]
 pub struct CursorMoved {
     pub id: WindowId,
     pub position: Vec2,
 }
+
+impl Event for CursorMoved {}
 
 #[derive(Debug, Clone)]
 pub struct CursorEntered {
@@ -110,8 +116,11 @@ pub struct CursorLeft {
 }
 
 impl Event for CursorLeft {}
+
 #[derive(Debug, Clone)]
 pub struct ReceivedCharacter {
     pub id: WindowId,
     pub char: char,
 }
+
+impl Event for ReceivedCharacter {}
