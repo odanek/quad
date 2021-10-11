@@ -16,10 +16,14 @@ pub struct CloseWindow {
     pub id: WindowId,
 }
 
+impl Event for CloseWindow {}
+
 #[derive(Debug, Clone)]
 pub struct WindowCreated {
     pub id: WindowId,
 }
+
+impl Event for WindowCreated {}
 
 #[derive(Debug, Clone)]
 pub struct WindowFocused {
@@ -27,11 +31,15 @@ pub struct WindowFocused {
     pub focused: bool,
 }
 
+impl Event for WindowFocused {}
+
 #[derive(Debug, Clone)]
 pub struct WindowScaleFactorChanged {
     pub id: WindowId,
     pub scale_factor: f64,
 }
+
+impl Event for WindowScaleFactorChanged {}
 
 #[derive(Debug, Clone)]
 pub struct WindowBackendScaleFactorChanged {
@@ -39,8 +47,12 @@ pub struct WindowBackendScaleFactorChanged {
     pub scale_factor: f64,
 }
 
+impl Event for WindowBackendScaleFactorChanged {}
+
 #[derive(Debug, Clone)]
 pub struct WindowMoved {
     pub id: WindowId,
     pub position: cgm::Vec2<i32>,
 }
+
+impl Event for WindowMoved {}
