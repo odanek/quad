@@ -56,3 +56,11 @@ pub struct WindowMoved {
 }
 
 impl Event for WindowMoved {}
+
+#[derive(Debug, Clone)]
+pub struct ReceivedCharacter {
+    pub id: WindowId,
+    pub char: char,
+}
+
+impl Event for ReceivedCharacter {}

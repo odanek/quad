@@ -59,6 +59,9 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                     WindowEvent::CursorLeft { .. } => {
                         context.handle_cursor_leave(window_id);
                     }
+                    WindowEvent::ReceivedCharacter(c) => {
+                        context.handle_window_character(window_id, c);
+                    }
                     _ => (),
                 }
             }

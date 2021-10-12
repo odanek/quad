@@ -2,7 +2,7 @@ use crate::{
     ecs::{Event, Events, Resource, World},
     input::{CursorEntered, CursorLeft, KeyInput, KeyboardInput, MouseButtonInput, MouseInput},
     time::Time,
-    window::{event::WindowResized, Window, WindowId},
+    window::{ReceivedCharacter, Window, WindowId, WindowResized},
 };
 
 use super::{event::AppEvents, scene::SceneContext, Scene, SceneResult};
@@ -138,6 +138,12 @@ impl AppContext {
             .send(CursorLeft { id });
     }
 
+    pub fn handle_window_character(&mut self, id: WindowId, c: char) {
+        self.world
+            .resource_mut::<Events<ReceivedCharacter>>()
+            .send(ReceivedCharacter { id, char: c });
+    }
+
     fn before_scene_update(&mut self) {
         self.advance_time();
         self.events.update(&mut self.world);
@@ -173,6 +179,7 @@ impl AppContext {
         self.add_default_event::<MouseButtonInput>();
         self.add_default_event::<CursorEntered>();
         self.add_default_event::<CursorLeft>();
+        self.add_default_event::<ReceivedCharacter>();
     }
 
     fn add_default_resource<T: Resource + Default>(&mut self) {

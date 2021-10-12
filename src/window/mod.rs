@@ -1,8 +1,9 @@
 mod builder;
-pub mod event;
+mod event;
 mod size;
 
 pub(crate) use builder::WindowBuilder;
+pub use event::*;
 pub use size::{FullScreen, LogicalSize, PhysicalSize, Size};
 
 use crate::ty::Vec2;
