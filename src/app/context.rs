@@ -1,6 +1,9 @@
 use crate::{
     ecs::{Event, Events, Resource, World},
-    input::{CursorEntered, CursorLeft, KeyInput, KeyboardInput, MouseButtonInput, MouseInput},
+    input::{
+        CursorEntered, CursorLeft, KeyInput, KeyboardInput, MouseButtonInput, MouseInput,
+        MouseScrollUnit, MouseWheel,
+    },
     time::Time,
     window::{ReceivedCharacter, Window, WindowId, WindowResized},
 };
@@ -121,6 +124,29 @@ impl AppContext {
             });
     }
 
+    pub fn handle_mouse_wheel(&mut self, delta: winit::event::MouseScrollDelta) {
+        match delta {
+            winit::event::MouseScrollDelta::LineDelta(x, y) => {
+                self.world
+                    .resource_mut::<Events<MouseWheel>>()
+                    .send(MouseWheel {
+                        unit: MouseScrollUnit::Line,
+                        x,
+                        y,
+                    });
+            }
+            winit::event::MouseScrollDelta::PixelDelta(p) => {
+                self.world
+                    .resource_mut::<Events<MouseWheel>>()
+                    .send(MouseWheel {
+                        unit: MouseScrollUnit::Pixel,
+                        x: p.x as f32,
+                        y: p.y as f32,
+                    });
+            }
+        }
+    }
+
     pub fn handle_cursor_enter(&mut self, id: WindowId) {
         debug_assert!(id == self.main_window.id());
         self.world
@@ -177,6 +203,7 @@ impl AppContext {
         self.add_default_event::<WindowResized>();
         self.add_default_event::<KeyInput>();
         self.add_default_event::<MouseButtonInput>();
+        self.add_default_event::<MouseWheel>();
         self.add_default_event::<CursorEntered>();
         self.add_default_event::<CursorLeft>();
         self.add_default_event::<ReceivedCharacter>();

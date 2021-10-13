@@ -49,6 +49,9 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                     WindowEvent::MouseInput { button, state, .. } => {
                         context.handle_mouse_button(button, state)
                     }
+                    WindowEvent::MouseWheel { delta, .. } => {
+                        context.handle_mouse_wheel(delta);
+                    }
                     WindowEvent::CloseRequested => exit = true,
                     WindowEvent::Resized(size) => {
                         context.handle_window_resize(window_id, size.width, size.height)
