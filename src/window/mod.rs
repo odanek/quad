@@ -25,7 +25,7 @@ pub struct Window {
     backend_scale_factor: f64,
     cursor_position: Option<Vec2>,
     focused: bool,
-    winit_window: winit::window::Window,    
+    winit_window: winit::window::Window,
 }
 
 impl Window {

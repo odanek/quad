@@ -1,7 +1,12 @@
-use crate::{ecs::{Event, Events, Resource, World}, input::{
+use crate::{
+    ecs::{Event, Events, Resource, World},
+    input::{
         CursorEntered, CursorLeft, KeyInput, KeyboardInput, MouseButtonInput, MouseInput,
         MouseScrollUnit, MouseWheel,
-    }, time::Time, window::{ReceivedCharacter, Window, WindowFocused, WindowId, WindowResized}};
+    },
+    time::Time,
+    window::{ReceivedCharacter, Window, WindowFocused, WindowId, WindowResized},
+};
 
 use super::{event::AppEvents, scene::SceneContext, Scene, SceneResult};
 
