@@ -24,10 +24,23 @@ pub struct Window {
     physical_height: u32,
     backend_scale_factor: f64,
     cursor_position: Option<Vec2>,
-    winit_window: winit::window::Window,
+    focused: bool,
+    winit_window: winit::window::Window,    
 }
 
 impl Window {
+    pub(crate) fn new(id: WindowId, winit_window: winit::window::Window) -> Self {
+        Window {
+            id,
+            physical_width: winit_window.inner_size().width,
+            physical_height: winit_window.inner_size().height,
+            backend_scale_factor: winit_window.scale_factor(),
+            cursor_position: None,
+            focused: true,
+            winit_window,
+        }
+    }
+
     #[inline]
     pub fn id(&self) -> WindowId {
         self.id
@@ -48,7 +61,6 @@ impl Window {
         self.backend_scale_factor
     }
 
-    #[inline]
     pub(crate) fn winit_id(&self) -> winit::window::WindowId {
         self.winit_window.id()
     }
@@ -58,9 +70,12 @@ impl Window {
         self.physical_height = height;
     }
 
-    #[inline]
     pub(crate) fn update_cursor_position(&mut self, position: Option<Vec2>) {
         self.cursor_position = position;
+    }
+
+    pub(crate) fn update_focused(&mut self, focused: bool) {
+        self.focused = focused;
     }
 
     #[inline]

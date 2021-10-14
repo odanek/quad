@@ -40,13 +40,6 @@ impl WindowBuilder {
         }
 
         let winit_window = builder.build(event_loop).expect("Unable to create window");
-        Window {
-            id,
-            physical_width: winit_window.inner_size().width,
-            physical_height: winit_window.inner_size().height,
-            backend_scale_factor: winit_window.scale_factor(),
-            cursor_position: None,
-            winit_window,
-        }
+        Window::new(id, winit_window)
     }
 }

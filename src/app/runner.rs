@@ -65,6 +65,9 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                     WindowEvent::ReceivedCharacter(c) => {
                         context.handle_window_character(window_id, c);
                     }
+                    WindowEvent::Focused(focused) => {
+                        context.handle_window_focused(window_id, focused);
+                    }
                     _ => (),
                 }
             }

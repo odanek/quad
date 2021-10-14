@@ -1,12 +1,7 @@
-use crate::{
-    ecs::{Event, Events, Resource, World},
-    input::{
+use crate::{ecs::{Event, Events, Resource, World}, input::{
         CursorEntered, CursorLeft, KeyInput, KeyboardInput, MouseButtonInput, MouseInput,
         MouseScrollUnit, MouseWheel,
-    },
-    time::Time,
-    window::{ReceivedCharacter, Window, WindowId, WindowResized},
-};
+    }, time::Time, window::{ReceivedCharacter, Window, WindowFocused, WindowId, WindowResized}};
 
 use super::{event::AppEvents, scene::SceneContext, Scene, SceneResult};
 
@@ -170,6 +165,15 @@ impl AppContext {
             .send(ReceivedCharacter { id, char: c });
     }
 
+    pub fn handle_window_focused(&mut self, id: WindowId, focused: bool) {
+        debug_assert!(id == self.main_window.id());
+        self.main_window.update_focused(focused);
+
+        self.world
+            .resource_mut::<Events<WindowFocused>>()
+            .send(WindowFocused { id, focused });
+    }
+
     fn before_scene_update(&mut self) {
         self.advance_time();
         self.events.update(&mut self.world);
@@ -207,6 +211,7 @@ impl AppContext {
         self.add_default_event::<CursorEntered>();
         self.add_default_event::<CursorLeft>();
         self.add_default_event::<ReceivedCharacter>();
+        self.add_default_event::<WindowFocused>();
     }
 
     fn add_default_resource<T: Resource + Default>(&mut self) {
