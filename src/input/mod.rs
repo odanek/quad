@@ -8,6 +8,5 @@ pub use gamepad::GamepadInput;
 pub use keyboard::{KeyInput, KeyboardInput};
 pub use keycode::KeyCode;
 pub use mouse::{
-    CursorEntered, CursorLeft, CursorMoved, MouseButton, MouseButtonInput, MouseInput, MouseMotion,
-    MouseScrollUnit, MouseWheel,
+    MouseButton, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit, MouseWheel,
 };

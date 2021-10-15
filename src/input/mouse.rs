@@ -1,7 +1,6 @@
 use crate::{
     ecs::{Event, Resource},
     ty::Vec2,
-    window::WindowId,
 };
 
 use super::button::{ButtonState, Buttons};
@@ -94,33 +93,3 @@ pub struct MouseWheel {
 }
 
 impl Event for MouseWheel {}
-
-#[derive(Debug, Clone)]
-pub struct CursorMoved {
-    pub id: WindowId,
-    pub position: Vec2,
-}
-
-impl Event for CursorMoved {}
-
-#[derive(Debug, Clone)]
-pub struct CursorEntered {
-    pub id: WindowId,
-}
-
-impl Event for CursorEntered {}
-
-#[derive(Debug, Clone)]
-pub struct CursorLeft {
-    pub id: WindowId,
-}
-
-impl Event for CursorLeft {}
-
-#[derive(Debug, Clone)]
-pub struct ReceivedCharacter {
-    pub id: WindowId,
-    pub char: char,
-}
-
-impl Event for ReceivedCharacter {}

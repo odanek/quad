@@ -65,6 +65,10 @@ impl Window {
         self.winit_window.id()
     }
 
+    pub(crate) fn winit_window(&self) -> &winit::window::Window {
+        &self.winit_window
+    }
+
     pub(crate) fn update_physical_size(&mut self, width: u32, height: u32) {
         self.physical_width = width;
         self.physical_height = height;

@@ -1,11 +1,12 @@
 use crate::{
     ecs::{Event, Events, Resource, World},
-    input::{
-        CursorEntered, CursorLeft, KeyInput, KeyboardInput, MouseButtonInput, MouseInput,
-        MouseScrollUnit, MouseWheel,
-    },
+    input::{KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseScrollUnit, MouseWheel},
     time::Time,
-    window::{ReceivedCharacter, Window, WindowFocused, WindowId, WindowResized},
+    ty::Vec2,
+    window::{
+        CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, Window, WindowCloseRequested,
+        WindowFocused, WindowId, WindowResized,
+    },
 };
 
 use super::{event::AppEvents, scene::SceneContext, Scene, SceneResult};
@@ -73,7 +74,13 @@ impl AppContext {
         }
     }
 
-    pub fn handle_window_resize(&mut self, id: WindowId, width: u32, height: u32) {
+    pub fn handle_window_close_requested(&mut self, id: WindowId) {
+        self.world
+            .resource_mut::<Events<WindowCloseRequested>>()
+            .send(WindowCloseRequested { id });
+    }
+
+    pub fn handle_window_resized(&mut self, id: WindowId, width: u32, height: u32) {
         debug_assert!(id == self.main_window.id());
 
         let main_window = &mut self.main_window;
@@ -85,12 +92,6 @@ impl AppContext {
             width: main_window.width(),
             height: main_window.height(),
         });
-
-        // if size.width != 0 || size.height != 0 {
-        //     // Resized
-        // } else {
-        //     // Minimized
-        // }
     }
 
     pub fn handle_keyboard_event(&mut self, input: winit::event::KeyboardInput) {
@@ -147,14 +148,35 @@ impl AppContext {
         }
     }
 
-    pub fn handle_cursor_enter(&mut self, id: WindowId) {
+    pub fn handle_cursor_moved(
+        &mut self,
+        id: WindowId,
+        position: winit::dpi::PhysicalPosition<f64>,
+    ) {
+        debug_assert!(id == self.main_window.id());
+        let winit_window = self.main_window.winit_window();
+        let position = position.to_logical(winit_window.scale_factor());
+        let inner_size = winit_window
+            .inner_size()
+            .to_logical::<f32>(winit_window.scale_factor());
+
+        let y_position = inner_size.height - position.y;
+        let position = Vec2::new(position.x, y_position);
+        self.main_window.update_cursor_position(Some(position));
+
+        self.world
+            .resource_mut::<Events<CursorMoved>>()
+            .send(CursorMoved { id, position });
+    }
+
+    pub fn handle_cursor_entered(&mut self, id: WindowId) {
         debug_assert!(id == self.main_window.id());
         self.world
             .resource_mut::<Events<CursorEntered>>()
             .send(CursorEntered { id });
     }
 
-    pub fn handle_cursor_leave(&mut self, id: WindowId) {
+    pub fn handle_cursor_left(&mut self, id: WindowId) {
         debug_assert!(id == self.main_window.id());
 
         self.main_window.update_cursor_position(None);
@@ -209,10 +231,12 @@ impl AppContext {
     }
 
     fn add_default_events(&mut self) {
+        self.add_default_event::<WindowCloseRequested>();
         self.add_default_event::<WindowResized>();
         self.add_default_event::<KeyInput>();
         self.add_default_event::<MouseButtonInput>();
         self.add_default_event::<MouseWheel>();
+        self.add_default_event::<CursorMoved>();
         self.add_default_event::<CursorEntered>();
         self.add_default_event::<CursorLeft>();
         self.add_default_event::<ReceivedCharacter>();

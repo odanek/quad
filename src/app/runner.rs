@@ -1,3 +1,5 @@
+use winit::event::DeviceEvent;
+
 use crate::app::SceneResult;
 
 use super::{app::AppEventLoop, context::AppContext};
@@ -52,15 +54,27 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                     WindowEvent::MouseWheel { delta, .. } => {
                         context.handle_mouse_wheel(delta);
                     }
-                    WindowEvent::CloseRequested => exit = true,
+                    WindowEvent::CloseRequested => {
+                        context.handle_window_close_requested(window_id);
+                        exit = true;
+                    }
                     WindowEvent::Resized(size) => {
-                        context.handle_window_resize(window_id, size.width, size.height)
+                        context.handle_window_resized(window_id, size.width, size.height)
+                    }
+                    WindowEvent::Moved(position) => {
+                        // TODO
+                    }
+                    WindowEvent::CursorMoved { position, .. } => {
+                        context.handle_cursor_moved(window_id, position);
                     }
                     WindowEvent::CursorEntered { .. } => {
-                        context.handle_cursor_enter(window_id);
+                        context.handle_cursor_entered(window_id);
                     }
                     WindowEvent::CursorLeft { .. } => {
-                        context.handle_cursor_leave(window_id);
+                        context.handle_cursor_left(window_id);
+                    }
+                    WindowEvent::Touch(touch) => {
+                        // TODO
                     }
                     WindowEvent::ReceivedCharacter(c) => {
                         context.handle_window_character(window_id, c);
@@ -68,8 +82,21 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                     WindowEvent::Focused(focused) => {
                         context.handle_window_focused(window_id, focused);
                     }
+                    WindowEvent::ScaleFactorChanged {
+                        scale_factor,
+                        new_inner_size,
+                        ..
+                    } => {
+                        // TODO
+                    }
                     _ => (),
                 }
+            }
+            Event::DeviceEvent {
+                event: DeviceEvent::MouseMotion { delta },
+                ..
+            } => {
+                // TODO
             }
             Event::Suspended => {
                 active = false;

@@ -1,6 +1,13 @@
-use crate::ecs::Event;
+use crate::{ecs::Event, ty::Vec2};
 
 use super::WindowId;
+
+#[derive(Debug, Clone)]
+pub struct WindowCloseRequested {
+    pub id: WindowId,
+}
+
+impl Event for WindowCloseRequested {}
 
 #[derive(Debug, Clone)]
 pub struct WindowResized {
@@ -64,3 +71,25 @@ pub struct ReceivedCharacter {
 }
 
 impl Event for ReceivedCharacter {}
+
+#[derive(Debug, Clone)]
+pub struct CursorMoved {
+    pub id: WindowId,
+    pub position: Vec2,
+}
+
+impl Event for CursorMoved {}
+
+#[derive(Debug, Clone)]
+pub struct CursorEntered {
+    pub id: WindowId,
+}
+
+impl Event for CursorEntered {}
+
+#[derive(Debug, Clone)]
+pub struct CursorLeft {
+    pub id: WindowId,
+}
+
+impl Event for CursorLeft {}
