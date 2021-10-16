@@ -1,6 +1,9 @@
 use crate::{
     ecs::{Event, Events, Resource, World},
-    input::{KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseScrollUnit, MouseWheel},
+    input::{
+        KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
+        MouseWheel,
+    },
     time::Time,
     ty::{IVec2, Vec2},
     window::{
@@ -200,6 +203,14 @@ impl AppContext {
             .send(CursorLeft { id });
     }
 
+    pub fn handle_mouse_motion(&mut self, delta: (f64, f64)) {
+        self.world
+            .resource_mut::<Events<MouseMotion>>()
+            .send(MouseMotion {
+                delta: Vec2::new(delta.0 as f32, delta.1 as f32),
+            });
+    }
+
     pub fn handle_window_character(&mut self, id: WindowId, c: char) {
         self.world
             .resource_mut::<Events<ReceivedCharacter>>()
@@ -247,12 +258,14 @@ impl AppContext {
     fn add_default_events(&mut self) {
         self.add_default_event::<WindowCloseRequested>();
         self.add_default_event::<WindowResized>();
+        self.add_default_event::<WindowMoved>();
         self.add_default_event::<KeyInput>();
         self.add_default_event::<MouseButtonInput>();
         self.add_default_event::<MouseWheel>();
         self.add_default_event::<CursorMoved>();
         self.add_default_event::<CursorEntered>();
         self.add_default_event::<CursorLeft>();
+        self.add_default_event::<MouseMotion>();
         self.add_default_event::<ReceivedCharacter>();
         self.add_default_event::<WindowFocused>();
     }

@@ -96,7 +96,7 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                 event: DeviceEvent::MouseMotion { delta },
                 ..
             } => {
-                // TODO
+                context.handle_mouse_motion(delta);
             }
             Event::Suspended => {
                 active = false;
