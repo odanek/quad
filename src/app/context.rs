@@ -7,8 +7,9 @@ use crate::{
     time::Time,
     ty::{IVec2, Vec2},
     window::{
-        CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, Window, WindowCloseRequested,
-        WindowFocused, WindowId, WindowMoved, WindowResized,
+        CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, Window,
+        WindowBackendScaleFactorChanged, WindowCloseRequested, WindowFocused, WindowId,
+        WindowMoved, WindowResized, WindowScaleFactorChanged,
     },
 };
 
@@ -224,6 +225,42 @@ impl AppContext {
         self.world
             .resource_mut::<Events<WindowFocused>>()
             .send(WindowFocused { id, focused });
+    }
+
+    pub fn handle_scale_factor_changed(
+        &mut self,
+        id: WindowId,
+        scale_factor: f64,
+        inner_size: winit::dpi::PhysicalSize<u32>,
+    ) {
+        debug_assert!(id == self.main_window.id());
+
+        let window = &mut self.main_window;
+        self.world
+            .resource_mut::<Events<WindowBackendScaleFactorChanged>>()
+            .send(WindowBackendScaleFactorChanged { id, scale_factor });
+
+        #[allow(clippy::float_cmp)]
+        if window.scale_factor() != scale_factor {
+            self.world
+                .resource_mut::<Events<WindowScaleFactorChanged>>()
+                .send(WindowScaleFactorChanged { id, scale_factor });
+        }
+
+        window.update_backend_scale_factor(scale_factor);
+
+        if window.physical_width() != inner_size.width
+            || window.physical_height() != inner_size.height
+        {
+            self.world
+                .resource_mut::<Events<WindowResized>>()
+                .send(WindowResized {
+                    id,
+                    width: window.width(),
+                    height: window.height(),
+                });
+        }
+        window.update_physical_size(inner_size.width, inner_size.height);
     }
 
     fn before_scene_update(&mut self) {

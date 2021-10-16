@@ -87,7 +87,11 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                         new_inner_size,
                         ..
                     } => {
-                        // TODO
+                        context.handle_scale_factor_changed(
+                            window_id,
+                            scale_factor,
+                            *new_inner_size,
+                        );
                     }
                     _ => (),
                 }

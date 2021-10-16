@@ -23,6 +23,7 @@ pub struct Window {
     physical_width: u32,
     physical_height: u32,
     backend_scale_factor: f64,
+    scale_factor_override: Option<f64>,
     position: Option<IVec2>,
     cursor_position: Option<Vec2>,
     focused: bool,
@@ -35,11 +36,13 @@ impl Window {
             .outer_position()
             .ok()
             .map(|position| IVec2::new(position.x, position.y));
+
         Window {
             id,
             physical_width: winit_window.inner_size().width,
             physical_height: winit_window.inner_size().height,
             backend_scale_factor: winit_window.scale_factor(),
+            scale_factor_override: None,
             position,
             cursor_position: None,
             focused: true,
@@ -63,8 +66,24 @@ impl Window {
     }
 
     #[inline]
-    pub fn scale_factor(&self) -> f64 {
+    pub fn physical_width(&self) -> u32 {
+        self.physical_width
+    }
+
+    #[inline]
+    pub fn physical_height(&self) -> u32 {
+        self.physical_height
+    }
+
+    #[inline]
+    pub fn backend_scale_factor(&self) -> f64 {
         self.backend_scale_factor
+    }
+
+    #[inline]
+    pub fn scale_factor(&self) -> f64 {
+        self.scale_factor_override
+            .unwrap_or(self.backend_scale_factor)
     }
 
     pub(crate) fn winit_id(&self) -> winit::window::WindowId {
@@ -78,6 +97,10 @@ impl Window {
     pub(crate) fn update_physical_size(&mut self, width: u32, height: u32) {
         self.physical_width = width;
         self.physical_height = height;
+    }
+
+    pub(crate) fn update_backend_scale_factor(&mut self, scale_factor: f64) {
+        self.backend_scale_factor = scale_factor;
     }
 
     pub(crate) fn update_position(&mut self, position: Option<IVec2>) {
