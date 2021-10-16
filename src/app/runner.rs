@@ -59,10 +59,10 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                         exit = true;
                     }
                     WindowEvent::Resized(size) => {
-                        context.handle_window_resized(window_id, size.width, size.height)
+                        context.handle_window_resized(window_id, size.width, size.height);
                     }
                     WindowEvent::Moved(position) => {
-                        // TODO
+                        context.handle_window_moved(window_id, position);
                     }
                     WindowEvent::CursorMoved { position, .. } => {
                         context.handle_cursor_moved(window_id, position);

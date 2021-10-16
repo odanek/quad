@@ -6,7 +6,7 @@ pub(crate) use builder::WindowBuilder;
 pub use event::*;
 pub use size::{FullScreen, LogicalSize, PhysicalSize, Size};
 
-use crate::ty::Vec2;
+use crate::ty::{IVec2, Vec2};
 
 // TODO: Window ids, multiple window handling
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -23,6 +23,7 @@ pub struct Window {
     physical_width: u32,
     physical_height: u32,
     backend_scale_factor: f64,
+    position: Option<IVec2>,
     cursor_position: Option<Vec2>,
     focused: bool,
     winit_window: winit::window::Window,
@@ -30,11 +31,16 @@ pub struct Window {
 
 impl Window {
     pub(crate) fn new(id: WindowId, winit_window: winit::window::Window) -> Self {
+        let position = winit_window
+            .outer_position()
+            .ok()
+            .map(|position| IVec2::new(position.x, position.y));
         Window {
             id,
             physical_width: winit_window.inner_size().width,
             physical_height: winit_window.inner_size().height,
             backend_scale_factor: winit_window.scale_factor(),
+            position,
             cursor_position: None,
             focused: true,
             winit_window,
@@ -72,6 +78,10 @@ impl Window {
     pub(crate) fn update_physical_size(&mut self, width: u32, height: u32) {
         self.physical_width = width;
         self.physical_height = height;
+    }
+
+    pub(crate) fn update_position(&mut self, position: Option<IVec2>) {
+        self.position = position;
     }
 
     pub(crate) fn update_cursor_position(&mut self, position: Option<Vec2>) {

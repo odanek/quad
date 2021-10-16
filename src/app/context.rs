@@ -2,10 +2,10 @@ use crate::{
     ecs::{Event, Events, Resource, World},
     input::{KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseScrollUnit, MouseWheel},
     time::Time,
-    ty::Vec2,
+    ty::{IVec2, Vec2},
     window::{
         CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, Window, WindowCloseRequested,
-        WindowFocused, WindowId, WindowResized,
+        WindowFocused, WindowId, WindowMoved, WindowResized,
     },
 };
 
@@ -92,6 +92,20 @@ impl AppContext {
             width: main_window.width(),
             height: main_window.height(),
         });
+    }
+
+    pub fn handle_window_moved(
+        &mut self,
+        id: WindowId,
+        position: winit::dpi::PhysicalPosition<i32>,
+    ) {
+        debug_assert!(id == self.main_window.id());
+
+        let position = IVec2::new(position.x, position.y);
+        self.main_window.update_position(Some(position));
+        self.world
+            .resource_mut::<Events<WindowMoved>>()
+            .send(WindowMoved { id, position });
     }
 
     pub fn handle_keyboard_event(&mut self, input: winit::event::KeyboardInput) {
