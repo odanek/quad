@@ -2,7 +2,7 @@ use crate::{
     ecs::{Event, Events, Resource, World},
     input::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
-        MouseWheel,
+        MouseWheel, TouchInput, Touches,
     },
     time::Time,
     ty::{IVec2, Vec2},
@@ -212,7 +212,27 @@ impl AppContext {
             });
     }
 
-    pub fn handle_window_character(&mut self, id: WindowId, c: char) {
+    pub fn handle_touch(&mut self, id: WindowId, touch: winit::event::Touch) {
+        debug_assert!(id == self.main_window.id());
+
+        let winit_window = self.main_window.winit_window();
+        let location = touch.location.to_logical(winit_window.scale_factor());
+
+        // TODO
+        // if cfg!(target_os = "android") || cfg!(target_os = "ios") {
+        //     let window_height = windows.get_primary().unwrap().height();
+        //     location.y = window_height - location.y;
+        // }
+        let touch_input = TouchInput::from_winit_event(touch, location);
+        self.world
+            .resource_mut::<Touches>()
+            .process_event(&touch_input);
+        self.world
+            .resource_mut::<Events<TouchInput>>()
+            .send(touch_input);
+    }
+
+    pub fn handle_received_character(&mut self, id: WindowId, c: char) {
         self.world
             .resource_mut::<Events<ReceivedCharacter>>()
             .send(ReceivedCharacter { id, char: c });
@@ -284,11 +304,13 @@ impl AppContext {
     fn flush_input_events(&mut self) {
         self.world.resource_mut::<KeyboardInput>().flush();
         self.world.resource_mut::<MouseInput>().flush();
+        self.world.resource_mut::<Touches>().flush();
     }
 
     fn add_default_resources(&mut self) {
         self.add_default_resource::<KeyboardInput>();
         self.add_default_resource::<MouseInput>();
+        self.add_default_resource::<Touches>();
         self.add_default_resource::<Time>();
     }
 
@@ -303,8 +325,11 @@ impl AppContext {
         self.add_default_event::<CursorEntered>();
         self.add_default_event::<CursorLeft>();
         self.add_default_event::<MouseMotion>();
+        self.add_default_event::<TouchInput>();
         self.add_default_event::<ReceivedCharacter>();
         self.add_default_event::<WindowFocused>();
+        self.add_default_event::<WindowBackendScaleFactorChanged>();
+        self.add_default_event::<WindowScaleFactorChanged>();
     }
 
     fn add_default_resource<T: Resource + Default>(&mut self) {

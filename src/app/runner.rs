@@ -74,10 +74,10 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                         context.handle_cursor_left(window_id);
                     }
                     WindowEvent::Touch(touch) => {
-                        // TODO
+                        context.handle_touch(window_id, touch);
                     }
                     WindowEvent::ReceivedCharacter(c) => {
-                        context.handle_window_character(window_id, c);
+                        context.handle_received_character(window_id, c);
                     }
                     WindowEvent::Focused(focused) => {
                         context.handle_window_focused(window_id, focused);
