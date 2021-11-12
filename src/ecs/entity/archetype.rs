@@ -6,10 +6,9 @@ use std::{
 use crate::ecs::{
     component::{BundleId, ComponentId, ComponentStatus},
     storage::TableId,
-    Entity,
 };
 
-use super::EntityLocation;
+use super::entity::{Entity, EntityLocation};
 
 pub struct AddBundle {
     pub archetype_id: ArchetypeId,
@@ -95,7 +94,7 @@ impl ArchetypeId {
 }
 
 #[derive(Hash, PartialEq, Eq)]
-pub struct ArchetypeIdentity {
+struct ArchetypeIdentity {
     components: Vec<ComponentId>,
 }
 

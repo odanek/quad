@@ -3,10 +3,7 @@ use std::any::TypeId;
 use crate::{
     ecs::{
         component::{Bundle, BundleInfo, CmptMut, Component, ComponentStatus, Components},
-        entity::{
-            archetype::{Archetype, ArchetypeId, Archetypes},
-            Entities, EntityLocation,
-        },
+        entity::{Archetype, ArchetypeId, Archetypes, Entities, EntityLocation},
         storage::Storages,
         system::SystemTicks,
         Entity,

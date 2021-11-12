@@ -1,7 +1,7 @@
 use std::slice::Iter;
 
 use crate::ecs::{
-    entity::archetype::{ArchetypeId, Archetypes},
+    entity::{ArchetypeId, Archetypes},
     storage::Tables,
     system::SystemTicks,
     World,

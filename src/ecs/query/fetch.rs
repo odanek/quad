@@ -7,10 +7,10 @@ use std::{
 
 use crate::ecs::{
     component::{CmptMut, Component, ComponentId, ComponentTicks},
-    entity::archetype::Archetype,
+    entity::{Archetype, Entity},
     storage::Tables,
     system::SystemTicks,
-    Entity, World,
+    World,
 };
 
 use super::access::FilteredAccess;

@@ -13,10 +13,7 @@ use super::{
         Bundles, Component, ComponentId, ComponentTicks, Components, ResMut, Resource, ResourceId,
         Resources, Tick,
     },
-    entity::{
-        archetype::{Archetype, ArchetypeId, Archetypes},
-        Entities, Entity, EntityLocation,
-    },
+    entity::{Archetype, ArchetypeId, Archetypes, Entities, Entity, EntityLocation},
     query::{fetch::WorldQuery, state::QueryState},
     storage::Storages,
     system::SystemTicks,

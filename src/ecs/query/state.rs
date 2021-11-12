@@ -1,6 +1,6 @@
 use crate::ecs::{
     component::{ComponentId, Tick},
-    entity::archetype::{ArchetypeGeneration, ArchetypeId},
+    entity::{ArchetypeGeneration, ArchetypeId},
     system::SystemTicks,
     Entity, World,
 };

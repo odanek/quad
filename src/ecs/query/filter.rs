@@ -2,7 +2,7 @@ use std::{cell::UnsafeCell, marker::PhantomData, ptr};
 
 use crate::ecs::{
     component::{Component, ComponentId, ComponentTicks},
-    entity::archetype::Archetype,
+    entity::Archetype,
     storage::Tables,
     system::SystemTicks,
     World,
