@@ -1,4 +1,5 @@
 pub mod app;
+pub mod asset;
 pub mod data;
 pub mod ecs;
 pub mod input;
