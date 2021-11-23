@@ -6,7 +6,7 @@ pub(crate) use builder::WindowBuilder;
 pub use event::*;
 pub use size::{FullScreen, LogicalSize, PhysicalSize, Size};
 
-use crate::ty::{Vec2i, Vec2};
+use crate::ty::{Vec2, Vec2i};
 
 // TODO: Window ids, multiple window handling
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

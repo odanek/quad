@@ -5,7 +5,7 @@ use crate::{
         MouseWheel, TouchInput, Touches,
     },
     time::Time,
-    ty::{Vec2i, Vec2},
+    ty::{Vec2, Vec2i},
     window::{
         CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, Window,
         WindowBackendScaleFactorChanged, WindowCloseRequested, WindowFocused, WindowId,

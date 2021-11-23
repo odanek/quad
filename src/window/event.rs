@@ -1,6 +1,6 @@
 use crate::{
     ecs::Event,
-    ty::{Vec2i, Vec2},
+    ty::{Vec2, Vec2i},
 };
 
 use super::WindowId;
