@@ -5,7 +5,7 @@ use crate::{
         MouseWheel, TouchInput, Touches,
     },
     time::Time,
-    ty::{IVec2, Vec2},
+    ty::{Vec2i, Vec2},
     window::{
         CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, Window,
         WindowBackendScaleFactorChanged, WindowCloseRequested, WindowFocused, WindowId,
@@ -105,7 +105,7 @@ impl AppContext {
     ) {
         debug_assert!(id == self.main_window.id());
 
-        let position = IVec2::new(position.x, position.y);
+        let position = Vec2i::new(position.x, position.y);
         self.main_window.update_position(Some(position));
         self.world
             .resource_mut::<Events<WindowMoved>>()

@@ -1,6 +1,6 @@
 use crate::{
     ecs::Event,
-    ty::{IVec2, Vec2},
+    ty::{Vec2i, Vec2},
 };
 
 use super::WindowId;
@@ -62,7 +62,7 @@ impl Event for WindowBackendScaleFactorChanged {}
 #[derive(Debug, Clone)]
 pub struct WindowMoved {
     pub id: WindowId,
-    pub position: IVec2,
+    pub position: Vec2i,
 }
 
 impl Event for WindowMoved {}

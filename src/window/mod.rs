@@ -6,7 +6,7 @@ pub(crate) use builder::WindowBuilder;
 pub use event::*;
 pub use size::{FullScreen, LogicalSize, PhysicalSize, Size};
 
-use crate::ty::{IVec2, Vec2};
+use crate::ty::{Vec2i, Vec2};
 
 // TODO: Window ids, multiple window handling
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -24,7 +24,7 @@ pub struct Window {
     physical_height: u32,
     backend_scale_factor: f64,
     scale_factor_override: Option<f64>,
-    position: Option<IVec2>,
+    position: Option<Vec2i>,
     cursor_position: Option<Vec2>,
     focused: bool,
     winit_window: winit::window::Window,
@@ -35,7 +35,7 @@ impl Window {
         let position = winit_window
             .outer_position()
             .ok()
-            .map(|position| IVec2::new(position.x, position.y));
+            .map(|position| Vec2i::new(position.x, position.y));
 
         Window {
             id,
@@ -103,7 +103,7 @@ impl Window {
         self.backend_scale_factor = scale_factor;
     }
 
-    pub(crate) fn update_position(&mut self, position: Option<IVec2>) {
+    pub(crate) fn update_position(&mut self, position: Option<Vec2i>) {
         self.position = position;
     }
 
