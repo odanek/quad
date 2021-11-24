@@ -3,6 +3,7 @@ pub mod asset;
 pub mod data;
 pub mod ecs;
 pub mod input;
+pub mod reflect;
 pub mod time;
 pub mod transform;
 pub mod ty;
