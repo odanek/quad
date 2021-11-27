@@ -6,5 +6,5 @@ mod io;
 mod loader;
 mod path;
 
-pub use assets::{Assets, AssetEvent};
-pub use handle::{Handle, HandleUntyped, HandleId};
+pub use assets::{AssetEvent, Assets};
+pub use handle::{Handle, HandleId, HandleUntyped};

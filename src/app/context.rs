@@ -13,11 +13,15 @@ use crate::{
     },
 };
 
-use super::{event::AppEvents, scene::SceneContext, Scene, SceneResult};
+use super::{
+    scene::SceneContext,
+    system::{Stage, Systems},
+    Scene, SceneResult,
+};
 
 pub struct AppContext {
     world: Box<World>,
-    events: Box<AppEvents>,
+    systems: Box<Systems>,
     main_window: Window,
     scene: Box<dyn Scene>,
 }
@@ -25,14 +29,14 @@ pub struct AppContext {
 impl AppContext {
     pub fn new(
         world: Box<World>,
-        events: Box<AppEvents>,
+        systems: Box<Systems>,
         scene: Box<dyn Scene>,
         main_window: Window,
     ) -> Self {
         let mut ctx = Self {
             main_window,
             world,
-            events,
+            systems,
             scene,
         };
 
@@ -285,7 +289,7 @@ impl AppContext {
 
     fn before_scene_update(&mut self) {
         self.advance_time();
-        self.events.update(&mut self.world);
+        self.systems.run(Stage::PreUpdate, &mut self.world);
     }
 
     fn after_scene_update(&mut self) {
@@ -337,6 +341,6 @@ impl AppContext {
     }
 
     fn add_default_event<T: Event>(&mut self) {
-        self.events.add::<T>(&mut self.world);
+        self.systems.add_event::<T>(&mut self.world);
     }
 }
