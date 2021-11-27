@@ -8,3 +8,4 @@ mod path;
 
 pub use assets::{AssetEvent, Assets};
 pub use handle::{Handle, HandleId, HandleUntyped};
+pub use loader::{Asset, AssetDynamic};

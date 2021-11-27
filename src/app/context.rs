@@ -1,4 +1,5 @@
 use crate::{
+    asset::Asset,
     ecs::{Event, Events, Resource, World},
     input::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
@@ -40,8 +41,8 @@ impl AppContext {
             scene,
         };
 
-        ctx.add_default_resources();
-        ctx.add_default_events();
+        ctx.add_standard_resources();
+        ctx.add_standard_events();
 
         ctx
     }
@@ -311,36 +312,40 @@ impl AppContext {
         self.world.resource_mut::<Touches>().flush();
     }
 
-    fn add_default_resources(&mut self) {
-        self.add_default_resource::<KeyboardInput>();
-        self.add_default_resource::<MouseInput>();
-        self.add_default_resource::<Touches>();
-        self.add_default_resource::<Time>();
+    fn add_standard_resources(&mut self) {
+        self.add_standard_resource::<KeyboardInput>();
+        self.add_standard_resource::<MouseInput>();
+        self.add_standard_resource::<Touches>();
+        self.add_standard_resource::<Time>();
     }
 
-    fn add_default_events(&mut self) {
-        self.add_default_event::<WindowCloseRequested>();
-        self.add_default_event::<WindowResized>();
-        self.add_default_event::<WindowMoved>();
-        self.add_default_event::<KeyInput>();
-        self.add_default_event::<MouseButtonInput>();
-        self.add_default_event::<MouseWheel>();
-        self.add_default_event::<CursorMoved>();
-        self.add_default_event::<CursorEntered>();
-        self.add_default_event::<CursorLeft>();
-        self.add_default_event::<MouseMotion>();
-        self.add_default_event::<TouchInput>();
-        self.add_default_event::<ReceivedCharacter>();
-        self.add_default_event::<WindowFocused>();
-        self.add_default_event::<WindowBackendScaleFactorChanged>();
-        self.add_default_event::<WindowScaleFactorChanged>();
+    fn add_standard_events(&mut self) {
+        self.add_standard_event::<WindowCloseRequested>();
+        self.add_standard_event::<WindowResized>();
+        self.add_standard_event::<WindowMoved>();
+        self.add_standard_event::<KeyInput>();
+        self.add_standard_event::<MouseButtonInput>();
+        self.add_standard_event::<MouseWheel>();
+        self.add_standard_event::<CursorMoved>();
+        self.add_standard_event::<CursorEntered>();
+        self.add_standard_event::<CursorLeft>();
+        self.add_standard_event::<MouseMotion>();
+        self.add_standard_event::<TouchInput>();
+        self.add_standard_event::<ReceivedCharacter>();
+        self.add_standard_event::<WindowFocused>();
+        self.add_standard_event::<WindowBackendScaleFactorChanged>();
+        self.add_standard_event::<WindowScaleFactorChanged>();
     }
 
-    fn add_default_resource<T: Resource + Default>(&mut self) {
+    fn add_standard_resource<T: Resource + Default>(&mut self) {
         self.world.insert_resource(T::default());
     }
 
-    fn add_default_event<T: Event>(&mut self) {
+    fn add_standard_event<T: Event>(&mut self) {
         self.systems.add_event::<T>(&mut self.world);
+    }
+
+    fn add_standard_asset<T: Asset>(&mut self) {
+        self.systems.add_asset::<T>(&mut self.world);
     }
 }

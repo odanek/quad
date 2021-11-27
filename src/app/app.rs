@@ -1,4 +1,5 @@
 use crate::{
+    asset::Asset,
     ecs::{Event, World},
     window::{WindowBuilder, WindowId},
 };
@@ -35,6 +36,11 @@ impl App {
 
     pub fn add_event<T: Event>(mut self) -> Self {
         self.systems.add_event::<T>(&mut self.world);
+        self
+    }
+
+    pub fn add_asset<T: Asset>(mut self) -> Self {
+        self.systems.add_asset::<T>(&mut self.world);
         self
     }
 
