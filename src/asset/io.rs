@@ -1,6 +1,9 @@
 mod file_asset_io;
 
-use std::{io, path::{Path, PathBuf}};
+use std::{
+    io,
+    path::{Path, PathBuf},
+};
 
 use downcast_rs::Downcast;
 use thiserror::Error;

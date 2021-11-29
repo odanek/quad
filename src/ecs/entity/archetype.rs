@@ -8,7 +8,7 @@ use crate::ecs::{
     storage::TableId,
 };
 
-use super::entity::{Entity, EntityLocation};
+use super::{Entity, EntityLocation};
 
 pub struct AddBundle {
     pub archetype_id: ArchetypeId,

@@ -1,3 +1,14 @@
+mod bundle;
+mod change_detection;
+mod resource;
+mod ticks;
+mod type_info;
+
+pub use bundle::{Bundle, BundleId, BundleInfo, Bundles};
+pub use change_detection::{CmptMut, Res, ResMut};
+pub use resource::{Resource, ResourceId, Resources};
+pub use ticks::{ComponentTicks, Tick};
+
 use std::{
     alloc::Layout,
     any::TypeId,
@@ -6,7 +17,7 @@ use std::{
 
 use crate::ecs::query::access::AccessIndex;
 
-use super::type_info::TypeInfo;
+use type_info::TypeInfo;
 
 pub trait Component: Send + Sync + 'static {}
 

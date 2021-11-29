@@ -6,9 +6,9 @@ use std::{
 use crate::ecs::storage::Table;
 
 use super::{
-    component::{Component, ComponentId, ComponentStatus, Components},
     ticks::{ComponentTicks, Tick},
     type_info::TypeInfo,
+    Component, ComponentId, ComponentStatus, Components,
 };
 
 pub trait Bundle: Send + Sync + 'static {

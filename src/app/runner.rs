@@ -2,7 +2,9 @@ use winit::event::DeviceEvent;
 
 use crate::app::SceneResult;
 
-use super::{app::AppEventLoop, context::AppContext};
+use super::context::AppContext;
+
+pub type AppEventLoop = winit::event_loop::EventLoop<()>;
 
 pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
     let mut active = true;

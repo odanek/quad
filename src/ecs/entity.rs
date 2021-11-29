@@ -1,7 +1,9 @@
+mod archetype;
+
 use std::convert::TryFrom;
 use std::sync::atomic::{AtomicI64, Ordering};
 
-use super::archetype::ArchetypeId;
+pub use archetype::{Archetype, ArchetypeGeneration, ArchetypeId, Archetypes};
 
 #[derive(Clone, Copy, Hash, Eq, PartialEq, Debug)]
 pub struct Entity {

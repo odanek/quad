@@ -1,5 +1,10 @@
 use anyhow::Result;
-use std::{env, fs::{self, File}, io::{Read}, path::{Path, PathBuf}};
+use std::{
+    env,
+    fs::{self, File},
+    io::Read,
+    path::{Path, PathBuf},
+};
 
 use crate::ty::BoxedFuture;
 
