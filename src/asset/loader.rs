@@ -3,7 +3,7 @@ use crossbeam_channel::{Receiver, Sender};
 use downcast_rs::{impl_downcast, Downcast};
 use std::{path::Path, collections::HashMap};
 
-use crate::{ty::BoxedFuture, reflect::{TypeUuid, TypeUuidDynamic}};
+use crate::{ty::BoxedFuture, reflect::{TypeUuid, TypeUuidDynamic}, task::TaskPool};
 
 use super::{path::AssetPath, io::{AssetIo, AssetIoError}, Handle, HandleId, info::AssetMeta, handle::RefChangeChannel};
 
