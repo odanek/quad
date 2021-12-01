@@ -1,11 +1,21 @@
 use anyhow::Result;
 use crossbeam_channel::{Receiver, Sender};
 use downcast_rs::{impl_downcast, Downcast};
-use std::{path::Path, collections::HashMap};
+use std::{collections::HashMap, path::Path};
 
-use crate::{ty::BoxedFuture, reflect::{TypeUuid, TypeUuidDynamic}, task::TaskPool};
+use crate::{
+    reflect::{TypeUuid, TypeUuidDynamic},
+    task::TaskPool,
+    ty::BoxedFuture,
+};
 
-use super::{path::AssetPath, io::{AssetIo, AssetIoError}, Handle, HandleId, info::AssetMeta, handle::RefChangeChannel};
+use super::{
+    handle::RefChangeChannel,
+    info::AssetMeta,
+    io::{AssetIo, AssetIoError},
+    path::AssetPath,
+    Handle, HandleId,
+};
 
 pub trait AssetLoader: Send + Sync + 'static {
     fn load<'a>(
