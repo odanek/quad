@@ -102,7 +102,6 @@ impl AssetPathId {
     }
 }
 
-/// this hasher provides consistent results across runs
 pub(crate) fn get_hasher() -> impl Hasher {
     DefaultHasher::new() // TODO: Not stable for serialization
 }
