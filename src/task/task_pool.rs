@@ -8,6 +8,8 @@ use std::{
 
 use futures_lite::{future, pin};
 
+use super::Task;
+
 // use crate::Task;
 
 #[derive(Debug, Default, Clone)]
