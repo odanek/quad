@@ -4,17 +4,19 @@ use downcast_rs::{impl_downcast, Downcast};
 use std::{collections::HashMap, path::Path};
 
 use crate::{
+    ecs::{Res, ResMut},
     reflect::{TypeUuid, TypeUuidDynamic},
     task::TaskPool,
-    ty::BoxedFuture, ecs::{ResMut, Res},
+    ty::BoxedFuture,
 };
 
 use super::{
+    asset_server::AssetServer,
     handle::RefChangeChannel,
     info::AssetMeta,
     io::{AssetIo, AssetIoError},
     path::AssetPath,
-    Handle, HandleId, asset_server::AssetServer, Assets,
+    Assets, Handle, HandleId,
 };
 
 pub trait AssetLoader: Send + Sync + 'static {
