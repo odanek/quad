@@ -6,7 +6,7 @@ use std::{collections::HashMap, path::Path};
 use crate::{
     reflect::{TypeUuid, TypeUuidDynamic},
     task::TaskPool,
-    ty::BoxedFuture,
+    ty::BoxedFuture, ecs::{ResMut, Res},
 };
 
 use super::{
@@ -14,7 +14,7 @@ use super::{
     info::AssetMeta,
     io::{AssetIo, AssetIoError},
     path::AssetPath,
-    Handle, HandleId,
+    Handle, HandleId, asset_server::AssetServer, Assets,
 };
 
 pub trait AssetLoader: Send + Sync + 'static {
@@ -206,7 +206,6 @@ impl<T> Default for AssetLifecycleChannel<T> {
     }
 }
 
-/// Updates the [Assets] collection according to the changes queued up by [AssetServer].
 pub fn update_asset_storage_system<T: Asset + AssetDynamic>(
     asset_server: Res<AssetServer>,
     assets: ResMut<Assets<T>>,
