@@ -10,6 +10,8 @@ use thiserror::Error;
 
 use crate::ty::BoxedFuture;
 
+pub use file_asset_io::*;
+
 #[derive(Error, Debug)]
 pub enum AssetIoError {
     #[error("path not found: {0}")]

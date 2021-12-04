@@ -1,6 +1,6 @@
 use crate::{
-    asset::Asset,
-    ecs::{Event, Events, Resource, World},
+    asset::{free_unused_assets_system, Asset},
+    ecs::{Event, Events, IntoSystem, Resource, World},
     input::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
         MouseWheel, TouchInput, Touches,
@@ -41,6 +41,7 @@ impl AppContext {
             scene,
         };
 
+        ctx.add_standard_systems();
         ctx.add_standard_resources();
         ctx.add_standard_events();
 
@@ -290,12 +291,16 @@ impl AppContext {
 
     fn before_scene_update(&mut self) {
         self.advance_time();
+        self.systems.run(Stage::LoadAssets, &mut self.world);
         self.systems.run(Stage::PreUpdate, &mut self.world);
     }
 
     fn after_scene_update(&mut self) {
         // Physics, animations, ...
         // Draw
+
+        self.systems.run(Stage::PostUpdate, &mut self.world);
+        self.systems.run(Stage::AssetEvents, &mut self.world);
 
         self.flush_input_events();
         self.world.clear_trackers();
@@ -310,6 +315,13 @@ impl AppContext {
         self.world.resource_mut::<KeyboardInput>().flush();
         self.world.resource_mut::<MouseInput>().flush();
         self.world.resource_mut::<Touches>().flush();
+    }
+
+    fn add_standard_systems(&mut self) {
+        self.systems.add(
+            Stage::PreUpdate,
+            free_unused_assets_system.system(&mut self.world),
+        );
     }
 
     fn add_standard_resources(&mut self) {

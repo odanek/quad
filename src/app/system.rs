@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    asset::Asset,
+    asset::{update_asset_storage_system, Asset, AssetEvent, AssetServer, Assets},
     ecs::{Event, Events, IntoSystem, System, World},
 };
 
@@ -9,8 +9,10 @@ type BoxedSystem = Box<dyn System<In = (), Out = ()>>;
 
 #[derive(PartialEq, Eq, Hash)]
 pub enum Stage {
+    LoadAssets,
     PreUpdate,
     PostUpdate,
+    AssetEvents,
 }
 
 #[derive(Default)]
@@ -44,21 +46,19 @@ impl Systems {
 
     pub fn add_asset<T: Asset>(&mut self, world: &mut World) {
         let assets = {
-            // let asset_server = self.world.get_resource::<AssetServer>().unwrap();
-            // asset_server.register_asset_type::<T>()
+            let asset_server = world.get_resource::<AssetServer>().unwrap();
+            asset_server.register_asset_type::<T>()
         };
 
-        // world.insert_resource(assets);
-
-        // .add_system_to_stage(
-        //     AssetStage::AssetEvents,
-        //     Assets::<T>::asset_event_system.system(),
-        // )
-        // .add_system_to_stage(
-        //     AssetStage::LoadAssets,
-        //     update_asset_storage_system::<T>.system(),
-        // )
-
-        // self.add_event::<AssetEvent<T>>(world);
+        world.insert_resource(assets);
+        self.add(
+            Stage::AssetEvents,
+            Assets::<T>::asset_event_system.system(world),
+        );
+        self.add(
+            Stage::LoadAssets,
+            update_asset_storage_system::<T>.system(world),
+        );
+        self.add_event::<AssetEvent<T>>(world);
     }
 }
