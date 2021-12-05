@@ -24,16 +24,9 @@ impl From<winit::event::MouseButton> for MouseButton {
     }
 }
 
+#[derive(Default)]
 pub struct MouseInput {
     buttons: Buttons<MouseButton>,
-}
-
-impl Default for MouseInput {
-    fn default() -> Self {
-        Self {
-            buttons: Default::default(),
-        }
-    }
 }
 
 impl Resource for MouseInput {}

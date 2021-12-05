@@ -1,10 +1,11 @@
 use crate::{
-    asset::{free_unused_assets_system, Asset},
+    asset::{free_unused_assets_system, AssetServer, AssetServerSettings, FileAssetIo},
     ecs::{Event, Events, IntoSystem, Resource, World},
     input::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
         MouseWheel, TouchInput, Touches,
     },
+    tasks::{logical_core_count, IoTaskPool, TaskPoolBuilder},
     time::Time,
     ty::{Vec2, Vec2i},
     window::{
@@ -41,6 +42,7 @@ impl AppContext {
             scene,
         };
 
+        ctx.add_standard_pools(1, usize::MAX);
         ctx.add_standard_systems();
         ctx.add_standard_resources();
         ctx.add_standard_events();
@@ -317,6 +319,25 @@ impl AppContext {
         self.world.resource_mut::<Touches>().flush();
     }
 
+    fn add_standard_pools(&mut self, min_total_threads: usize, max_total_threads: usize) {
+        let total_threads = logical_core_count().clamp(min_total_threads, max_total_threads);
+        log::trace!("Assigning {} cores to default task pools", total_threads);
+
+        let remaining_threads = total_threads;
+
+        let io_threads = get_number_of_threads(remaining_threads, total_threads, 0.25, 1, 4);
+
+        log::trace!("IO Threads: {}", io_threads);
+        // remaining_threads = remaining_threads.saturating_sub(io_threads);
+
+        self.world.insert_resource(IoTaskPool(
+            TaskPoolBuilder::default()
+                .num_threads(io_threads)
+                .thread_name("IO Task Pool".to_string())
+                .build(),
+        ));
+    }
+
     fn add_standard_systems(&mut self) {
         self.systems.add(
             Stage::PreUpdate,
@@ -329,6 +350,17 @@ impl AppContext {
         self.add_standard_resource::<MouseInput>();
         self.add_standard_resource::<Touches>();
         self.add_standard_resource::<Time>();
+        self.add_asset_server();
+    }
+
+    fn add_asset_server(&mut self) {
+        // TODO: Make the task pool and asset server settings configurable
+        let task_pool = self.world.resource::<IoTaskPool>().0.clone();
+        self.world.insert_resource(AssetServerSettings::default());
+        let settings = self.world.resource::<AssetServerSettings>();
+        let source = Box::new(FileAssetIo::new(&settings.asset_folder));
+        let asset_server = AssetServer::with_boxed_io(source, task_pool);
+        self.world.insert_resource(asset_server);
     }
 
     fn add_standard_events(&mut self) {
@@ -357,7 +389,20 @@ impl AppContext {
         self.systems.add_event::<T>(&mut self.world);
     }
 
-    fn add_standard_asset<T: Asset>(&mut self) {
-        self.systems.add_asset::<T>(&mut self.world);
-    }
+    // fn add_standard_asset<T: Asset>(&mut self) {
+    //     self.systems.add_asset::<T>(&mut self.world);
+    // }
+}
+
+// TODO: Extract (Bevy TaskPoolThreadsAsignmentPolicy)
+fn get_number_of_threads(
+    remaining_threads: usize,
+    total_threads: usize,
+    percent: f32,
+    min_threads: usize,
+    max_threads: usize,
+) -> usize {
+    let mut desired = (total_threads as f32 * percent).round() as usize;
+    desired = desired.min(remaining_threads);
+    desired.clamp(min_threads, max_threads)
 }

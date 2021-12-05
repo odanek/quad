@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use crate::{
     ecs::{Res, ResMut, Resource},
-    task::TaskPool,
+    tasks::TaskPool,
 };
 
 use super::{

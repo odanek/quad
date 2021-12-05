@@ -16,7 +16,7 @@ impl<'a> AssetPath<'a> {
     pub fn new_ref(path: &'a Path, label: Option<&'a str>) -> AssetPath<'a> {
         AssetPath {
             path: Cow::Borrowed(path),
-            label: label.map(|val| Cow::Borrowed(val)),
+            label: label.map(Cow::Borrowed),
         }
     }
 
@@ -135,7 +135,7 @@ impl<'a> From<&'a str> for AssetPath<'a> {
         let label = parts.next();
         AssetPath {
             path: Cow::Borrowed(path),
-            label: label.map(|label| Cow::Borrowed(label)),
+            label: label.map(Cow::Borrowed),
         }
     }
 }

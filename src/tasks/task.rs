@@ -1,7 +1,3 @@
-mod task_pool;
-
-pub use task_pool::TaskPool;
-
 use std::{
     future::Future,
     pin::Pin,

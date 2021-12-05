@@ -6,7 +6,7 @@ use std::{collections::HashMap, path::Path};
 use crate::{
     ecs::{Res, ResMut},
     reflect::{TypeUuid, TypeUuidDynamic},
-    task::TaskPool,
+    tasks::TaskPool,
     ty::BoxedFuture,
 };
 

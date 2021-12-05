@@ -4,7 +4,7 @@ pub mod data;
 pub mod ecs;
 pub mod input;
 pub mod reflect;
-pub mod task;
+pub mod tasks;
 pub mod time;
 pub mod transform;
 pub mod ty;

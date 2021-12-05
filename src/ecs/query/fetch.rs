@@ -31,12 +31,14 @@ pub trait Fetch<'w, 's>: Sized {
     unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item;
 }
 
+#[allow(clippy::missing_safety_doc)]
 pub unsafe trait FetchState: Send + Sync + Sized {
     fn new(world: &mut World) -> Self;
     fn update_component_access(&self, access: &mut FilteredAccess<ComponentId>);
     fn matches_archetype(&self, archetype: &Archetype) -> bool;
 }
 
+#[allow(clippy::missing_safety_doc)]
 pub unsafe trait ReadOnlyFetch {}
 
 impl WorldQuery for Entity {

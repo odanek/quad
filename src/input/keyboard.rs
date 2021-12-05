@@ -5,16 +5,9 @@ use super::{
     KeyCode,
 };
 
+#[derive(Default)]
 pub struct KeyboardInput {
     buttons: Buttons<KeyCode>,
-}
-
-impl Default for KeyboardInput {
-    fn default() -> Self {
-        Self {
-            buttons: Default::default(),
-        }
-    }
 }
 
 impl Resource for KeyboardInput {}
