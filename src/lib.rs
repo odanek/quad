@@ -5,7 +5,7 @@ pub mod ecs;
 pub mod input;
 pub mod reflect;
 pub mod tasks;
-pub mod time;
+pub mod timing;
 pub mod transform;
 pub mod ty;
 pub mod window;

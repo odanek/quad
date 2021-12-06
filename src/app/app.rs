@@ -26,7 +26,7 @@ impl Default for App {
 
 impl App {
     pub fn new() -> Self {
-        App::default()
+        App::default();
     }
 
     pub fn main_window(mut self, window: WindowBuilder) -> Self {
