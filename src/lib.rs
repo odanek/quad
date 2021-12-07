@@ -8,4 +8,4 @@ pub mod tasks;
 pub mod timing;
 pub mod transform;
 pub mod ty;
-pub mod window;
+pub mod windowing;

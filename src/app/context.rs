@@ -1,53 +1,41 @@
 use crate::{
-    asset::{free_unused_assets_system, AssetServer, AssetServerSettings, FileAssetIo},
-    ecs::{Event, Events, FromWorld, IntoSystem, Resource, World},
+    ecs::{Events, World},
     input::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
         MouseWheel, TouchInput, Touches,
     },
-    tasks::{logical_core_count, IoTaskPool, TaskPoolBuilder},
     timing::Time,
     ty::{Vec2, Vec2i},
-    window::{
+    windowing::{
         CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, Window,
         WindowBackendScaleFactorChanged, WindowCloseRequested, WindowFocused, WindowId,
-        WindowMoved, WindowResized, WindowScaleFactorChanged,
+        WindowMoved, WindowResized, WindowScaleFactorChanged, Windows,
     },
 };
 
 use super::{
     scene::SceneContext,
-    system::{Stage, Systems},
+    systems::{Stage, Systems},
     Scene, SceneResult,
 };
 
 pub struct AppContext {
-    world: Box<World>,
-    systems: Box<Systems>,
-    main_window: Window,
+    world: World,
+    systems: Systems,
     scene: Box<dyn Scene>,
 }
 
 impl AppContext {
     pub fn new(
-        world: Box<World>,
-        systems: Box<Systems>,
+        world: World,
+        systems: Systems,
         scene: Box<dyn Scene>,
-        main_window: Window,
     ) -> Self {
-        let mut ctx = Self {
-            main_window,
+        Self {
             world,
             systems,
             scene,
-        };
-
-        ctx.add_standard_pools(1, usize::MAX);
-        ctx.add_standard_systems();
-        ctx.add_standard_resources();
-        ctx.add_standard_events();
-
-        ctx
+        }
     }
 
     pub fn start_scene(&mut self) {
@@ -79,11 +67,9 @@ impl AppContext {
     }
 
     pub fn get_window(&self, id: winit::window::WindowId) -> Option<&Window> {
-        if self.main_window.winit_id() == id {
-            Some(&self.main_window)
-        } else {
-            None
-        }
+        let windows = self.world.resource::<Windows>();
+        let window_id = windows.get_id(id)?;
+        windows.get(window_id)
     }
 
     pub fn handle_window_close_requested(&mut self, id: WindowId) {
@@ -93,16 +79,15 @@ impl AppContext {
     }
 
     pub fn handle_window_resized(&mut self, id: WindowId, width: u32, height: u32) {
-        debug_assert!(id == self.main_window.id());
-
-        let main_window = &mut self.main_window;
-        main_window.update_physical_size(width, height);
+        let mut windows = self.world.resource_mut::<Windows>();
+        let window = windows.get_mut(id).unwrap();
+        window.update_physical_size(width, height);
 
         let mut resize_events = self.world.resource_mut::<Events<WindowResized>>();
         resize_events.send(WindowResized {
             id,
-            width: main_window.width(),
-            height: main_window.height(),
+            width: window.width(),
+            height: window.height(),
         });
     }
 
@@ -111,10 +96,12 @@ impl AppContext {
         id: WindowId,
         position: winit::dpi::PhysicalPosition<i32>,
     ) {
-        debug_assert!(id == self.main_window.id());
-
+        let mut windows = self.world.resource_mut::<Windows>();
+        let window = windows.get_mut(id).unwrap();
+                
         let position = Vec2i::new(position.x, position.y);
-        self.main_window.update_position(Some(position));
+        window.update_position(Some(position));
+
         self.world
             .resource_mut::<Events<WindowMoved>>()
             .send(WindowMoved { id, position });
@@ -179,8 +166,10 @@ impl AppContext {
         id: WindowId,
         position: winit::dpi::PhysicalPosition<f64>,
     ) {
-        debug_assert!(id == self.main_window.id());
-        let winit_window = self.main_window.winit_window();
+        let mut windows = self.world.resource_mut::<Windows>();
+        let window = windows.get_mut(id).unwrap();
+
+        let winit_window = window.winit_window();
         let position = position.to_logical(winit_window.scale_factor());
         let inner_size = winit_window
             .inner_size()
@@ -188,24 +177,23 @@ impl AppContext {
 
         let y_position = inner_size.height - position.y;
         let position = Vec2::new(position.x, y_position);
-        self.main_window.update_cursor_position(Some(position));
+        window.update_cursor_position(Some(position));
 
         self.world
             .resource_mut::<Events<CursorMoved>>()
             .send(CursorMoved { id, position });
     }
 
-    pub fn handle_cursor_entered(&mut self, id: WindowId) {
-        debug_assert!(id == self.main_window.id());
+    pub fn handle_cursor_entered(&mut self, id: WindowId) {        
         self.world
             .resource_mut::<Events<CursorEntered>>()
             .send(CursorEntered { id });
     }
 
     pub fn handle_cursor_left(&mut self, id: WindowId) {
-        debug_assert!(id == self.main_window.id());
-
-        self.main_window.update_cursor_position(None);
+        let mut windows = self.world.resource_mut::<Windows>();
+        let window = windows.get_mut(id).unwrap();
+        window.update_cursor_position(None);
 
         self.world
             .resource_mut::<Events<CursorLeft>>()
@@ -221,9 +209,10 @@ impl AppContext {
     }
 
     pub fn handle_touch(&mut self, id: WindowId, touch: winit::event::Touch) {
-        debug_assert!(id == self.main_window.id());
+        let mut windows = self.world.resource_mut::<Windows>();
+        let window = windows.get_mut(id).unwrap();
 
-        let winit_window = self.main_window.winit_window();
+        let winit_window = window.winit_window();
         let location = touch.location.to_logical(winit_window.scale_factor());
 
         // TODO
@@ -247,8 +236,9 @@ impl AppContext {
     }
 
     pub fn handle_window_focused(&mut self, id: WindowId, focused: bool) {
-        debug_assert!(id == self.main_window.id());
-        self.main_window.update_focused(focused);
+        let mut windows = self.world.resource_mut::<Windows>();
+        let window = windows.get_mut(id).unwrap();
+        window.update_focused(focused);
 
         self.world
             .resource_mut::<Events<WindowFocused>>()
@@ -261,9 +251,9 @@ impl AppContext {
         scale_factor: f64,
         inner_size: winit::dpi::PhysicalSize<u32>,
     ) {
-        debug_assert!(id == self.main_window.id());
+        let mut windows = self.world.resource_mut::<Windows>();
+        let window = windows.get_mut(id).unwrap();
 
-        let window = &mut self.main_window;
         self.world
             .resource_mut::<Events<WindowBackendScaleFactorChanged>>()
             .send(WindowBackendScaleFactorChanged { id, scale_factor });
@@ -318,92 +308,4 @@ impl AppContext {
         self.world.resource_mut::<MouseInput>().flush();
         self.world.resource_mut::<Touches>().flush();
     }
-
-    fn add_standard_pools(&mut self, min_total_threads: usize, max_total_threads: usize) {
-        let total_threads = logical_core_count().clamp(min_total_threads, max_total_threads);
-        log::trace!("Assigning {} cores to default task pools", total_threads);
-
-        let remaining_threads = total_threads;
-
-        let io_threads = get_number_of_threads(remaining_threads, total_threads, 0.25, 1, 4);
-
-        log::trace!("IO Threads: {}", io_threads);
-        // remaining_threads = remaining_threads.saturating_sub(io_threads);
-
-        self.world.insert_resource(IoTaskPool(
-            TaskPoolBuilder::default()
-                .num_threads(io_threads)
-                .thread_name("IO Task Pool".to_string())
-                .build(),
-        ));
-    }
-
-    fn add_standard_systems(&mut self) {
-        self.systems.add(
-            Stage::PreUpdate,
-            free_unused_assets_system.system(&mut self.world),
-        );
-    }
-
-    fn add_standard_resources(&mut self) {
-        self.init_resource::<KeyboardInput>();
-        self.init_resource::<MouseInput>();
-        self.init_resource::<Touches>();
-        self.init_resource::<Time>();
-        self.add_asset_server();
-    }
-
-    fn add_asset_server(&mut self) {
-        // TODO: Make the task pool and asset server settings configurable
-        let task_pool = self.world.resource::<IoTaskPool>().0.clone();
-        self.world.insert_resource(AssetServerSettings::default());
-        let settings = self.world.resource::<AssetServerSettings>();
-        let source = Box::new(FileAssetIo::new(&settings.asset_folder));
-        let asset_server = AssetServer::with_boxed_io(source, task_pool);
-        self.world.insert_resource(asset_server);
-    }
-
-    fn add_standard_events(&mut self) {
-        self.add_event::<WindowCloseRequested>();
-        self.add_event::<WindowResized>();
-        self.add_event::<WindowMoved>();
-        self.add_event::<KeyInput>();
-        self.add_event::<MouseButtonInput>();
-        self.add_event::<MouseWheel>();
-        self.add_event::<CursorMoved>();
-        self.add_event::<CursorEntered>();
-        self.add_event::<CursorLeft>();
-        self.add_event::<MouseMotion>();
-        self.add_event::<TouchInput>();
-        self.add_event::<ReceivedCharacter>();
-        self.add_event::<WindowFocused>();
-        self.add_event::<WindowBackendScaleFactorChanged>();
-        self.add_event::<WindowScaleFactorChanged>();
-    }
-
-    fn init_resource<T: Resource + FromWorld>(&mut self) {
-        let resource = T::from_world(&mut self.world);
-        self.world.insert_resource(resource);
-    }
-
-    fn add_event<T: Event>(&mut self) {
-        self.systems.add_event::<T>(&mut self.world);
-    }
-
-    // fn add_standard_asset<T: Asset>(&mut self) {
-    //     self.systems.add_asset::<T>(&mut self.world);
-    // }
-}
-
-// TODO: Extract (Bevy TaskPoolThreadsAsignmentPolicy)
-fn get_number_of_threads(
-    remaining_threads: usize,
-    total_threads: usize,
-    percent: f32,
-    min_threads: usize,
-    max_threads: usize,
-) -> usize {
-    let mut desired = (total_threads as f32 * percent).round() as usize;
-    desired = desired.min(remaining_threads);
-    desired.clamp(min_threads, max_threads)
 }

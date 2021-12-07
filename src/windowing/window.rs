@@ -1,15 +1,10 @@
-mod builder;
-mod event;
-mod size;
-
-pub(crate) use builder::WindowBuilder;
-pub use event::*;
-pub use size::{FullScreen, LogicalSize, PhysicalSize, Size};
 
 use crate::ty::{Vec2, Vec2i};
 
+use super::WindowBuilder;
+
 // TODO: Window ids, multiple window handling
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct WindowId(u32);
 
 impl WindowId {
