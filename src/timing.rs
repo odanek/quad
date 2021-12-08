@@ -3,7 +3,7 @@ mod time;
 mod timer;
 
 pub use stopwatch::Stopwatch;
-pub use time::Time;                                                                                                        
+pub use time::Time;
 pub use timer::Timer;
 
 use crate::app::App;

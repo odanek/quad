@@ -7,34 +7,21 @@ pub use scene::{Scene, SceneContext, SceneResult};
 pub use systems::Stage;
 
 use crate::{
-    asset::{asset_plugin, Asset, AssetServer, Assets, update_asset_storage_system, AssetEvent},
-    ecs::{Event, Events, FromWorld, IntoSystem, Resource, World, Res},
+    asset::{asset_plugin, update_asset_storage_system, Asset, AssetEvent, AssetServer, Assets},
+    ecs::{Event, Events, FromWorld, IntoSystem, Res, Resource, World},
     input::input_plugin,
-    tasks::{logical_core_count, TaskPoolBuilder, IoTaskPool},
+    tasks::{logical_core_count, IoTaskPool, TaskPoolBuilder},
     timing::timing_plugin,
     windowing::{windowing_plugin, WindowBuilder, WindowId, Windows},
 };
 
-use self::{
-    context::AppContext,
-    runner::winit_runner,
-    systems::Systems,
-};
+use self::{context::AppContext, runner::winit_runner, systems::Systems};
 
+#[derive(Default)]
 pub struct App {
     world: World,
     systems: Systems,
     main_window: WindowBuilder,
-}
-
-impl Default for App {
-    fn default() -> Self {
-        Self {
-            world: Default::default(),
-            systems: Default::default(),
-            main_window: WindowBuilder::default(),
-        }
-    }
 }
 
 impl App {
@@ -78,7 +65,7 @@ impl App {
     pub fn add_event<T: Event>(&mut self) -> &mut Self {
         self.init_resource::<Events<T>>().add_system(
             Stage::PreUpdate,
-            &Events::<T>::update_system,  // TODO: Why is the & needed?
+            &Events::<T>::update_system, // TODO: Why is the & needed?
         );
 
         self
@@ -87,19 +74,16 @@ impl App {
     // TODO: AddAsset trait
     pub fn add_asset<T: Asset>(&mut self) -> &mut Self {
         let assets = {
-            let asset_server = self.world.get_resource::<AssetServer>().expect("Asset plugin not initialized");
+            let asset_server = self
+                .world
+                .get_resource::<AssetServer>()
+                .expect("Asset plugin not initialized");
             asset_server.register_asset_type::<T>()
         };
 
         self.insert_resource(assets)
-            .add_system(
-                Stage::AssetEvents,
-                &Assets::<T>::asset_event_system,
-            )
-            .add_system(
-                Stage::LoadAssets,
-                &update_asset_storage_system::<T>,
-            )
+            .add_system(Stage::AssetEvents, &Assets::<T>::asset_event_system)
+            .add_system(Stage::LoadAssets, &update_asset_storage_system::<T>)
             .add_event::<AssetEvent<T>>();
 
         self

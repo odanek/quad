@@ -2,10 +2,9 @@ use std::collections::HashMap;
 
 use crate::ecs::Resource;
 
-use super::{WindowId, Window};
+use super::{Window, WindowId};
 
 type WinitWindowId = winit::window::WindowId;
-type WinitWindow = winit::window::Window;
 
 pub struct Windows {
     window_id_to_winit: HashMap<WindowId, WinitWindowId>,

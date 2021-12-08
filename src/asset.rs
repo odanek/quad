@@ -12,7 +12,11 @@ pub use handle::{Handle, HandleId, HandleUntyped};
 pub use io::FileAssetIo;
 pub use loader::{update_asset_storage_system, Asset, AssetDynamic};
 
-use crate::{ecs::{Resource}, app::{App, Stage}, tasks::IoTaskPool};
+use crate::{
+    app::{App, Stage},
+    ecs::Resource,
+    tasks::IoTaskPool,
+};
 
 pub struct AssetServerSettings {
     pub asset_folder: String,
@@ -29,10 +33,7 @@ impl Default for AssetServerSettings {
 }
 
 pub fn asset_plugin(app: &mut App) {
-    app.add_system(
-        Stage::PreUpdate,
-        &free_unused_assets_system,
-    );
+    app.add_system(Stage::PreUpdate, &free_unused_assets_system);
 
     // TODO: Make the task pool and asset server settings configurable
     let task_pool = app.resource::<IoTaskPool>().0.clone();

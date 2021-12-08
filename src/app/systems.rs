@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{
-    ecs::{System, World},
-};
+use crate::ecs::{System, World};
 
 type BoxedSystem = Box<dyn System<In = (), Out = ()>>;
 

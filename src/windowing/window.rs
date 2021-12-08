@@ -1,4 +1,3 @@
-
 use crate::ty::{Vec2, Vec2i};
 
 use super::WindowBuilder;

@@ -7,9 +7,9 @@ use crate::{
     timing::Time,
     ty::{Vec2, Vec2i},
     windowing::{
-        CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, Window,
-        WindowBackendScaleFactorChanged, WindowCloseRequested, WindowFocused, WindowId,
-        WindowMoved, WindowResized, WindowScaleFactorChanged, Windows,
+        CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, WindowBackendScaleFactorChanged,
+        WindowCloseRequested, WindowFocused, WindowId, WindowMoved, WindowResized,
+        WindowScaleFactorChanged, Windows,
     },
 };
 
@@ -26,11 +26,7 @@ pub struct AppContext {
 }
 
 impl AppContext {
-    pub fn new(
-        world: World,
-        systems: Systems,
-        scene: Box<dyn Scene>,
-    ) -> Self {
+    pub fn new(world: World, systems: Systems, scene: Box<dyn Scene>) -> Self {
         Self {
             world,
             systems,
@@ -66,10 +62,8 @@ impl AppContext {
         result
     }
 
-    pub fn get_window(&self, id: winit::window::WindowId) -> Option<&Window> {
-        let windows = self.world.resource::<Windows>();
-        let window_id = windows.get_id(id)?;
-        windows.get(window_id)
+    pub fn get_window_id(&self, id: winit::window::WindowId) -> Option<WindowId> {
+        self.world.resource::<Windows>().get_id(id)
     }
 
     pub fn handle_window_close_requested(&mut self, id: WindowId) {
@@ -83,11 +77,14 @@ impl AppContext {
         let window = windows.get_mut(id).unwrap();
         window.update_physical_size(width, height);
 
+        let logical_width = window.width();
+        let logical_height = window.height();
+
         let mut resize_events = self.world.resource_mut::<Events<WindowResized>>();
         resize_events.send(WindowResized {
             id,
-            width: window.width(),
-            height: window.height(),
+            width: logical_width,
+            height: logical_height,
         });
     }
 
@@ -98,7 +95,7 @@ impl AppContext {
     ) {
         let mut windows = self.world.resource_mut::<Windows>();
         let window = windows.get_mut(id).unwrap();
-                
+
         let position = Vec2i::new(position.x, position.y);
         window.update_position(Some(position));
 
@@ -184,7 +181,7 @@ impl AppContext {
             .send(CursorMoved { id, position });
     }
 
-    pub fn handle_cursor_entered(&mut self, id: WindowId) {        
+    pub fn handle_cursor_entered(&mut self, id: WindowId) {
         self.world
             .resource_mut::<Events<CursorEntered>>()
             .send(CursorEntered { id });
@@ -251,34 +248,37 @@ impl AppContext {
         scale_factor: f64,
         inner_size: winit::dpi::PhysicalSize<u32>,
     ) {
-        let mut windows = self.world.resource_mut::<Windows>();
-        let window = windows.get_mut(id).unwrap();
-
         self.world
             .resource_mut::<Events<WindowBackendScaleFactorChanged>>()
             .send(WindowBackendScaleFactorChanged { id, scale_factor });
 
+        let mut windows = self.world.resource_mut::<Windows>();
+        let window = windows.get_mut(id).unwrap();
+
+        let old_scale_factor = window.scale_factor();
+        let old_physical_width = window.physical_width();
+        let old_physical_height = window.physical_height();
+        window.update_backend_scale_factor(scale_factor);
+        window.update_physical_size(inner_size.width, inner_size.height);
+        let logical_width = window.width();
+        let logical_height = window.height();
+
         #[allow(clippy::float_cmp)]
-        if window.scale_factor() != scale_factor {
+        if old_scale_factor != scale_factor {
             self.world
                 .resource_mut::<Events<WindowScaleFactorChanged>>()
                 .send(WindowScaleFactorChanged { id, scale_factor });
         }
 
-        window.update_backend_scale_factor(scale_factor);
-
-        if window.physical_width() != inner_size.width
-            || window.physical_height() != inner_size.height
-        {
+        if old_physical_width != inner_size.width || old_physical_height != inner_size.height {
             self.world
                 .resource_mut::<Events<WindowResized>>()
                 .send(WindowResized {
                     id,
-                    width: window.width(),
-                    height: window.height(),
+                    width: logical_width,
+                    height: logical_height,
                 });
         }
-        window.update_physical_size(inner_size.width, inner_size.height);
     }
 
     fn before_scene_update(&mut self) {

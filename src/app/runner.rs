@@ -36,8 +36,8 @@ pub fn winit_runner(mut context: AppContext, event_loop: AppEventLoop) {
                 window_id: winit_window_id,
                 ..
             } => {
-                let window_id = if let Some(window) = context.get_window(winit_window_id) {
-                    window.id()
+                let window_id = if let Some(id) = context.get_window_id(winit_window_id) {
+                    id
                 } else {
                     log::debug!(
                         "Skipping event for unknown winit window id {:?}",
