@@ -21,7 +21,7 @@ use self::{context::AppContext, runner::winit_runner, systems::Systems};
 pub struct App {
     world: World,
     systems: Systems,
-    main_window: WindowBuilder,
+    main_window_builder: WindowBuilder,
 }
 
 impl App {
@@ -29,13 +29,14 @@ impl App {
         Default::default()
     }
 
-    pub fn add_default_plugins(&mut self) {
+    pub fn add_default_plugins(&mut self) -> &mut Self {
         self.add_standard_pools(1, usize::MAX);
 
         timing_plugin(self);
         windowing_plugin(self);
         input_plugin(self);
         asset_plugin(self);
+        self
     }
 
     pub fn init_resource<T: Resource + FromWorld>(&mut self) -> &mut Self {
@@ -90,16 +91,21 @@ impl App {
     }
 
     pub fn main_window(&mut self, window: WindowBuilder) -> &mut Self {
-        self.main_window = window;
+        self.main_window_builder = window;
         self
     }
 
-    pub fn run(mut self, scene: Box<dyn Scene>) {
+    pub fn run(&mut self, scene: Box<dyn Scene>) {
+        let App {
+            mut world,
+            systems,
+            main_window_builder,
+        } = std::mem::take(self);
         let event_loop = winit::event_loop::EventLoop::new();
-        let main_window = self.main_window.build(WindowId::new(0), &event_loop);
-        let mut windows = self.world.resource_mut::<Windows>();
+        let main_window = main_window_builder.build(WindowId::new(0), &event_loop);
+        let mut windows = world.resource_mut::<Windows>();
         windows.add(main_window);
-        let context = AppContext::new(self.world, self.systems, scene);
+        let context = AppContext::new(world, systems, scene);
         winit_runner(context, event_loop);
     }
 
