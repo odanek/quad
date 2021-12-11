@@ -40,8 +40,7 @@ impl App {
     }
 
     pub fn init_resource<T: Resource + FromWorld>(&mut self) -> &mut Self {
-        let resource = T::from_world(&mut self.world);
-        self.insert_resource(resource);
+        self.world.init_resource::<T>();
         self
     }
 

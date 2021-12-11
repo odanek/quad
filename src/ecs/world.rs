@@ -96,6 +96,12 @@ impl World {
     }
 
     #[inline]
+    pub fn init_resource<T: Resource + FromWorld>(&mut self) -> Option<T> {
+        let resource = T::from_world(self);
+        self.resources.add(resource, self.change_tick())
+    }
+
+    #[inline]
     pub fn insert_resource<T: Resource>(&mut self, resource: T) -> Option<T> {
         self.resources.add(resource, self.change_tick())
     }
@@ -115,7 +121,8 @@ impl World {
 
     #[inline]
     pub fn resource<T: Resource>(&self) -> Res<T> {
-        self.get_resource().unwrap()
+        self.get_resource()
+            .unwrap_or_else(|| panic!("Resource does not exist: {}", std::any::type_name::<T>()))
     }
 
     #[inline]
@@ -128,18 +135,18 @@ impl World {
 
     #[inline]
     pub fn resource_mut<T: Resource>(&mut self) -> ResMut<T> {
-        self.get_resource_mut().unwrap()
+        self.get_resource_mut()
+            .unwrap_or_else(|| panic!("Resource does not exist: {}", std::any::type_name::<T>()))
     }
 
     #[inline]
-
     pub fn is_resource_added<T: Resource>(&self) -> bool {
-        self.get_resource::<T>().unwrap().is_added()
+        self.resource::<T>().is_added()
     }
 
     #[inline]
     pub fn is_resource_changed<T: Resource>(&self) -> bool {
-        self.get_resource::<T>().unwrap().is_changed()
+        self.resource::<T>().is_changed()
     }
 
     #[inline]
