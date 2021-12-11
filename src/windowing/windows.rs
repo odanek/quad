@@ -6,6 +6,7 @@ use super::{Window, WindowId};
 
 type WinitWindowId = winit::window::WindowId;
 
+#[derive(Default)]
 pub struct Windows {
     window_id_to_winit: HashMap<WindowId, WinitWindowId>,
     winit_to_window_id: HashMap<WinitWindowId, WindowId>,

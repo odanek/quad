@@ -13,7 +13,7 @@ pub use windows::Windows;
 use crate::app::App;
 
 pub fn windowing_plugin(app: &mut App) {
-    // TODO: Add Windows resource
+    app.init_resource::<Windows>();
 
     app.add_event::<ReceivedCharacter>();
     app.add_event::<WindowCloseRequested>();
