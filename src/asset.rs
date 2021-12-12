@@ -35,7 +35,7 @@ impl Default for AssetServerSettings {
 pub fn asset_plugin(app: &mut App) {
     app.add_system(Stage::PreUpdate, &free_unused_assets_system);
 
-    // TODO: Make the task pool and asset server settings configurable
+    // TODO: Make the asset server configurable
     let task_pool = app.resource::<IoTaskPool>().0.clone();
     app.init_resource::<AssetServerSettings>();
     let settings = app.resource::<AssetServerSettings>();
