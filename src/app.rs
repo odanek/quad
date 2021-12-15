@@ -4,6 +4,8 @@ mod scene;
 mod systems;
 mod task_pool_options;
 
+use std::collections::HashMap;
+
 pub use scene::{Scene, SceneContext, SceneResult};
 pub use systems::Stage;
 pub use task_pool_options::DefaultTaskPoolOptions;
@@ -18,11 +20,22 @@ use crate::{
 
 use self::{context::AppContext, runner::winit_runner, systems::Systems};
 
+struct MainWindow(WindowBuilder);
+
+impl Resource for MainWindow {}
+
 #[derive(Default)]
 pub struct App {
     world: World,
     systems: Systems,
-    main_window_builder: WindowBuilder,
+    sub_apps: HashMap<String, SubApp>,
+}
+
+type SubAppUpdate = dyn Fn(&mut World, &mut App);
+
+pub struct SubApp {
+    app: App,
+    update: Box<SubAppUpdate>,
 }
 
 impl App {
@@ -94,22 +107,35 @@ impl App {
         self
     }
 
+    pub fn add_sub_app(
+        &mut self,
+        label: String,
+        app: App,
+        update: impl Fn(&mut World, &mut App) + 'static,
+    ) -> &mut Self {
+        self.sub_apps.insert(
+            label,
+            SubApp {
+                app,
+                update: Box::new(update),
+            },
+        );
+        self
+    }
+
     pub fn main_window(&mut self, window: WindowBuilder) -> &mut Self {
-        self.main_window_builder = window;
+        self.insert_resource(MainWindow(window));
         self
     }
 
     pub fn run(&mut self, scene: Box<dyn Scene>) {
-        let App {
-            mut world,
-            systems,
-            main_window_builder,
-        } = std::mem::take(self);
+        let mut app = std::mem::take(self);
         let event_loop = winit::event_loop::EventLoop::new();
+        let main_window_builder = app.world.remove_resource::<MainWindow>().unwrap().0;
         let main_window = main_window_builder.build(WindowId::new(0), &event_loop);
-        let mut windows = world.resource_mut::<Windows>();
+        let mut windows = app.world.resource_mut::<Windows>();
         windows.add(main_window);
-        let context = AppContext::new(world, systems, scene);
+        let context = AppContext::new(app, scene);
         winit_runner(context, event_loop);
     }
 }

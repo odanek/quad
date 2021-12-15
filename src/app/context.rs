@@ -1,5 +1,5 @@
 use crate::{
-    ecs::{Events, World},
+    ecs::Events,
     input::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
         MouseWheel, TouchInput, Touches,
@@ -13,47 +13,38 @@ use crate::{
     },
 };
 
-use super::{
-    scene::SceneContext,
-    systems::{Stage, Systems},
-    Scene, SceneResult,
-};
+use super::{scene::SceneContext, systems::Stage, App, Scene, SceneResult};
 
 pub struct AppContext {
-    world: World,
-    systems: Systems,
+    app: App,
     scene: Box<dyn Scene>,
 }
 
 impl AppContext {
-    pub fn new(world: World, systems: Systems, scene: Box<dyn Scene>) -> Self {
-        Self {
-            world,
-            systems,
-            scene,
-        }
+    pub fn new(app: App, scene: Box<dyn Scene>) -> Self {
+        Self { app, scene }
     }
 
     pub fn start_scene(&mut self) {
-        self.scene.start(SceneContext::new(&mut self.world));
+        self.scene.start(SceneContext::new(&mut self.app.world));
     }
 
     pub fn _stop_scene(&mut self) {
-        self.scene.stop(SceneContext::new(&mut self.world));
+        self.scene.stop(SceneContext::new(&mut self.app.world));
     }
 
     pub fn _pause_scene(&mut self) {
-        self.scene.pause(SceneContext::new(&mut self.world));
+        self.scene.pause(SceneContext::new(&mut self.app.world));
     }
 
     pub fn _resume_scene(&mut self) {
-        self.scene.resume(SceneContext::new(&mut self.world));
+        self.scene.resume(SceneContext::new(&mut self.app.world));
     }
 
     pub fn update_scene(&mut self) -> SceneResult {
         self.before_scene_update();
 
-        let context = SceneContext::new(&mut self.world);
+        let context = SceneContext::new(&mut self.app.world);
         let result = self.scene.update(context);
         if !matches!(result, SceneResult::Quit) {
             self.after_scene_update();
@@ -63,24 +54,25 @@ impl AppContext {
     }
 
     pub fn get_window_id(&self, id: winit::window::WindowId) -> Option<WindowId> {
-        self.world.resource::<Windows>().get_id(id)
+        self.app.world.resource::<Windows>().get_id(id)
     }
 
     pub fn handle_window_close_requested(&mut self, id: WindowId) {
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<WindowCloseRequested>>()
             .send(WindowCloseRequested { id });
     }
 
     pub fn handle_window_resized(&mut self, id: WindowId, width: u32, height: u32) {
-        let mut windows = self.world.resource_mut::<Windows>();
+        let mut windows = self.app.world.resource_mut::<Windows>();
         let window = windows.get_mut(id).unwrap();
         window.update_physical_size(width, height);
 
         let logical_width = window.width();
         let logical_height = window.height();
 
-        let mut resize_events = self.world.resource_mut::<Events<WindowResized>>();
+        let mut resize_events = self.app.world.resource_mut::<Events<WindowResized>>();
         resize_events.send(WindowResized {
             id,
             width: logical_width,
@@ -93,24 +85,27 @@ impl AppContext {
         id: WindowId,
         position: winit::dpi::PhysicalPosition<i32>,
     ) {
-        let mut windows = self.world.resource_mut::<Windows>();
+        let mut windows = self.app.world.resource_mut::<Windows>();
         let window = windows.get_mut(id).unwrap();
 
         let position = Vec2i::new(position.x, position.y);
         window.update_position(Some(position));
 
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<WindowMoved>>()
             .send(WindowMoved { id, position });
     }
 
     pub fn handle_keyboard_event(&mut self, input: winit::event::KeyboardInput) {
         if let Some(keycode) = input.virtual_keycode {
-            self.world
+            self.app
+                .world
                 .resource_mut::<KeyboardInput>()
                 .toggle(keycode.into(), input.state.into());
         }
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<KeyInput>>()
             .send(KeyInput {
                 scan_code: input.scancode,
@@ -124,10 +119,12 @@ impl AppContext {
         button: winit::event::MouseButton,
         state: winit::event::ElementState,
     ) {
-        self.world
+        self.app
+            .world
             .resource_mut::<MouseInput>()
             .toggle(button.into(), state.into());
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<MouseButtonInput>>()
             .send(MouseButtonInput {
                 button: button.into(),
@@ -138,7 +135,8 @@ impl AppContext {
     pub fn handle_mouse_wheel(&mut self, delta: winit::event::MouseScrollDelta) {
         match delta {
             winit::event::MouseScrollDelta::LineDelta(x, y) => {
-                self.world
+                self.app
+                    .world
                     .resource_mut::<Events<MouseWheel>>()
                     .send(MouseWheel {
                         unit: MouseScrollUnit::Line,
@@ -147,7 +145,8 @@ impl AppContext {
                     });
             }
             winit::event::MouseScrollDelta::PixelDelta(p) => {
-                self.world
+                self.app
+                    .world
                     .resource_mut::<Events<MouseWheel>>()
                     .send(MouseWheel {
                         unit: MouseScrollUnit::Pixel,
@@ -163,7 +162,7 @@ impl AppContext {
         id: WindowId,
         position: winit::dpi::PhysicalPosition<f64>,
     ) {
-        let mut windows = self.world.resource_mut::<Windows>();
+        let mut windows = self.app.world.resource_mut::<Windows>();
         let window = windows.get_mut(id).unwrap();
 
         let winit_window = window.winit_window();
@@ -176,29 +175,33 @@ impl AppContext {
         let position = Vec2::new(position.x, y_position);
         window.update_cursor_position(Some(position));
 
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<CursorMoved>>()
             .send(CursorMoved { id, position });
     }
 
     pub fn handle_cursor_entered(&mut self, id: WindowId) {
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<CursorEntered>>()
             .send(CursorEntered { id });
     }
 
     pub fn handle_cursor_left(&mut self, id: WindowId) {
-        let mut windows = self.world.resource_mut::<Windows>();
+        let mut windows = self.app.world.resource_mut::<Windows>();
         let window = windows.get_mut(id).unwrap();
         window.update_cursor_position(None);
 
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<CursorLeft>>()
             .send(CursorLeft { id });
     }
 
     pub fn handle_mouse_motion(&mut self, delta: (f64, f64)) {
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<MouseMotion>>()
             .send(MouseMotion {
                 delta: Vec2::new(delta.0 as f32, delta.1 as f32),
@@ -206,7 +209,7 @@ impl AppContext {
     }
 
     pub fn handle_touch(&mut self, id: WindowId, touch: winit::event::Touch) {
-        let mut windows = self.world.resource_mut::<Windows>();
+        let mut windows = self.app.world.resource_mut::<Windows>();
         let window = windows.get_mut(id).unwrap();
 
         let winit_window = window.winit_window();
@@ -218,26 +221,30 @@ impl AppContext {
         //     location.y = window_height - location.y;
         // }
         let touch_input = TouchInput::from_winit_event(touch, location);
-        self.world
+        self.app
+            .world
             .resource_mut::<Touches>()
             .process_event(&touch_input);
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<TouchInput>>()
             .send(touch_input);
     }
 
     pub fn handle_received_character(&mut self, id: WindowId, c: char) {
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<ReceivedCharacter>>()
             .send(ReceivedCharacter { id, char: c });
     }
 
     pub fn handle_window_focused(&mut self, id: WindowId, focused: bool) {
-        let mut windows = self.world.resource_mut::<Windows>();
+        let mut windows = self.app.world.resource_mut::<Windows>();
         let window = windows.get_mut(id).unwrap();
         window.update_focused(focused);
 
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<WindowFocused>>()
             .send(WindowFocused { id, focused });
     }
@@ -248,11 +255,12 @@ impl AppContext {
         scale_factor: f64,
         inner_size: winit::dpi::PhysicalSize<u32>,
     ) {
-        self.world
+        self.app
+            .world
             .resource_mut::<Events<WindowBackendScaleFactorChanged>>()
             .send(WindowBackendScaleFactorChanged { id, scale_factor });
 
-        let mut windows = self.world.resource_mut::<Windows>();
+        let mut windows = self.app.world.resource_mut::<Windows>();
         let window = windows.get_mut(id).unwrap();
 
         let old_scale_factor = window.scale_factor();
@@ -265,13 +273,15 @@ impl AppContext {
 
         #[allow(clippy::float_cmp)]
         if old_scale_factor != scale_factor {
-            self.world
+            self.app
+                .world
                 .resource_mut::<Events<WindowScaleFactorChanged>>()
                 .send(WindowScaleFactorChanged { id, scale_factor });
         }
 
         if old_physical_width != inner_size.width || old_physical_height != inner_size.height {
-            self.world
+            self.app
+                .world
                 .resource_mut::<Events<WindowResized>>()
                 .send(WindowResized {
                     id,
@@ -283,29 +293,31 @@ impl AppContext {
 
     fn before_scene_update(&mut self) {
         self.advance_time();
-        self.systems.run(Stage::LoadAssets, &mut self.world);
-        self.systems.run(Stage::PreUpdate, &mut self.world);
+        self.app.systems.run(Stage::LoadAssets, &mut self.app.world);
+        self.app.systems.run(Stage::PreUpdate, &mut self.app.world);
     }
 
     fn after_scene_update(&mut self) {
         // Physics, animations, ...
         // Draw
 
-        self.systems.run(Stage::PostUpdate, &mut self.world);
-        self.systems.run(Stage::AssetEvents, &mut self.world);
+        self.app.systems.run(Stage::PostUpdate, &mut self.app.world);
+        self.app
+            .systems
+            .run(Stage::AssetEvents, &mut self.app.world);
 
         self.flush_input_events();
-        self.world.clear_trackers();
+        self.app.world.clear_trackers();
     }
 
     fn advance_time(&mut self) {
-        let mut time = self.world.resource_mut::<Time>();
+        let mut time = self.app.world.resource_mut::<Time>();
         time.update();
     }
 
     fn flush_input_events(&mut self) {
-        self.world.resource_mut::<KeyboardInput>().flush();
-        self.world.resource_mut::<MouseInput>().flush();
-        self.world.resource_mut::<Touches>().flush();
+        self.app.world.resource_mut::<KeyboardInput>().flush();
+        self.app.world.resource_mut::<MouseInput>().flush();
+        self.app.world.resource_mut::<Touches>().flush();
     }
 }
