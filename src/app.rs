@@ -4,8 +4,6 @@ mod scene;
 mod systems;
 mod task_pool_options;
 
-use std::collections::HashMap;
-
 pub use scene::{Scene, SceneContext, SceneResult};
 pub use systems::Stage;
 pub use task_pool_options::DefaultTaskPoolOptions;
@@ -13,8 +11,8 @@ pub use task_pool_options::DefaultTaskPoolOptions;
 use crate::{
     asset::{asset_plugin, update_asset_storage_system, Asset, AssetEvent, AssetServer, Assets},
     ecs::{Event, Events, FromWorld, IntoSystem, Res, Resource, World},
-    input::input_plugin,
-    timing::timing_plugin,
+    input::{input_plugin, KeyboardInput, MouseInput, Touches},
+    timing::{timing_plugin, Time},
     windowing::{windowing_plugin, WindowBuilder, WindowId, Windows},
 };
 
@@ -28,14 +26,6 @@ impl Resource for MainWindow {}
 pub struct App {
     world: World,
     systems: Systems,
-    sub_apps: HashMap<String, SubApp>,
-}
-
-type SubAppUpdate = dyn Fn(&mut World, &mut App);
-
-pub struct SubApp {
-    app: App,
-    update: Box<SubAppUpdate>,
 }
 
 impl App {
@@ -107,22 +97,6 @@ impl App {
         self
     }
 
-    pub fn add_sub_app(
-        &mut self,
-        label: String,
-        app: App,
-        update: impl Fn(&mut World, &mut App) + 'static,
-    ) -> &mut Self {
-        self.sub_apps.insert(
-            label,
-            SubApp {
-                app,
-                update: Box::new(update),
-            },
-        );
-        self
-    }
-
     pub fn main_window(&mut self, window: WindowBuilder) -> &mut Self {
         self.insert_resource(MainWindow(window));
         self
@@ -137,5 +111,28 @@ impl App {
         windows.add(main_window);
         let context = AppContext::new(app, scene);
         winit_runner(context, event_loop);
+    }
+
+    pub fn update(&mut self) {
+        self.before_update();
+        self.after_update();
+    }
+
+    pub(crate) fn before_update(&mut self) {
+        self.world.resource_mut::<Time>().update();
+        self.systems.run(Stage::LoadAssets, &mut self.world);
+        self.systems.run(Stage::PreUpdate, &mut self.world);
+    }
+
+    pub(crate) fn after_update(&mut self) {
+        self.systems.run(Stage::PostUpdate, &mut self.world);
+        self.systems.run(Stage::AssetEvents, &mut self.world);
+
+        // Todo: Add as systems in input plugin
+        self.world.resource_mut::<KeyboardInput>().flush();
+        self.world.resource_mut::<MouseInput>().flush();
+        self.world.resource_mut::<Touches>().flush();
+
+        self.world.clear_trackers();
     }
 }

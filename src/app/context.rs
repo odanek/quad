@@ -4,7 +4,6 @@ use crate::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
         MouseWheel, TouchInput, Touches,
     },
-    timing::Time,
     ty::{Vec2, Vec2i},
     windowing::{
         CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, WindowBackendScaleFactorChanged,
@@ -13,14 +12,16 @@ use crate::{
     },
 };
 
-use super::{scene::SceneContext, systems::Stage, App, Scene, SceneResult};
+use super::{scene::SceneContext, App, Scene, SceneResult};
 
 pub struct AppContext {
     app: App,
+    // render_app: App,
     scene: Box<dyn Scene>,
 }
 
 impl AppContext {
+    // RunContext
     pub fn new(app: App, scene: Box<dyn Scene>) -> Self {
         Self { app, scene }
     }
@@ -42,13 +43,15 @@ impl AppContext {
     }
 
     pub fn update_scene(&mut self) -> SceneResult {
-        self.before_scene_update();
+        self.app.before_update();
 
         let context = SceneContext::new(&mut self.app.world);
         let result = self.scene.update(context);
-        if !matches!(result, SceneResult::Quit) {
-            self.after_scene_update();
+        if matches!(result, SceneResult::Quit) {
+            return result;
         }
+
+        self.app.after_update();
 
         result
     }
@@ -289,35 +292,5 @@ impl AppContext {
                     height: logical_height,
                 });
         }
-    }
-
-    fn before_scene_update(&mut self) {
-        self.advance_time();
-        self.app.systems.run(Stage::LoadAssets, &mut self.app.world);
-        self.app.systems.run(Stage::PreUpdate, &mut self.app.world);
-    }
-
-    fn after_scene_update(&mut self) {
-        // Physics, animations, ...
-        // Draw
-
-        self.app.systems.run(Stage::PostUpdate, &mut self.app.world);
-        self.app
-            .systems
-            .run(Stage::AssetEvents, &mut self.app.world);
-
-        self.flush_input_events();
-        self.app.world.clear_trackers();
-    }
-
-    fn advance_time(&mut self) {
-        let mut time = self.app.world.resource_mut::<Time>();
-        time.update();
-    }
-
-    fn flush_input_events(&mut self) {
-        self.app.world.resource_mut::<KeyboardInput>().flush();
-        self.app.world.resource_mut::<MouseInput>().flush();
-        self.app.world.resource_mut::<Touches>().flush();
     }
 }
