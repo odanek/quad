@@ -4,6 +4,8 @@ mod scene;
 mod systems;
 mod task_pool_options;
 
+pub use context::AppContext; // TODO: Should not be public
+pub use runner::winit_runner; // TODO: Should not be public
 pub use scene::{Scene, SceneContext, SceneResult};
 pub use systems::Stage;
 pub use task_pool_options::DefaultTaskPoolOptions;
@@ -13,14 +15,10 @@ use crate::{
     ecs::{Event, Events, FromWorld, IntoSystem, Res, Resource, World},
     input::{input_plugin, KeyboardInput, MouseInput, Touches},
     timing::{timing_plugin, Time},
-    windowing::{windowing_plugin, WindowBuilder, WindowId, Windows},
+    windowing::{windowing_plugin, Window, Windows},
 };
 
-use self::{context::AppContext, runner::winit_runner, systems::Systems};
-
-struct MainWindow(WindowBuilder);
-
-impl Resource for MainWindow {}
+use self::systems::Systems;
 
 #[derive(Default)]
 pub struct App {
@@ -33,16 +31,27 @@ impl App {
         Default::default()
     }
 
-    pub fn add_default_pools(&mut self) -> &mut Self {
+    pub(crate) fn create_default_pools(&mut self) {
         let options = DefaultTaskPoolOptions::default();
         options.create_default_pools(&mut self.world);
+    }
+
+    pub fn add_timing_plugin(&mut self) -> &mut Self {
+        timing_plugin(self);
         self
     }
 
-    pub fn add_default_plugins(&mut self) -> &mut Self {
-        timing_plugin(self);
+    pub fn add_windowing_plugin(&mut self) -> &mut Self {
         windowing_plugin(self);
+        self
+    }
+
+    pub fn add_input_plugin(&mut self) -> &mut Self {
         input_plugin(self);
+        self
+    }
+
+    pub fn add_asset_plugin(&mut self) -> &mut Self {
         asset_plugin(self);
         self
     }
@@ -97,20 +106,10 @@ impl App {
         self
     }
 
-    pub fn main_window(&mut self, window: WindowBuilder) -> &mut Self {
-        self.insert_resource(MainWindow(window));
+    pub(crate) fn add_window(&mut self, window: Window) -> &mut Self {
+        let mut windows = self.world.resource_mut::<Windows>();
+        windows.add(window);
         self
-    }
-
-    pub fn run(&mut self, scene: Box<dyn Scene>) {
-        let mut app = std::mem::take(self);
-        let event_loop = winit::event_loop::EventLoop::new();
-        let main_window_builder = app.world.remove_resource::<MainWindow>().unwrap().0;
-        let main_window = main_window_builder.build(WindowId::new(0), &event_loop);
-        let mut windows = app.world.resource_mut::<Windows>();
-        windows.add(main_window);
-        let context = AppContext::new(app, scene);
-        winit_runner(context, event_loop);
     }
 
     pub fn update(&mut self) {
