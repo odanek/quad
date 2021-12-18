@@ -4,16 +4,19 @@ mod scene;
 mod systems;
 mod task_pool_options;
 
-pub use context::AppContext; // TODO: Should not be public
-pub use runner::winit_runner; // TODO: Should not be public
-pub use scene::{Scene, SceneContext, SceneResult};
+pub(crate) use context::AppContext;
+pub(crate) use runner::winit_runner;
+pub use scene::{Scene, SceneResult};
 pub use systems::Stage;
-pub use task_pool_options::DefaultTaskPoolOptions;
+pub use task_pool_options::TaskPoolOptions;
 
 use crate::{
-    asset::{asset_plugin, update_asset_storage_system, Asset, AssetEvent, AssetServer, Assets},
+    asset::{
+        asset_plugin, update_asset_storage_system, Asset, AssetEvent, AssetServer,
+        AssetServerSettings, Assets,
+    },
     ecs::{Event, Events, FromWorld, IntoSystem, Res, Resource, World},
-    input::{input_plugin, KeyboardInput, MouseInput, Touches},
+    input::input_plugin,
     timing::{timing_plugin, Time},
     windowing::{windowing_plugin, Window, Windows},
 };
@@ -31,9 +34,8 @@ impl App {
         Default::default()
     }
 
-    pub(crate) fn create_default_pools(&mut self) {
-        let options = DefaultTaskPoolOptions::default();
-        options.create_default_pools(&mut self.world);
+    pub(crate) fn create_pools(&mut self, options: &TaskPoolOptions) {
+        options.create_pools(&mut self.world);
     }
 
     pub fn add_timing_plugin(&mut self) -> &mut Self {
@@ -51,7 +53,8 @@ impl App {
         self
     }
 
-    pub fn add_asset_plugin(&mut self) -> &mut Self {
+    pub fn add_asset_plugin(&mut self, settings: &AssetServerSettings) -> &mut Self {
+        self.world.insert_resource(settings.clone());
         asset_plugin(self);
         self
     }
@@ -70,7 +73,7 @@ impl App {
         self.world.resource()
     }
 
-    pub fn add_system<S, Params>(&mut self, stage: Stage, system: S) -> &mut Self
+    pub fn add_system_to_stage<S, Params>(&mut self, stage: Stage, system: S) -> &mut Self
     where
         S: IntoSystem<(), (), Params>,
     {
@@ -80,7 +83,7 @@ impl App {
 
     // TODO: AddEvent trait ?
     pub fn add_event<T: Event>(&mut self) -> &mut Self {
-        self.init_resource::<Events<T>>().add_system(
+        self.init_resource::<Events<T>>().add_system_to_stage(
             Stage::PreUpdate,
             &Events::<T>::update_system, // TODO: Why is the & needed?
         );
@@ -99,13 +102,14 @@ impl App {
         };
 
         self.insert_resource(assets)
-            .add_system(Stage::AssetEvents, &Assets::<T>::asset_event_system)
-            .add_system(Stage::LoadAssets, &update_asset_storage_system::<T>)
+            .add_system_to_stage(Stage::AssetEvents, &Assets::<T>::asset_event_system)
+            .add_system_to_stage(Stage::LoadAssets, &update_asset_storage_system::<T>)
             .add_event::<AssetEvent<T>>();
 
         self
     }
 
+    // TODO: AddWindow trait
     pub(crate) fn add_window(&mut self, window: Window) -> &mut Self {
         let mut windows = self.world.resource_mut::<Windows>();
         windows.add(window);
@@ -126,12 +130,7 @@ impl App {
     pub(crate) fn after_update(&mut self) {
         self.systems.run(Stage::PostUpdate, &mut self.world);
         self.systems.run(Stage::AssetEvents, &mut self.world);
-
-        // Todo: Add as systems in input plugin
-        self.world.resource_mut::<KeyboardInput>().flush();
-        self.world.resource_mut::<MouseInput>().flush();
-        self.world.resource_mut::<Touches>().flush();
-
+        self.systems.run(Stage::Flush, &mut self.world);
         self.world.clear_trackers();
     }
 }

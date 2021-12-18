@@ -20,7 +20,7 @@ impl TaskPoolThreadAssignmentPolicy {
 }
 
 #[derive(Clone)]
-pub struct DefaultTaskPoolOptions {
+pub struct TaskPoolOptions {
     pub min_total_threads: usize,
     pub max_total_threads: usize,
     pub io: TaskPoolThreadAssignmentPolicy,
@@ -28,9 +28,9 @@ pub struct DefaultTaskPoolOptions {
     // pub compute: TaskPoolThreadAssignmentPolicy,
 }
 
-impl Default for DefaultTaskPoolOptions {
+impl Default for TaskPoolOptions {
     fn default() -> Self {
-        DefaultTaskPoolOptions {
+        Self {
             min_total_threads: 1,
             max_total_threads: std::usize::MAX,
             io: TaskPoolThreadAssignmentPolicy {
@@ -52,19 +52,19 @@ impl Default for DefaultTaskPoolOptions {
     }
 }
 
-impl DefaultTaskPoolOptions {
+impl TaskPoolOptions {
     pub fn with_num_threads(thread_count: usize) -> Self {
-        DefaultTaskPoolOptions {
+        Self {
             min_total_threads: thread_count,
             max_total_threads: thread_count,
             ..Default::default()
         }
     }
 
-    pub fn create_default_pools(&self, world: &mut World) {
+    pub fn create_pools(&self, world: &mut World) {
         let total_threads =
             logical_core_count().clamp(self.min_total_threads, self.max_total_threads);
-        log::trace!("Assigning {} cores to default task pools", total_threads);
+        log::trace!("Assigning {} cores to task pools", total_threads);
 
         let remaining_threads = total_threads;
 

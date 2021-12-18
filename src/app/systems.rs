@@ -10,6 +10,7 @@ pub enum Stage {
     PreUpdate,
     PostUpdate,
     AssetEvents,
+    Flush,
 }
 
 #[derive(Default)]

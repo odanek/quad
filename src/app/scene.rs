@@ -8,23 +8,12 @@ pub enum SceneResult {
     Replace(Box<dyn Scene>),
 }
 
-// TODO: Remove and use world directly?
-pub struct SceneContext<'a> {
-    pub world: &'a mut World,
-}
-
-impl<'a, 'b> SceneContext<'a> {
-    pub fn new(world: &'a mut World) -> SceneContext<'a> {
-        SceneContext { world }
-    }
-}
-
 pub trait Scene {
-    fn start(&mut self, _context: SceneContext) {}
-    fn stop(&mut self, _context: SceneContext) {}
-    fn pause(&mut self, _context: SceneContext) {}
-    fn resume(&mut self, _context: SceneContext) {}
-    fn update(&mut self, _context: SceneContext) -> SceneResult {
+    fn start(&mut self, _world: &mut World) {}
+    fn stop(&mut self, _world: &mut World) {}
+    fn pause(&mut self, _world: &mut World) {}
+    fn resume(&mut self, _world: &mut World) {}
+    fn update(&mut self, _world: &mut World) -> SceneResult {
         SceneResult::Ok
     }
 }

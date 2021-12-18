@@ -11,4 +11,4 @@ pub mod transform;
 pub mod ty;
 pub mod windowing;
 
-pub use quad::Quad;
+pub use quad::{Quad, QuadConfig};

@@ -12,7 +12,7 @@ use crate::{
     },
 };
 
-use super::{scene::SceneContext, App, Scene, SceneResult};
+use super::{App, Scene, SceneResult};
 
 pub struct AppContext {
     app: App,
@@ -27,26 +27,25 @@ impl AppContext {
     }
 
     pub fn start_scene(&mut self) {
-        self.scene.start(SceneContext::new(&mut self.app.world));
+        self.scene.start(&mut self.app.world);
     }
 
     pub fn _stop_scene(&mut self) {
-        self.scene.stop(SceneContext::new(&mut self.app.world));
+        self.scene.stop(&mut self.app.world);
     }
 
     pub fn _pause_scene(&mut self) {
-        self.scene.pause(SceneContext::new(&mut self.app.world));
+        self.scene.pause(&mut self.app.world);
     }
 
     pub fn _resume_scene(&mut self) {
-        self.scene.resume(SceneContext::new(&mut self.app.world));
+        self.scene.resume(&mut self.app.world);
     }
 
     pub fn update_scene(&mut self) -> SceneResult {
         self.app.before_update();
 
-        let context = SceneContext::new(&mut self.app.world);
-        let result = self.scene.update(context);
+        let result = self.scene.update(&mut self.app.world);
         if matches!(result, SceneResult::Quit) {
             return result;
         }

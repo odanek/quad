@@ -18,6 +18,7 @@ use crate::{
     tasks::IoTaskPool,
 };
 
+#[derive(Clone)]
 pub struct AssetServerSettings {
     pub asset_folder: String,
 }
@@ -33,13 +34,10 @@ impl Default for AssetServerSettings {
 }
 
 pub fn asset_plugin(app: &mut App) {
-    app.add_system(Stage::PreUpdate, &free_unused_assets_system);
-
-    // TODO: Make the asset server configurable
     let task_pool = app.resource::<IoTaskPool>().0.clone();
-    app.init_resource::<AssetServerSettings>();
     let settings = app.resource::<AssetServerSettings>();
     let source = Box::new(FileAssetIo::new(&settings.asset_folder));
     let asset_server = AssetServer::with_boxed_io(source, task_pool);
     app.insert_resource(asset_server);
+    app.add_system_to_stage(Stage::PreUpdate, &free_unused_assets_system);
 }
