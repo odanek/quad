@@ -5,6 +5,7 @@ pub mod ecs;
 pub mod input;
 mod quad;
 pub mod reflect;
+pub mod render;
 pub mod tasks;
 pub mod timing;
 pub mod transform;
