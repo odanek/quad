@@ -118,3 +118,45 @@ impl<T: AccessIndex> FilteredAccess<T> {
 fn intersects(left: &HashSet<usize>, right: &HashSet<usize>) -> bool {
     left.intersection(right).next() != None
 }
+
+pub struct FilteredAccessSet<T: AccessIndex> {
+    combined_access: Access<T>,
+    filtered_accesses: Vec<FilteredAccess<T>>,
+}
+
+impl<T: AccessIndex> FilteredAccessSet<T> {
+    #[inline]
+    pub fn combined_access(&self) -> &Access<T> {
+        &self.combined_access
+    }
+
+    #[inline]
+    pub fn combined_access_mut(&mut self) -> &mut Access<T> {
+        &mut self.combined_access
+    }
+
+    pub fn is_compatible(&self, filtered_access: &FilteredAccess<T>) -> bool {
+        if !filtered_access.access.is_compatible(&self.combined_access) {
+            for current_filtered_access in &self.filtered_accesses {
+                if !current_filtered_access.is_compatible(filtered_access) {
+                    return false
+                }
+            }
+        }
+        true
+    }
+
+    pub fn add(&mut self, filtered_access: FilteredAccess<T>) {
+        self.combined_access.extend(&filtered_access.access);
+        self.filtered_accesses.push(filtered_access);
+    }
+}
+
+impl<T: AccessIndex> Default for FilteredAccessSet<T> {
+    fn default() -> Self {
+        Self {
+            combined_access: Default::default(),
+            filtered_accesses: Vec::new(),
+        }
+    }
+}
