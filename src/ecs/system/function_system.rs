@@ -2,7 +2,7 @@ use std::{any::type_name, marker::PhantomData};
 
 use crate::ecs::{
     component::{ComponentId, ResourceId, Tick},
-    query::access::{Access, FilteredAccess},
+    query::access::{Access, FilteredAccessSet},
     World,
 };
 
@@ -14,7 +14,7 @@ use super::{
 pub struct SystemMeta {
     pub(crate) name: String,
     pub(crate) resource_access: Access<ResourceId>,
-    pub(crate) component_access: FilteredAccess<ComponentId>,
+    pub(crate) component_access: FilteredAccessSet<ComponentId>,
     pub(crate) last_change_tick: Tick,
 }
 
@@ -89,8 +89,8 @@ where
     }
 
     #[inline]
-    fn component_access(&self) -> &FilteredAccess<ComponentId> {
-        &self.system_meta.component_access
+    fn component_access(&self) -> &Access<ComponentId> {
+        self.system_meta.component_access.combined_access()
     }
 
     #[inline]

@@ -1,16 +1,17 @@
 use crate::ecs::{
     component::{ComponentId, ResourceId},
-    query::access::{Access, FilteredAccess},
-    system::function_system::SystemMeta,
+    query::access::Access,
     IntoSystem, System, World,
 };
 
 use super::Schedule;
 
 pub struct ChainSystem<S, T> {
-    meta: SystemMeta,
     left: S,
     right: T,
+    name: String,
+    resource_access: Access<ResourceId>,
+    component_access: Access<ComponentId>,
 }
 
 impl<S, T> ChainSystem<S, T>
@@ -21,13 +22,21 @@ where
     pub fn new(left: S, right: T) -> Self {
         let name = format!("Chain: {} -> {}", left.name(), right.name());
 
-        let mut meta = SystemMeta::new(name);
-        meta.resource_access.extend(left.resource_access());
-        meta.resource_access.extend(right.resource_access());
-        meta.component_access.extend(left.component_access());
-        meta.component_access.extend(right.component_access());
+        let mut resource_access = Access::<ResourceId>::default();
+        resource_access.extend(left.resource_access());
+        resource_access.extend(right.resource_access());
 
-        Self { meta, left, right }
+        let mut component_access = Access::<ComponentId>::default();
+        component_access.extend(left.component_access());
+        component_access.extend(right.component_access());
+
+        Self {
+            left,
+            right,
+            name,
+            component_access,
+            resource_access,
+        }
     }
 }
 
@@ -41,15 +50,15 @@ where
     type Out = T::Out;
 
     fn name(&self) -> &str {
-        &self.meta.name
+        &self.name
     }
 
     fn resource_access(&self) -> &Access<ResourceId> {
-        &self.meta.resource_access
+        &self.resource_access
     }
 
-    fn component_access(&self) -> &FilteredAccess<ComponentId> {
-        &self.meta.component_access
+    fn component_access(&self) -> &Access<ComponentId> {
+        &self.component_access
     }
 
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out {

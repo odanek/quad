@@ -1,6 +1,6 @@
 use super::{
     component::{ComponentId, ResourceId, Tick},
-    query::access::{Access, FilteredAccess},
+    query::access::Access,
     World,
 };
 
@@ -19,7 +19,7 @@ pub trait System: Send + Sync + 'static {
 
     fn name(&self) -> &str;
     fn resource_access(&self) -> &Access<ResourceId>;
-    fn component_access(&self) -> &FilteredAccess<ComponentId>;
+    fn component_access(&self) -> &Access<ComponentId>;
 
     #[allow(clippy::missing_safety_doc)]
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out;

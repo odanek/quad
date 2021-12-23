@@ -222,7 +222,9 @@ where
         {
             panic!("Query parameters in system {} access components in a way that conflicts with Rust mutability rules.", system_meta.name);
         }
-        system_meta.component_access.extend(&state.component_access);
+        system_meta
+            .component_access
+            .add(state.component_access.clone());
         state
     }
 

@@ -130,16 +130,11 @@ impl<T: AccessIndex> FilteredAccessSet<T> {
         &self.combined_access
     }
 
-    #[inline]
-    pub fn combined_access_mut(&mut self) -> &mut Access<T> {
-        &mut self.combined_access
-    }
-
     pub fn is_compatible(&self, filtered_access: &FilteredAccess<T>) -> bool {
         if !filtered_access.access.is_compatible(&self.combined_access) {
             for current_filtered_access in &self.filtered_accesses {
                 if !current_filtered_access.is_compatible(filtered_access) {
-                    return false
+                    return false;
                 }
             }
         }
