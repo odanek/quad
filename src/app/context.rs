@@ -14,16 +14,15 @@ use crate::{
 
 use super::{App, Scene, SceneResult};
 
-pub struct AppContext {
+pub struct RunContext {
     app: App,
-    // render_app: App,
+    render_app: App,
     scene: Box<dyn Scene>,
 }
 
-impl AppContext {
-    // RunContext
-    pub fn new(app: App, scene: Box<dyn Scene>) -> Self {
-        Self { app, scene }
+impl RunContext {
+    pub fn new(app: App, render_app: App, scene: Box<dyn Scene>) -> Self {
+        Self { app, render_app, scene }
     }
 
     pub fn start_scene(&mut self) {

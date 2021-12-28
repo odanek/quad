@@ -1,5 +1,5 @@
 use crate::{
-    app::{winit_runner, App, AppContext, Scene, Stage, TaskPoolOptions},
+    app::{winit_runner, App, RunContext, Scene, Stage, TaskPoolOptions},
     asset::{Asset, AssetServerSettings},
     ecs::{Event, FromWorld, IntoSystem, Resource},
     windowing::{WindowBuilder, WindowId},
@@ -13,6 +13,7 @@ pub struct QuadConfig {
 
 pub struct Quad {
     app: App,
+    render_app: App,
     main_window: WindowBuilder,
 }
 
@@ -20,6 +21,7 @@ impl Quad {
     pub fn new(config: &QuadConfig) -> Self {
         let mut quad = Self {
             app: App::default(),
+            render_app: App::default(),
             main_window: WindowBuilder::default(),
         };
         quad.add_pools(config);
@@ -62,10 +64,11 @@ impl Quad {
 
     pub fn run(&mut self, scene: Box<dyn Scene>) {
         let mut app = std::mem::take(&mut self.app);
+        let render_app = std::mem::take(&mut self.render_app);
         let event_loop = winit::event_loop::EventLoop::new();
         let main_window = self.main_window.build(WindowId::new(0), &event_loop);
         app.add_window(main_window);
-        let context = AppContext::new(app, scene);
+        let context = RunContext::new(app, render_app, scene);
         winit_runner(context, event_loop);
     }
 

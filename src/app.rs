@@ -4,7 +4,7 @@ mod scene;
 mod systems;
 mod task_pool_options;
 
-pub(crate) use context::AppContext;
+pub(crate) use context::RunContext;
 pub(crate) use runner::winit_runner;
 pub use scene::{Scene, SceneResult};
 pub use systems::Stage;
