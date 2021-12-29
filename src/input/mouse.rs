@@ -24,12 +24,10 @@ impl From<winit::event::MouseButton> for MouseButton {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct MouseInput {
     buttons: Buttons<MouseButton>,
 }
-
-impl Resource for MouseInput {}
 
 impl MouseInput {
     pub(crate) fn toggle(&mut self, button: MouseButton, state: ButtonState) {
@@ -57,20 +55,16 @@ impl MouseInput {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct MouseButtonInput {
     pub button: MouseButton,
     pub state: ButtonState,
 }
 
-impl Event for MouseButtonInput {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct MouseMotion {
     pub delta: Vec2,
 }
-
-impl Event for MouseMotion {}
 
 #[derive(Debug, Clone, Copy)]
 pub enum MouseScrollUnit {
@@ -78,11 +72,9 @@ pub enum MouseScrollUnit {
     Pixel,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct MouseWheel {
     pub unit: MouseScrollUnit,
     pub x: f32,
     pub y: f32,
 }
-
-impl Event for MouseWheel {}

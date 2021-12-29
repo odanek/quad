@@ -13,7 +13,7 @@ pub fn derive_resource(input: TokenStream) -> TokenStream {
     let struct_name = &ast.ident;
     let (impl_generics, type_generics, where_clause) = &ast.generics.split_for_impl();
 
-    TokenStream::from(quote! {
-        impl #impl_generics quad::ecs::Resource for #struct_name #type_generics #where_clause {}
-    })
+    quote! {
+        impl #impl_generics ::quad::ecs::Resource for #struct_name #type_generics #where_clause {}
+    }.into()
 }

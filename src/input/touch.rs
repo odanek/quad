@@ -8,15 +8,13 @@ use crate::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TouchId(u64);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Event)]
 pub struct TouchInput {
     pub phase: TouchPhase,
     pub position: Vec2,
     pub force: Option<ForceTouch>,
     pub id: TouchId,
 }
-
-impl Event for TouchInput {}
 
 impl TouchInput {
     pub(crate) fn from_winit_event(
@@ -131,15 +129,13 @@ impl From<&TouchInput> for Touch {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Resource)]
 pub struct Touches {
     pressed: HashMap<TouchId, Touch>,
     just_pressed: HashMap<TouchId, Touch>,
     just_released: HashMap<TouchId, Touch>,
     just_cancelled: HashMap<TouchId, Touch>,
 }
-
-impl Resource for Touches {}
 
 impl Touches {
     pub fn iter(&self) -> impl Iterator<Item = &Touch> + '_ {

@@ -1,15 +1,17 @@
+extern crate self as quad; // So that proc marcros can import stuff as ::quad::xxx
+
 pub mod app;
 pub mod asset;
 pub mod data;
 pub mod ecs;
 pub mod input;
-mod quad;
 pub mod reflect;
 pub mod render;
+mod run;
 pub mod tasks;
 pub mod timing;
 pub mod transform;
 pub mod ty;
 pub mod windowing;
 
-pub use quad::{Quad, QuadConfig};
+pub use run::{Quad, QuadConfig};

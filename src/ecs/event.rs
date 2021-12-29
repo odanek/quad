@@ -262,14 +262,16 @@ impl<T> std::iter::Extend<T> for Events<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::marker::PhantomData;
 
-    #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+    use crate::ecs::{Event, Events};
+
+    use super::internal_event_reader;
+
+    #[derive(Copy, Clone, PartialEq, Eq, Debug, Event)]
     struct TestEvent {
         i: usize,
     }
-
-    impl Event for TestEvent {}
 
     pub struct ManualEventReader<T> {
         last_event_count: usize,

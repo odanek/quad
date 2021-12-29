@@ -1,6 +1,6 @@
 use winit::event::DeviceEvent;
 
-use crate::app::SceneResult;
+use crate::run::SceneResult;
 
 use super::context::RunContext;
 

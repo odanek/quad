@@ -5,12 +5,10 @@ use super::{
     KeyCode,
 };
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct KeyboardInput {
     buttons: Buttons<KeyCode>,
 }
-
-impl Resource for KeyboardInput {}
 
 impl KeyboardInput {
     pub(crate) fn toggle(&mut self, key: KeyCode, state: ButtonState) {
@@ -38,11 +36,9 @@ impl KeyboardInput {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct KeyInput {
     pub scan_code: u32,
     pub key_code: Option<KeyCode>,
     pub state: ButtonState,
 }
-
-impl Event for KeyInput {}

@@ -10,13 +10,12 @@ use crate::{
 
 use super::transform::IDENTITY_SCALE;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Component)]
 pub struct GlobalTransform {
     pub translation: Vec3,
     pub rotation: Quat,
     pub scale: Vec3,
 }
-impl Component for GlobalTransform {}
 
 impl GlobalTransform {
     #[doc(hidden)]

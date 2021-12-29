@@ -1,4 +1,5 @@
 use crate::{
+    app::App,
     ecs::Events,
     input::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
@@ -12,7 +13,7 @@ use crate::{
     },
 };
 
-use super::{App, Scene, SceneResult};
+use super::{Scene, SceneResult};
 
 pub struct RunContext {
     app: App,
@@ -22,7 +23,11 @@ pub struct RunContext {
 
 impl RunContext {
     pub fn new(app: App, render_app: App, scene: Box<dyn Scene>) -> Self {
-        Self { app, render_app, scene }
+        Self {
+            app,
+            render_app,
+            scene,
+        }
     }
 
     pub fn start_scene(&mut self) {

@@ -4,10 +4,8 @@ use crate::ecs::Resource;
 
 use super::TaskPool;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Resource)]
 pub struct IoTaskPool(pub TaskPool);
-
-impl Resource for IoTaskPool {}
 
 impl Deref for IoTaskPool {
     type Target = TaskPool;

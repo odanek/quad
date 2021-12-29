@@ -8,13 +8,12 @@ use cgm::{ElementWise, InnerSpace, One, Zero};
 
 use super::global_transform::GlobalTransform;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Component)]
 pub struct Transform {
     pub translation: Vec3,
     pub rotation: Quat,
     pub scale: Vec3,
 }
-impl Component for Transform {}
 
 pub const IDENTITY_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
 

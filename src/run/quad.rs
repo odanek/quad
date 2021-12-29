@@ -1,9 +1,11 @@
 use crate::{
-    app::{winit_runner, App, RunContext, Scene, Stage, TaskPoolOptions},
+    app::{App, Stage, TaskPoolOptions},
     asset::{Asset, AssetServerSettings},
     ecs::{Event, FromWorld, IntoSystem, Resource},
     windowing::{WindowBuilder, WindowId},
 };
+
+use super::{context::RunContext, runner::winit_runner, Scene};
 
 #[derive(Default)]
 pub struct QuadConfig {

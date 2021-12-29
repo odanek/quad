@@ -5,94 +5,70 @@ use crate::{
 
 use super::WindowId;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct WindowCloseRequested {
     pub id: WindowId,
 }
 
-impl Event for WindowCloseRequested {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct WindowResized {
     pub id: WindowId,
     pub width: f32,
     pub height: f32,
 }
 
-impl Event for WindowResized {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct CloseWindow {
     pub id: WindowId,
 }
 
-impl Event for CloseWindow {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct WindowCreated {
     pub id: WindowId,
 }
 
-impl Event for WindowCreated {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct WindowFocused {
     pub id: WindowId,
     pub focused: bool,
 }
 
-impl Event for WindowFocused {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct WindowScaleFactorChanged {
     pub id: WindowId,
     pub scale_factor: f64,
 }
 
-impl Event for WindowScaleFactorChanged {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct WindowBackendScaleFactorChanged {
     pub id: WindowId,
     pub scale_factor: f64,
 }
 
-impl Event for WindowBackendScaleFactorChanged {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct WindowMoved {
     pub id: WindowId,
     pub position: Vec2i,
 }
 
-impl Event for WindowMoved {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct ReceivedCharacter {
     pub id: WindowId,
     pub char: char,
 }
 
-impl Event for ReceivedCharacter {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct CursorMoved {
     pub id: WindowId,
     pub position: Vec2,
 }
 
-impl Event for CursorMoved {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct CursorEntered {
     pub id: WindowId,
 }
 
-impl Event for CursorEntered {}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub struct CursorLeft {
     pub id: WindowId,
 }
-
-impl Event for CursorLeft {}

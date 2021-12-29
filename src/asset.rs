@@ -18,12 +18,10 @@ use crate::{
     tasks::IoTaskPool,
 };
 
-#[derive(Clone)]
+#[derive(Clone, Resource)]
 pub struct AssetServerSettings {
     pub asset_folder: String,
 }
-
-impl Resource for AssetServerSettings {}
 
 impl Default for AssetServerSettings {
     fn default() -> Self {

@@ -64,16 +64,17 @@ mod test {
         Component, Entity, IntoSystem, RemovedComponents, Res, ResMut, Resource, Scheduler, World,
     };
 
+    #[derive(Resource)]
     struct Ran(pub bool);
-    impl Resource for Ran {}
 
+    #[derive(Resource)]
     struct Despawned(Entity);
-    impl Resource for Despawned {}
 
+    #[derive(Component)]
     struct Text(String);
-    impl Component for Text {}
+
+    #[derive(Component)]
     struct Number(i32);
-    impl Component for Number {}
 
     #[test]
     fn remove_tracking() {

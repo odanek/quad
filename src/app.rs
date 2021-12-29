@@ -1,12 +1,6 @@
-mod context;
-mod runner;
-mod scene;
 mod systems;
 mod task_pool_options;
 
-pub(crate) use context::RunContext;
-pub(crate) use runner::winit_runner;
-pub use scene::{Scene, SceneResult};
 pub use systems::Stage;
 pub use task_pool_options::TaskPoolOptions;
 
@@ -25,8 +19,8 @@ use self::systems::Systems;
 
 #[derive(Default)]
 pub struct App {
-    world: World,
-    systems: Systems,
+    pub(crate) world: World,     // TODO: Private?
+    pub(crate) systems: Systems, // TODO: Private?
 }
 
 impl App {
