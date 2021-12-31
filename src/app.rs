@@ -63,6 +63,10 @@ impl App {
         self
     }
 
+    pub fn get_resource<T: Resource>(&self) -> Option<Res<T>> {
+        self.world.get_resource()
+    }
+
     pub fn resource<T: Resource>(&self) -> Res<T> {
         self.world.resource()
     }

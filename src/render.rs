@@ -1,7 +1,7 @@
 // mod camera;
 // mod color;
 // mod mesh;
-// mod options;
+mod options;
 // mod primitives;
 // mod render_asset;
 // mod render_component;
@@ -15,6 +15,8 @@
 use std::ops::{Deref, DerefMut};
 
 use crate::{app::App, ecs::World};
+
+use self::options::WgpuOptions;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone)]
 pub enum RenderStage {
@@ -47,11 +49,8 @@ impl DerefMut for RenderWorld {
 struct ScratchRenderWorld(World);
 
 fn render_plugin(app: &mut App, render_app: &mut App) {
-    let options = app
-        .world
-        .get_resource::<options::WgpuOptions>()
-        .cloned()
-        .unwrap_or_default();
+    let options = app.get_resource::<WgpuOptions>().as_deref().cloned().unwrap_or_default();
+        
     let instance = wgpu::Instance::new(options.backends);
     let surface = {
         let world = app.world.cell();
