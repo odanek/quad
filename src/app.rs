@@ -9,8 +9,9 @@ use crate::{
         asset_plugin, update_asset_storage_system, Asset, AssetEvent, AssetServer,
         AssetServerSettings, Assets,
     },
-    ecs::{Event, Events, FromWorld, IntoSystem, Res, Resource, World},
+    ecs::{Event, Events, FromWorld, IntoSystem, Res, ResMut, Resource, World},
     input::input_plugin,
+    render::render_plugin,
     timing::{timing_plugin, Time},
     windowing::{windowing_plugin, Window, Windows},
 };
@@ -24,6 +25,7 @@ pub struct App {
 }
 
 impl App {
+    #[inline]
     pub fn new() -> Self {
         Default::default()
     }
@@ -53,6 +55,11 @@ impl App {
         self
     }
 
+    pub fn add_render_plugin(&mut self, render_app: &mut App) -> &mut Self {
+        render_plugin(self, render_app);
+        self
+    }
+
     pub fn init_resource<T: Resource + FromWorld>(&mut self) -> &mut Self {
         self.world.init_resource::<T>();
         self
@@ -63,12 +70,19 @@ impl App {
         self
     }
 
+    #[inline]
     pub fn get_resource<T: Resource>(&self) -> Option<Res<T>> {
         self.world.get_resource()
     }
 
+    #[inline]
     pub fn resource<T: Resource>(&self) -> Res<T> {
         self.world.resource()
+    }
+
+    #[inline]
+    pub fn resource_mut<T: Resource>(&mut self) -> ResMut<T> {
+        self.world.resource_mut()
     }
 
     pub fn add_system_to_stage<S, Params>(&mut self, stage: Stage, system: S) -> &mut Self

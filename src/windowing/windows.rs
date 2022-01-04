@@ -22,6 +22,10 @@ impl Windows {
         self.windows.get(&id)
     }
 
+    pub fn get_primary(&self) -> Option<&Window> {
+        self.get(WindowId::primary())
+    }
+
     pub fn get_mut(&mut self, id: WindowId) -> Option<&mut Window> {
         self.windows.get_mut(&id)
     }

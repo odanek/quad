@@ -1,3 +1,5 @@
+use winit::event_loop::EventLoop;
+
 use crate::{
     app::{App, Stage, TaskPoolOptions},
     asset::{Asset, AssetServerSettings},
@@ -11,12 +13,13 @@ use super::{context::RunContext, runner::winit_runner, Scene};
 pub struct QuadConfig {
     pub task_pool_options: TaskPoolOptions,
     pub asset_server_settings: AssetServerSettings,
+    pub main_window: WindowBuilder,
 }
 
 pub struct Quad {
     app: App,
     render_app: App,
-    main_window: WindowBuilder,
+    event_loop: Option<EventLoop<()>>,
 }
 
 impl Quad {
@@ -24,7 +27,7 @@ impl Quad {
         let mut quad = Self {
             app: App::default(),
             render_app: App::default(),
-            main_window: WindowBuilder::default(),
+            event_loop: Some(EventLoop::new()),
         };
         quad.add_pools(config);
         quad.add_plugins(config);
@@ -59,17 +62,10 @@ impl Quad {
         self
     }
 
-    pub fn main_window(&mut self, window: WindowBuilder) -> &mut Self {
-        self.main_window = window;
-        self
-    }
-
     pub fn run(&mut self, scene: Box<dyn Scene>) {
         let mut app = std::mem::take(&mut self.app);
         let render_app = std::mem::take(&mut self.render_app);
         let event_loop = winit::event_loop::EventLoop::new();
-        let main_window = self.main_window.build(WindowId::new(0), &event_loop);
-        app.add_window(main_window);
         let context = RunContext::new(app, render_app, scene);
         winit_runner(context, event_loop);
     }
@@ -79,9 +75,16 @@ impl Quad {
     }
 
     fn add_plugins(&mut self, config: &QuadConfig) {
-        self.app.add_timing_plugin();
-        self.app.add_windowing_plugin();
-        self.app.add_input_plugin();
-        self.app.add_asset_plugin(&config.asset_server_settings);
+        let app = &mut self.app;
+        app.add_windowing_plugin();
+        let main_window = config
+            .main_window
+            .build(WindowId::primary(), self.event_loop.as_ref().unwrap());
+        app.add_window(main_window);
+
+        app.add_timing_plugin();
+        app.add_input_plugin();
+        app.add_asset_plugin(&config.asset_server_settings);
+        app.add_render_plugin(&mut self.render_app);
     }
 }

@@ -14,7 +14,7 @@ mod options;
 
 use std::ops::{Deref, DerefMut};
 
-use crate::{app::App, ecs::World};
+use crate::{app::App, ecs::World, windowing::Windows};
 
 use self::options::WgpuOptions;
 
@@ -48,19 +48,22 @@ impl DerefMut for RenderWorld {
 #[derive(Default)]
 struct ScratchRenderWorld(World);
 
-fn render_plugin(app: &mut App, render_app: &mut App) {
-    let options = app.get_resource::<WgpuOptions>().as_deref().cloned().unwrap_or_default();
-        
+pub fn render_plugin(app: &mut App, render_app: &mut App) {
+    let options = app
+        .get_resource::<WgpuOptions>()
+        .as_deref()
+        .cloned()
+        .unwrap_or_default();
+
     let instance = wgpu::Instance::new(options.backends);
     let surface = {
-        let world = app.world.cell();
-        let windows = world.get_resource_mut::<bevy_window::Windows>().unwrap();
-        let raw_handle = windows.get_primary().map(|window| unsafe {
-            let handle = window.raw_window_handle().get_handle();
-            instance.create_surface(&handle)
-        });
+        let windows = app.resource_mut::<Windows>();
+        let raw_handle = windows
+            .get_primary()
+            .map(|window| unsafe { instance.create_surface(window.winit_window()) });
         raw_handle
     };
+
     let (device, queue) = futures_lite::future::block_on(renderer::initialize_renderer(
         &instance,
         &wgpu::RequestAdapterOptions {
