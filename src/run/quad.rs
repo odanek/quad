@@ -63,9 +63,9 @@ impl Quad {
     }
 
     pub fn run(&mut self, scene: Box<dyn Scene>) {
-        let mut app = std::mem::take(&mut self.app);
+        let app = std::mem::take(&mut self.app);
         let render_app = std::mem::take(&mut self.render_app);
-        let event_loop = winit::event_loop::EventLoop::new();
+        let event_loop = self.event_loop.take().unwrap();
         let context = RunContext::new(app, render_app, scene);
         winit_runner(context, event_loop);
     }

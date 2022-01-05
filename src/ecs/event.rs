@@ -7,7 +7,7 @@ pub trait Event: Send + Sync + 'static {}
 #[derive(Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct EventId<T> {
     pub id: usize,
-    _marker: PhantomData<T>,
+    _marker: PhantomData<fn() -> T>,
 }
 
 impl<T> Copy for EventId<T> {}
