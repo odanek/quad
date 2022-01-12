@@ -7,14 +7,14 @@ mod options;
 // mod render_component;
 // mod render_graph;
 // mod render_phase;
-// mod render_resource;
+mod resource;
 // mod renderer;
 // mod texture;
 // mod view;
 
 use std::ops::{Deref, DerefMut};
 
-use crate::{app::App, ecs::World, windowing::Windows};
+use crate::{app::App, ecs::World, render::resource::Shader, windowing::Windows};
 
 use self::options::WgpuOptions;
 
@@ -55,6 +55,10 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
         .cloned()
         .unwrap_or_default();
 
+    app.add_asset::<Shader>()
+        .init_asset_loader::<ShaderLoader>()
+        .register_type::<Color>();
+
     let instance = wgpu::Instance::new(options.backends);
     let surface = {
         let windows = app.resource_mut::<Windows>();
@@ -64,104 +68,108 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
         raw_handle
     };
 
-    // let (device, queue) = futures_lite::future::block_on(renderer::initialize_renderer(
-    //     &instance,
-    //     &wgpu::RequestAdapterOptions {
-    //         power_preference: options.power_preference,
-    //         compatible_surface: surface.as_ref(),
-    //         ..Default::default()
-    //     },
-    //     &wgpu::DeviceDescriptor {
-    //         label: options.device_label.as_ref().map(|a| a.as_ref()),
-    //         features: options.features,
-    //         limits: options.limits,
-    //     },
-    // ));
+    let request_adapter_options = wgpu::RequestAdapterOptions {
+        power_preference: options.power_preference,
+        compatible_surface: surface.as_ref(),
+        ..Default::default()
+    };
+    let (device, queue) = futures_lite::future::block_on(renderer::initialize_renderer(
+        &instance,
+        &mut options,
+        &request_adapter_options,
+    ));
+    debug!("Configured wgpu adapter Limits: {:#?}", &options.limits);
+    debug!("Configured wgpu adapter Features: {:#?}", &options.features);
+    app.insert_resource(device.clone())
+        .insert_resource(queue.clone())
+        .insert_resource(options.clone())
+        .init_resource::<ScratchRenderWorld>()
+        .register_type::<Frustum>()
+        .register_type::<CubemapFrusta>();
+    let render_pipeline_cache = RenderPipelineCache::new(device.clone());
+    let asset_server = app.world.get_resource::<AssetServer>().unwrap().clone();
 
-    // app.insert_resource(device.clone())
-    //     .insert_resource(queue.clone())
-    //     .add_asset::<Shader>()
-    //     .init_asset_loader::<ShaderLoader>()
-    //     .init_resource::<ScratchRenderWorld>()
-    //     .register_type::<Color>()
-    //     .register_type::<Frustum>();
-    // let render_pipeline_cache = RenderPipelineCache::new(device.clone());
-    // let asset_server = app.world.get_resource::<AssetServer>().unwrap().clone();
-
-    // let mut render_app = App::empty();
-    // let mut extract_stage =
-    //     SystemStage::parallel().with_system(RenderPipelineCache::extract_shaders);
-    // // don't apply buffers when the stage finishes running
-    // // extract stage runs on the app world, but the buffers are applied to the render world
-    // extract_stage.set_apply_buffers(false);
-    // render_app
-    //     .add_stage(RenderStage::Extract, extract_stage)
-    //     .add_stage(RenderStage::Prepare, SystemStage::parallel())
-    //     .add_stage(RenderStage::Queue, SystemStage::parallel())
-    //     .add_stage(RenderStage::PhaseSort, SystemStage::parallel())
-    //     .add_stage(
-    //         RenderStage::Render,
-    //         SystemStage::parallel()
-    //             .with_system(RenderPipelineCache::process_pipeline_queue_system)
-    //             .with_system(render_system.exclusive_system().at_end()),
-    //     )
-    //     .add_stage(RenderStage::Cleanup, SystemStage::parallel())
-    //     .insert_resource(instance)
-    //     .insert_resource(device)
-    //     .insert_resource(queue)
-    //     .insert_resource(render_pipeline_cache)
-    //     .insert_resource(asset_server)
-    //     .init_resource::<RenderGraph>();
-
-    // app.add_plugin(WindowRenderPlugin)
-    //     .add_plugin(CameraPlugin)
-    //     .add_plugin(ViewPlugin)
-    //     .add_plugin(MeshPlugin)
-    //     .add_plugin(ImagePlugin);
+    let mut render_app = App::empty();
+    let mut extract_stage =
+        SystemStage::parallel().with_system(RenderPipelineCache::extract_shaders);
+    // don't apply buffers when the stage finishes running
+    // extract stage runs on the app world, but the buffers are applied to the render world
+    extract_stage.set_apply_buffers(false);
+    render_app
+        .add_stage(RenderStage::Extract, extract_stage)
+        .add_stage(RenderStage::Prepare, SystemStage::parallel())
+        .add_stage(RenderStage::Queue, SystemStage::parallel())
+        .add_stage(RenderStage::PhaseSort, SystemStage::parallel())
+        .add_stage(
+            RenderStage::Render,
+            SystemStage::parallel()
+                .with_system(RenderPipelineCache::process_pipeline_queue_system)
+                .with_system(render_system.exclusive_system().at_end()),
+        )
+        .add_stage(RenderStage::Cleanup, SystemStage::parallel())
+        .insert_resource(instance)
+        .insert_resource(device)
+        .insert_resource(queue)
+        .insert_resource(options)
+        .insert_resource(render_pipeline_cache)
+        .insert_resource(asset_server)
+        .init_resource::<RenderGraph>();
 }
 
-// fn render_plugin_update(world: &mut World, render_app: &mut App) {
-//     let meta_len = app_world.entities().meta.len();
-//     render_app
-//         .world
-//         .entities()
-//         .reserve_entities(meta_len as u32);
-//     render_app.world.entities_mut().flush_as_invalid();
+fn render_plugin_update(world: &mut World, render_app: &mut App) {
+    // // reserve all existing app entities for use in render_app
+    // // they can only be spawned using `get_or_spawn()`
+    // let meta_len = app_world.entities().meta.len();
+    // render_app
+    //     .world
+    //     .entities()
+    //     .reserve_entities(meta_len as u32);
 
-//     extract(app_world, render_app);
+    // // flushing as "invalid" ensures that app world entities aren't added as "empty archetype" entities by default
+    // // these entities cannot be accessed without spawning directly onto them
+    // // this _only_ works as expected because clear_entities() is called at the end of every frame.
+    // render_app.world.entities_mut().flush_as_invalid();
 
-//     let prepare = render_app
-//         .schedule
-//         .get_stage_mut::<SystemStage>(&RenderStage::Prepare)
-//         .unwrap();
-//     prepare.run(&mut render_app.world);
+    // // extract
+    // extract(app_world, render_app);
 
-//     let queue = render_app
-//         .schedule
-//         .get_stage_mut::<SystemStage>(&RenderStage::Queue)
-//         .unwrap();
-//     queue.run(&mut render_app.world);
+    // // prepare
+    // let prepare = render_app
+    //     .schedule
+    //     .get_stage_mut::<SystemStage>(&RenderStage::Prepare)
+    //     .unwrap();
+    // prepare.run(&mut render_app.world);
 
-//     let phase_sort = render_app
-//         .schedule
-//         .get_stage_mut::<SystemStage>(&RenderStage::PhaseSort)
-//         .unwrap();
-//     phase_sort.run(&mut render_app.world);
+    // // queue
+    // let queue = render_app
+    //     .schedule
+    //     .get_stage_mut::<SystemStage>(&RenderStage::Queue)
+    //     .unwrap();
+    // queue.run(&mut render_app.world);
 
-//     let render = render_app
-//         .schedule
-//         .get_stage_mut::<SystemStage>(&RenderStage::Render)
-//         .unwrap();
-//     render.run(&mut render_app.world);
+    // // phase sort
+    // let phase_sort = render_app
+    //     .schedule
+    //     .get_stage_mut::<SystemStage>(&RenderStage::PhaseSort)
+    //     .unwrap();
+    // phase_sort.run(&mut render_app.world);
 
-//     let cleanup = render_app
-//         .schedule
-//         .get_stage_mut::<SystemStage>(&RenderStage::Cleanup)
-//         .unwrap();
-//     cleanup.run(&mut render_app.world);
+    // // render
+    // let render = render_app
+    //     .schedule
+    //     .get_stage_mut::<SystemStage>(&RenderStage::Render)
+    //     .unwrap();
+    // render.run(&mut render_app.world);
 
-//     render_app.world.clear_entities();
-// }
+    // // cleanup
+    // let cleanup = render_app
+    //     .schedule
+    //     .get_stage_mut::<SystemStage>(&RenderStage::Cleanup)
+    //     .unwrap();
+    // cleanup.run(&mut render_app.world);
+
+    // render_app.world.clear_entities();
+}
 
 // fn extract(app_world: &mut World, render_app: &mut App) {
 //     let extract = render_app
