@@ -1,5 +1,5 @@
 // mod camera;
-// mod color;
+mod color;
 // mod mesh;
 mod options;
 // mod primitives;
@@ -16,7 +16,7 @@ use std::ops::{Deref, DerefMut};
 
 use crate::{app::App, ecs::World, render::resource::Shader, windowing::Windows};
 
-use self::options::WgpuOptions;
+use self::{options::WgpuOptions, resource::ShaderLoader, color::Color};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone)]
 pub enum RenderStage {
@@ -55,9 +55,9 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
         .cloned()
         .unwrap_or_default();
 
-    app.add_asset::<Shader>();
-    // .init_asset_loader::<ShaderLoader>()
-    // .register_type::<Color>();
+    app.add_asset::<Shader>()
+        .init_asset_loader::<ShaderLoader>()
+        .register_type::<Color>();
 
     let instance = wgpu::Instance::new(options.backends);
     let surface = {
