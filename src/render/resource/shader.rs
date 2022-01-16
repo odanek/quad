@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use naga::{back::wgsl::WriterFlags, valid::ModuleInfo, Module};
 use thiserror::Error;
-use uuid::Uuid;
+use uuid::{uuid, Uuid};
 use wgpu::{ShaderModuleDescriptor, ShaderSource};
 
 use crate::{
@@ -20,76 +20,44 @@ impl ShaderId {
         ShaderId(Uuid::new_v4())
     }
 }
-
-#[derive(Error, Debug)]
-pub enum ShaderReflectError {
-    #[error(transparent)]
-    WgslParse(#[from] naga::front::wgsl::ParseError),
-    #[error(transparent)]
-    Validation(#[from] naga::WithSpan<naga::valid::ValidationError>),
-}
 #[derive(Debug, Clone)]
 pub struct Shader {
     source: Source,
 }
 
 impl TypeUuid for Shader {
-    const TYPE_UUID: Uuid = Uuid::parse_str("d95bc916-6c55-4de3-9622-37e7b6969fda").unwrap();
+    const TYPE_UUID: Uuid = uuid!("d95bc916-6c55-4de3-9622-37e7b6969fda");
 }
 
 impl Shader {
-    pub fn from_wgsl(source: String) -> Shader {
+    pub fn from_wgsl(source: impl Into<Cow<'static, str>>) -> Shader {
         Shader {
-            source: Source(source),
+            source: Source(source.into()),
         }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct Source(String);
+pub struct Source(Cow<'static, str>);
 
-// TODO: Remove
 #[derive(PartialEq, Eq, Debug)]
-pub struct ProcessedShader(String);
+pub struct ProcessedShader(Cow<'static, str>);
 
 impl ProcessedShader {
     pub fn get_source(&self) -> &str {
         &self.0
     }
 
-    pub fn reflect(&self) -> Result<ShaderReflection, ShaderReflectError> {
-        let module = naga::front::wgsl::parse_str(&self.0)?;
-        let module_info = naga::valid::Validator::new(
-            naga::valid::ValidationFlags::default(),
-            naga::valid::Capabilities::default(),
-        )
-        .validate(&module)?;
-
-        Ok(ShaderReflection {
-            module,
-            module_info,
-        })
-    }
-
     pub fn get_module_descriptor(&self) -> Result<ShaderModuleDescriptor, AsModuleDescriptorError> {
         Ok(ShaderModuleDescriptor {
             label: None,
-            source: {
-                #[cfg(debug_assertions)]
-                // This isn't neccessary, but catches errors early during hot reloading of invalid wgsl shaders.
-                // Eventually, wgpu will have features that will make this unneccessary like compilation info
-                // or error scopes, but until then parsing the shader twice during development the easiest solution.
-                let _ = self.reflect()?;
-                ShaderSource::Wgsl(self.0.into())
-            },
+            source: { ShaderSource::Wgsl(self.0.clone()) },
         })
     }
 }
 
 #[derive(Error, Debug)]
 pub enum AsModuleDescriptorError {
-    #[error(transparent)]
-    ShaderReflectError(#[from] ShaderReflectError),
     #[error(transparent)]
     WgslConversion(#[from] naga::back::wgsl::Error),
     #[error(transparent)]
@@ -119,12 +87,12 @@ impl AssetLoader for ShaderLoader {
         Box::pin(async move {
             let ext = load_context.path().extension().unwrap().to_str().unwrap();
 
-            let mut shader = match ext {
+            let shader = match ext {
                 "wgsl" => Shader::from_wgsl(String::from_utf8(Vec::from(bytes))?),
                 _ => panic!("Unhandled shader extension: {}", ext),
             };
 
-            let mut asset = LoadedAsset::new(shader);
+            let asset = LoadedAsset::new(shader);
 
             load_context.set_default_asset(asset);
             Ok(())
