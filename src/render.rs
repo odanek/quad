@@ -7,16 +7,16 @@ mod options;
 // mod render_component;
 // mod render_graph;
 // mod render_phase;
-mod resource;
-// mod renderer;
+mod render_resource;
+mod renderer;
 // mod texture;
 // mod view;
 
 use std::ops::{Deref, DerefMut};
 
-use crate::{app::App, ecs::World, render::resource::Shader, windowing::Windows};
+use crate::{app::App, ecs::World, windowing::Windows};
 
-use self::{color::Color, options::WgpuOptions, resource::ShaderLoader};
+use self::{options::WgpuOptions, render_resource::{Shader, ShaderLoader}};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone)]
 pub enum RenderStage {
@@ -77,6 +77,7 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
     //     &mut options,
     //     &request_adapter_options,
     // ));
+
     // debug!("Configured wgpu adapter Limits: {:#?}", &options.limits);
     // debug!("Configured wgpu adapter Features: {:#?}", &options.features);
     // app.insert_resource(device.clone())
