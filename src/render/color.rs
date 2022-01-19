@@ -4,7 +4,7 @@ pub use colorspace::*;
 
 use std::ops::{Add, AddAssign, Mul, MulAssign};
 
-use crate::ty::{Vec4, Vec3};
+use crate::ty::{Vec3, Vec4};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Color {

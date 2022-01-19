@@ -48,20 +48,12 @@ impl ProcessedShader {
         &self.0
     }
 
-    pub fn get_module_descriptor(&self) -> Result<ShaderModuleDescriptor, AsModuleDescriptorError> {
-        Ok(ShaderModuleDescriptor {
+    pub fn get_module_descriptor(&self) -> ShaderModuleDescriptor {
+        ShaderModuleDescriptor {
             label: None,
             source: { ShaderSource::Wgsl(self.0.clone()) },
-        })
+        }
     }
-}
-
-#[derive(Error, Debug)]
-pub enum AsModuleDescriptorError {
-    #[error(transparent)]
-    WgslConversion(#[from] naga::back::wgsl::Error),
-    #[error(transparent)]
-    SpirVConversion(#[from] naga::back::spv::Error),
 }
 
 pub struct ShaderReflection {

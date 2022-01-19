@@ -6,7 +6,7 @@ pub use task_pool_options::TaskPoolOptions;
 
 use crate::{
     asset::{
-        asset_plugin, update_asset_storage_system, Asset, AssetEvent, AssetServer,
+        asset_plugin, update_asset_storage_system, Asset, AssetEvent, AssetLoader, AssetServer,
         AssetServerSettings, Assets,
     },
     ecs::{Event, Events, FromWorld, IntoSystem, Res, ResMut, Resource, World},
@@ -118,6 +118,16 @@ impl App {
             .add_system_to_stage(Stage::LoadAssets, &update_asset_storage_system::<T>)
             .add_event::<AssetEvent<T>>();
 
+        self
+    }
+
+    pub fn init_asset_loader<T: AssetLoader + FromWorld>(&mut self) -> &mut Self {
+        let result = T::from_world(&mut self.world);
+        self.add_asset_loader(result)
+    }
+
+    fn add_asset_loader<T: AssetLoader>(&mut self, loader: T) -> &mut Self {
+        self.world.resource_mut::<AssetServer>().add_loader(loader);
         self
     }
 

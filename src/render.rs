@@ -16,7 +16,7 @@ use std::ops::{Deref, DerefMut};
 
 use crate::{app::App, ecs::World, render::resource::Shader, windowing::Windows};
 
-use self::{options::WgpuOptions, resource::ShaderLoader, color::Color};
+use self::{color::Color, options::WgpuOptions, resource::ShaderLoader};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone)]
 pub enum RenderStage {
@@ -56,8 +56,7 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
         .unwrap_or_default();
 
     app.add_asset::<Shader>()
-        .init_asset_loader::<ShaderLoader>()
-        .register_type::<Color>();
+        .init_asset_loader::<ShaderLoader>();
 
     let instance = wgpu::Instance::new(options.backends);
     let surface = {
