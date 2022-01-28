@@ -145,6 +145,10 @@ pub struct Table {
     entities: Vec<Entity>, // TODO: Not needed
 }
 
+// TODO: Is this safe?
+unsafe impl Send for Table {}
+unsafe impl Sync for Table {}
+
 impl Table {
     pub fn new(infos: &[&ComponentInfo], capacity: usize, column_capacity: usize) -> Table {
         let mut columns = HashMap::with_capacity(infos.len());

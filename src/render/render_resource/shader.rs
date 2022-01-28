@@ -1,12 +1,10 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow};
 
-use naga::{back::wgsl::WriterFlags, valid::ModuleInfo, Module};
-use thiserror::Error;
 use uuid::{uuid, Uuid};
 use wgpu::{ShaderModuleDescriptor, ShaderSource};
 
 use crate::{
-    asset::{AssetLoader, Handle, LoadContext, LoadedAsset},
+    asset::{AssetLoader, LoadContext, LoadedAsset},
     reflect::TypeUuid,
     ty::BoxedFuture,
 };
@@ -35,6 +33,10 @@ impl Shader {
             source: Source(source.into()),
         }
     }
+
+    pub fn process(&self) -> ProcessedShader {
+        ProcessedShader(self.source.0.clone())
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -53,17 +55,6 @@ impl ProcessedShader {
             label: None,
             source: { ShaderSource::Wgsl(self.0.clone()) },
         }
-    }
-}
-
-pub struct ShaderReflection {
-    pub module: Module,
-    pub module_info: ModuleInfo,
-}
-
-impl ShaderReflection {
-    pub fn get_wgsl(&self) -> Result<String, naga::back::wgsl::Error> {
-        naga::back::wgsl::write_string(&self.module, &self.module_info, WriterFlags::EXPLICIT_TYPES)
     }
 }
 
@@ -93,24 +84,5 @@ impl AssetLoader for ShaderLoader {
 
     fn extensions(&self) -> &[&str] {
         &["wgsl"]
-    }
-}
-
-#[derive(Error, Debug, PartialEq, Eq)]
-pub enum ProcessShaderError {
-    #[error("This Shader's formatdoes not support imports.")]
-    ShaderFormatDoesNotSupportImports,
-}
-
-struct ShaderProcessor {}
-
-impl ShaderProcessor {
-    pub fn process(
-        &self,
-        shader: &Shader,
-        shader_defs: &[String],
-        shaders: &HashMap<Handle<Shader>, Shader>,
-    ) -> Result<ProcessedShader, ProcessShaderError> {
-        Ok(ProcessedShader(shader.source.0.clone()))
     }
 }

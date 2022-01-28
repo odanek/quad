@@ -1,17 +1,17 @@
-// mod graph_runner;
-// mod render_device;
+mod graph_runner;
+mod render_device;
 
-// pub use graph_runner::*;
-// pub use render_device::*;
+pub use graph_runner::*;
+pub use render_device::*;
 
-// use std::sync::Arc;
-// use wgpu::{CommandEncoder, Instance, Queue, RequestAdapterOptions};
+use std::sync::Arc;
+use wgpu::{CommandEncoder, Instance, Queue, RequestAdapterOptions};
 
-// use crate::ecs::{World, Resource};
+use crate::ecs::{World, Resource, ResMut};
 
-// use super::options::WgpuOptions;
+use super::options::WgpuOptions;
 
-// /// Updates the [`RenderGraph`] with all of its nodes and then runs it to render the entire frame.
+/// Updates the [`RenderGraph`] with all of its nodes and then runs it to render the entire frame.
 // pub fn render_system(world: &mut World) {
 //     world.resource_scope(|world, mut graph: ResMut<RenderGraph>| {
 //         graph.update(world);
@@ -47,45 +47,44 @@
 //         }
 // }
 
-// #[derive(Resource)]
-// struct RenderQueue(Arc<Queue>);
+pub type RenderQueue = Arc<Queue>;
 
-// pub type RenderInstance = Instance;
+pub type RenderInstance = Instance;
 
-// /// `wgpu::Features` that are not automatically enabled due to having possibly-negative side effects.
-// /// `MAPPABLE_PRIMARY_BUFFERS` can have a significant, negative performance impact so should not be
-// /// automatically enabled.
-// pub const DEFAULT_DISABLED_WGPU_FEATURES: wgpu::Features = wgpu::Features::MAPPABLE_PRIMARY_BUFFERS;
+/// `wgpu::Features` that are not automatically enabled due to having possibly-negative side effects.
+/// `MAPPABLE_PRIMARY_BUFFERS` can have a significant, negative performance impact so should not be
+/// automatically enabled.
+pub const DEFAULT_DISABLED_WGPU_FEATURES: wgpu::Features = wgpu::Features::MAPPABLE_PRIMARY_BUFFERS;
 
-// pub async fn initialize_renderer(
-//     instance: &Instance,
-//     options: &mut WgpuOptions,
-//     request_adapter_options: &RequestAdapterOptions<'_>,
-// ) -> (RenderDevice, RenderQueue) {
-//     let adapter = instance
-//         .request_adapter(request_adapter_options)
-//         .await
-//         .expect("Unable to find a GPU! Make sure you have installed required drivers!");
+pub async fn initialize_renderer(
+    instance: &Instance,
+    options: &mut WgpuOptions,
+    request_adapter_options: &RequestAdapterOptions<'_>,
+) -> (RenderDevice, RenderQueue) {
+    let adapter = instance
+        .request_adapter(request_adapter_options)
+        .await
+        .expect("Unable to find a GPU! Make sure you have installed required drivers!");
 
-//     log::info!("{:?}", adapter.get_info());
+    log::info!("{:?}", adapter.get_info());
 
-//     let (device, queue) = adapter
-//         .request_device(
-//             &wgpu::DeviceDescriptor {
-//                 label: options.device_label.as_ref().map(|a| a.as_ref()),
-//                 features: options.features,
-//                 limits: options.limits.clone(),
-//             },
-//             None,
-//         )
-//         .await
-//         .unwrap();
-//     let device = Arc::new(device);
-//     let queue = Arc::new(queue);
-//     (RenderDevice::from(device), queue)
-// }
+    let (device, queue) = adapter
+        .request_device(
+            &wgpu::DeviceDescriptor {
+                label: options.device_label.as_ref().map(|a| a.as_ref()),
+                features: options.features,
+                limits: options.limits.clone(),
+            },
+            None,
+        )
+        .await
+        .unwrap();
+    let device = Arc::new(device);
+    let queue = Arc::new(queue);
+    (RenderDevice::from(device), queue)
+}
 
-// pub struct RenderContext {
-//     pub render_device: RenderDevice,
-//     pub command_encoder: CommandEncoder,
-// }
+pub struct RenderContext {
+    pub render_device: RenderDevice,
+    pub command_encoder: CommandEncoder,
+}

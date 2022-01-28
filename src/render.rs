@@ -14,7 +14,7 @@ mod renderer;
 
 use std::ops::{Deref, DerefMut};
 
-use crate::{app::App, ecs::World, windowing::Windows};
+use crate::{app::App, ecs::{World, Resource}, windowing::Windows};
 
 use self::{options::WgpuOptions, render_resource::{Shader, ShaderLoader}};
 
@@ -28,7 +28,8 @@ pub enum RenderStage {
     Cleanup,
 }
 
-#[derive(Default)]
+// TODO: How to avoid the need for this and unsafe Send/Sync impl on Table and Resources?
+#[derive(Default, Resource)]
 pub struct RenderWorld(World);
 
 impl Deref for RenderWorld {
@@ -49,7 +50,7 @@ impl DerefMut for RenderWorld {
 struct ScratchRenderWorld(World);
 
 pub fn render_plugin(app: &mut App, render_app: &mut App) {
-    let options = app
+    let mut options = app
         .get_resource::<WgpuOptions>()
         .as_deref()
         .cloned()
@@ -72,11 +73,11 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
         compatible_surface: surface.as_ref(),
         ..Default::default()
     };
-    // let (device, queue) = futures_lite::future::block_on(renderer::initialize_renderer(
-    //     &instance,
-    //     &mut options,
-    //     &request_adapter_options,
-    // ));
+    let (device, queue) = futures_lite::future::block_on(renderer::initialize_renderer(
+        &instance,
+        &mut options,
+        &request_adapter_options,
+    ));
 
     // debug!("Configured wgpu adapter Limits: {:#?}", &options.limits);
     // debug!("Configured wgpu adapter Features: {:#?}", &options.features);
