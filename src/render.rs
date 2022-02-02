@@ -5,7 +5,7 @@ mod options;
 // mod primitives;
 // mod render_asset;
 // mod render_component;
-// mod render_graph;
+mod render_graph;
 // mod render_phase;
 mod render_resource;
 mod renderer;
@@ -14,9 +14,16 @@ mod renderer;
 
 use std::ops::{Deref, DerefMut};
 
-use crate::{app::App, ecs::{World, Resource}, windowing::Windows};
+use crate::{
+    app::App,
+    ecs::{Resource, World},
+    windowing::Windows,
+};
 
-use self::{options::WgpuOptions, render_resource::{Shader, ShaderLoader}};
+use self::{
+    options::WgpuOptions,
+    render_resource::{Shader, ShaderLoader},
+};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone)]
 pub enum RenderStage {

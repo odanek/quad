@@ -1,4 +1,4 @@
-use bytemuck::{Pod, cast_slice};
+use bytemuck::{cast_slice, Pod};
 use wgpu::BufferUsages;
 
 use crate::render::renderer::{RenderDevice, RenderQueue};

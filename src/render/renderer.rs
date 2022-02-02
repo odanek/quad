@@ -7,7 +7,7 @@ pub use render_device::*;
 use std::sync::Arc;
 use wgpu::{CommandEncoder, Instance, Queue, RequestAdapterOptions};
 
-use crate::ecs::{World, Resource, ResMut};
+use crate::ecs::{ResMut, Resource, World};
 
 use super::options::WgpuOptions;
 

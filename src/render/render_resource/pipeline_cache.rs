@@ -1,10 +1,23 @@
-use std::{collections::{hash_map::Entry, HashSet, HashMap}, hash::Hash, ops::Deref, sync::Arc};
+use std::{
+    collections::{hash_map::Entry, HashMap, HashSet},
+    hash::Hash,
+    ops::Deref,
+    sync::Arc,
+};
 use thiserror::Error;
-use wgpu::{PipelineLayoutDescriptor, ShaderModule, VertexBufferLayout, RenderPipelineDescriptor as RawRenderPipelineDescriptor, VertexState as RawVertexState, FragmentState as RawFragmentState};
+use wgpu::{
+    FragmentState as RawFragmentState, PipelineLayoutDescriptor,
+    RenderPipelineDescriptor as RawRenderPipelineDescriptor, ShaderModule, VertexBufferLayout,
+    VertexState as RawVertexState,
+};
 
-use crate::{asset::{Handle, AssetEvent, Assets}, ecs::{ResMut, Res, EventReader, Resource}, render::{renderer::RenderDevice, RenderWorld}};
+use crate::{
+    asset::{AssetEvent, Assets, Handle},
+    ecs::{EventReader, Res, ResMut, Resource},
+    render::{renderer::RenderDevice, RenderWorld},
+};
 
-use super::{Shader, BindGroupLayoutId, BindGroupLayout, RenderPipelineDescriptor, RenderPipeline};
+use super::{BindGroupLayout, BindGroupLayoutId, RenderPipeline, RenderPipelineDescriptor, Shader};
 
 #[derive(Default)]
 pub struct ShaderData {

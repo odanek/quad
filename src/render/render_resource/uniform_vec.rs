@@ -1,5 +1,5 @@
+use crevice::std140::{self, AsStd140, DynamicUniform, Std140};
 use std::num::NonZeroU64;
-use crevice::std140::{Std140, AsStd140, self, DynamicUniform};
 use wgpu::{BindingResource, BufferBinding, BufferDescriptor, BufferUsages};
 
 use crate::render::renderer::{RenderDevice, RenderQueue};

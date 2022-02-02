@@ -2,7 +2,12 @@ use futures_lite::future;
 use std::sync::Arc;
 use wgpu::{util::DeviceExt, RenderPipelineDescriptor as RawRenderPipelineDescriptor};
 
-use crate::{render::render_resource::{BindGroup, BindGroupLayout, RenderPipeline, ComputePipeline, Buffer, Texture, Sampler}, ecs::Resource};
+use crate::{
+    ecs::Resource,
+    render::render_resource::{
+        BindGroup, BindGroupLayout, Buffer, ComputePipeline, RenderPipeline, Sampler, Texture,
+    },
+};
 
 #[derive(Clone, Resource)]
 pub struct RenderDevice {

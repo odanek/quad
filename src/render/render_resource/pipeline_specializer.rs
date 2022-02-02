@@ -1,4 +1,4 @@
-use std::{hash::Hash, collections::HashMap};
+use std::{collections::HashMap, hash::Hash};
 
 use super::{CachedPipelineId, RenderPipelineCache, RenderPipelineDescriptor};
 

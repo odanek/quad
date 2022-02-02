@@ -98,12 +98,14 @@ impl World {
     #[inline]
     pub fn init_resource<T: Resource + FromWorld>(&mut self) -> Option<T> {
         let resource = T::from_world(self);
-        self.resources.add(resource, ComponentTicks::new(self.change_tick()))
+        self.resources
+            .add(resource, ComponentTicks::new(self.change_tick()))
     }
 
     #[inline]
     pub fn insert_resource<T: Resource>(&mut self, resource: T) -> Option<T> {
-        self.resources.add(resource, ComponentTicks::new(self.change_tick()))
+        self.resources
+            .add(resource, ComponentTicks::new(self.change_tick()))
     }
 
     #[inline]
@@ -149,12 +151,12 @@ impl World {
         self.resource::<T>().is_changed()
     }
 
-    pub fn resource_scope<T: Resource, U>(&mut self, f: impl FnOnce(&mut World, ResMut<T>) -> U) -> U {
+    pub fn resource_scope<T: Resource, U>(
+        &mut self,
+        f: impl FnOnce(&mut World, ResMut<T>) -> U,
+    ) -> U {
         let (mut resource, mut ticks) = self.resources.remove().unwrap();
-        let system_ticks = SystemTicks::new(
-            self.last_change_tick(),
-            self.change_tick(),
-        );
+        let system_ticks = SystemTicks::new(self.last_change_tick(), self.change_tick());
         let result = f(self, ResMut::new(&mut resource, &mut ticks, system_ticks));
         self.resources.add(resource, ticks);
         result
