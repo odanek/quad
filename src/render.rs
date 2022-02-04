@@ -2,7 +2,7 @@
 mod color;
 // mod mesh;
 mod options;
-// mod primitives;
+mod primitives;
 // mod render_asset;
 // mod render_component;
 mod render_graph;
