@@ -16,12 +16,17 @@ pub use component::{Component, ComponentId, Res, ResMut, Resource, ResourceId};
 pub use entity::Entity;
 pub use event::{Event, EventId, EventReader, EventWriter, Events};
 pub use query::{
-    fetch::ChangeTrackers,
-    filter::{Added, Changed, Or, With, Without},
+    fetch::{ChangeTrackers, QueryItem, WorldQuery},
+    filter::{Added, Changed, FilterFetch, Or, With, Without},
 };
 pub use schedule::{OptionalSchedule, OptionalScheduleWithInput, Schedule, Scheduler};
 pub use system::{
-    command::Commands, local::Local, query::Query, removed_components::RemovedComponents,
+    command::Commands,
+    local::Local,
+    query::Query,
+    removed_components::RemovedComponents,
+    run_system::RunSystem,
+    system_param::{SystemParam, SystemParamItem},
     IntoSystem, System,
 };
 pub use world::{FromWorld, World};

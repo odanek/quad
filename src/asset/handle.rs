@@ -8,6 +8,8 @@ use std::{
 use crossbeam_channel::{Receiver, Sender};
 use uuid::Uuid;
 
+use crate::ecs::Component;
+
 use super::{
     assets::Assets,
     loader::Asset,
@@ -50,6 +52,7 @@ impl HandleId {
     }
 }
 
+#[derive(Component)]
 pub struct Handle<T>
 where
     T: Asset,

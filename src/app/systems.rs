@@ -4,13 +4,23 @@ use crate::ecs::{System, World};
 
 type BoxedSystem = Box<dyn System<In = (), Out = ()>>;
 
+// TODO: Fix mixing of Main app and Render app
 #[derive(PartialEq, Eq, Hash)]
 pub enum Stage {
+    // Main App
     LoadAssets,
     PreUpdate,
     PostUpdate,
     AssetEvents,
     Flush,
+
+    // Render App
+    RenderExtract,
+    RenderPrepare,
+    RenderQueue,
+    RenderPhaseSort,
+    RenderRender,
+    RenderCleanup,
 }
 
 #[derive(Default)]

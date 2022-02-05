@@ -4,7 +4,10 @@ mod render_device;
 pub use graph_runner::*;
 pub use render_device::*;
 
-use std::sync::Arc;
+use std::{
+    ops::{Deref, DerefMut},
+    sync::Arc,
+};
 use wgpu::{CommandEncoder, Instance, Queue, RequestAdapterOptions};
 
 use crate::ecs::{ResMut, Resource, World};
@@ -47,7 +50,22 @@ use super::options::WgpuOptions;
 //         }
 // }
 
-pub type RenderQueue = Arc<Queue>;
+#[derive(Resource)]
+pub struct RenderQueue(Arc<Queue>);
+
+impl Deref for RenderQueue {
+    type Target = Arc<Queue>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for RenderQueue {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 pub type RenderInstance = Instance;
 
@@ -81,7 +99,7 @@ pub async fn initialize_renderer(
         .unwrap();
     let device = Arc::new(device);
     let queue = Arc::new(queue);
-    (RenderDevice::from(device), queue)
+    (RenderDevice::from(device), RenderQueue(queue))
 }
 
 pub struct RenderContext {

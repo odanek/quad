@@ -20,6 +20,8 @@ pub trait WorldQuery {
     type State: FetchState;
 }
 
+pub type QueryItem<'w, 's, Q> = <<Q as WorldQuery>::Fetch as Fetch<'w, 's>>::Item;
+
 pub trait Fetch<'w, 's>: Sized {
     type Item;
     type State: FetchState;

@@ -1,6 +1,9 @@
 use cgm::{InnerSpace, Matrix, Vector};
 
-use crate::{ecs::Component, ty::{Vec3, Mat4, Vec4}};
+use crate::{
+    ecs::Component,
+    ty::{Mat4, Vec3, Vec4},
+};
 
 #[derive(Component, Clone, Debug, Default)]
 pub struct Aabb {
