@@ -77,6 +77,8 @@ impl Edges {
 pub struct ArchetypeId(usize);
 
 impl ArchetypeId {
+    pub(crate) const INVALID: ArchetypeId = ArchetypeId(usize::MAX);
+
     #[inline]
     pub const fn new(id: usize) -> Self {
         Self(id)

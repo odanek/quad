@@ -5,6 +5,12 @@ use std::sync::atomic::{AtomicI64, Ordering};
 
 pub use archetype::{Archetype, ArchetypeGeneration, ArchetypeId, Archetypes};
 
+pub enum AllocAtWithoutReplacement {
+    Exists(EntityLocation),
+    DidNotExist,
+    ExistsWithWrongGeneration,
+}
+
 #[derive(Clone, Copy, Hash, Eq, PartialEq, Debug)]
 pub struct Entity {
     pub(crate) generation: u32,
@@ -42,10 +48,26 @@ struct EntityMeta {
     pub location: EntityLocation,
 }
 
+impl EntityMeta {
+    // TODO: This is ugly and not safe
+    const EMPTY: EntityMeta = EntityMeta {
+        generation: 0,
+        location: EntityLocation::EMPTY,
+    };
+}
+
 #[derive(Copy, Clone, Debug)]
 pub struct EntityLocation {
     pub archetype_id: ArchetypeId,
     pub index: usize,
+}
+
+impl EntityLocation {
+    // TODO: This is ugly and not safe
+    const EMPTY: EntityLocation = EntityLocation {
+        archetype_id: ArchetypeId::INVALID,
+        index: usize::MAX,
+    };
 }
 
 #[allow(dead_code)]
@@ -60,29 +82,52 @@ impl Entities {
         self.len == 0
     }
 
-    pub fn alloc(&mut self, location: EntityLocation) -> Entity {
+    pub fn alloc(&mut self) -> Entity {
         self.verify_flushed();
-
+        self.len += 1;
         if let Some(id) = self.pending.pop() {
-            *self.free_cursor.get_mut() = self.pending.len() as i64;
-            let meta = &mut self.meta[id as usize];
-            meta.location = location;
-            self.len += 1;
-
+            let new_free_cursor = self.pending.len() as i64;
+            *self.free_cursor.get_mut() = new_free_cursor;
             Entity {
-                generation: meta.generation,
+                generation: self.meta[id as usize].generation,
                 id,
             }
         } else {
             let id = u32::try_from(self.meta.len()).expect("too many entities");
-            let meta = EntityMeta {
-                generation: 0,
-                location,
-            };
-            self.meta.push(meta);
-            self.len += 1;
-            Entity::new(id)
+            self.meta.push(EntityMeta::EMPTY);
+            Entity { generation: 0, id }
         }
+    }
+
+    pub fn alloc_at_without_replacement(&mut self, entity: Entity) -> AllocAtWithoutReplacement {
+        self.verify_flushed();
+
+        let result = if entity.id as usize >= self.meta.len() {
+            self.pending.extend((self.meta.len() as u32)..entity.id);
+            let new_free_cursor = self.pending.len() as i64;
+            *self.free_cursor.get_mut() = new_free_cursor;
+            self.meta.resize(entity.id as usize + 1, EntityMeta::EMPTY);
+            self.len += 1;
+            AllocAtWithoutReplacement::DidNotExist
+        } else if let Some(index) = self.pending.iter().position(|item| *item == entity.id) {
+            self.pending.swap_remove(index);
+            let new_free_cursor = self.pending.len() as i64;
+            *self.free_cursor.get_mut() = new_free_cursor;
+            self.len += 1;
+            AllocAtWithoutReplacement::DidNotExist
+        } else {
+            let current_meta = &mut self.meta[entity.id as usize];
+            if current_meta.location.archetype_id == ArchetypeId::INVALID {
+                AllocAtWithoutReplacement::DidNotExist
+            } else if current_meta.generation == entity.generation {
+                AllocAtWithoutReplacement::Exists(current_meta.location)
+            } else {
+                return AllocAtWithoutReplacement::ExistsWithWrongGeneration;
+            }
+        };
+
+        self.meta[entity.id as usize].generation = entity.generation;
+        result
     }
 
     pub fn free(&mut self, entity: Entity) -> Option<EntityLocation> {

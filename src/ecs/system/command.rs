@@ -63,10 +63,27 @@ impl<'w, 's> Commands<'w, 's> {
         }
     }
 
+    pub(crate) fn get_or_spawn<'a>(&'a mut self, entity: Entity) -> EntityCommands<'w, 's, 'a> {
+        self.add(GetOrSpawn { entity });
+        EntityCommands {
+            entity,
+            commands: self,
+        }
+    }
+
     pub fn spawn_bundle<T: Bundle>(&mut self, bundle: T) -> EntityCommands<'w, 's, '_> {
         let mut entity = self.spawn();
         entity.insert_bundle(bundle);
         entity
+    }
+
+    pub fn insert_or_spawn_batch<I, B>(&mut self, bundles_iter: I)
+    where
+        I: IntoIterator + Send + Sync + 'static,
+        I::IntoIter: Iterator<Item = (Entity, B)>,
+        B: Bundle,
+    {
+        self.queue.push(InsertOrSpawnBatch { bundles_iter });
     }
 
     pub fn entity(&mut self, entity: Entity) -> EntityCommands<'w, 's, '_> {
@@ -207,6 +224,36 @@ impl<'w, 's, 'a> EntityCommands<'w, 's, 'a> {
     }
 }
 
+#[derive(Debug)]
+pub struct GetOrSpawn {
+    entity: Entity,
+}
+
+impl Command for GetOrSpawn {
+    fn write(self: Box<Self>, world: &mut World) {
+        world.get_or_spawn(self.entity);
+    }
+}
+
+pub struct InsertOrSpawnBatch<I, B>
+where
+    I: IntoIterator + Send + Sync + 'static,
+    B: Bundle,
+    I::IntoIter: Iterator<Item = (Entity, B)>,
+{
+    pub bundles_iter: I,
+}
+
+impl<I, B> Command for InsertOrSpawnBatch<I, B>
+where
+    I: IntoIterator + Send + Sync + 'static,
+    B: Bundle,
+    I::IntoIter: Iterator<Item = (Entity, B)>,
+{
+    fn write(self: Box<Self>, world: &mut World) {
+        world.insert_or_spawn_batch(self.bundles_iter);
+    }
+}
 #[derive(Debug)]
 pub struct Despawn {
     pub entity: Entity,

@@ -11,9 +11,9 @@ use self::entity_ref::{EntityMut, EntityRef};
 use super::{
     component::{
         Bundles, Component, ComponentId, ComponentTicks, Components, ResMut, Resource, ResourceId,
-        Resources, Tick,
+        Resources, Tick, Bundle,
     },
-    entity::{Archetype, ArchetypeId, Archetypes, Entities, Entity, EntityLocation},
+    entity::{Archetype, ArchetypeId, Archetypes, Entities, Entity, EntityLocation, AllocAtWithoutReplacement},
     query::{fetch::WorldQuery, state::QueryState},
     storage::Storages,
     system::SystemTicks,
@@ -180,15 +180,20 @@ impl World {
     }
 
     pub fn spawn(&mut self) -> EntityMut {
+        let entity = self.entities.alloc();
+        unsafe { self.spawn_at_internal(entity) }
+    }
+
+    unsafe fn spawn_at_internal(&mut self, entity: Entity) -> EntityMut {
         let archetype = self.archetypes.empty_mut();
         let location = archetype.next_location();
-        let entity = self.entities.alloc(location);
+        self.entities.update_location(entity, location);
         let table = &mut self.storages.tables[archetype.table_id()];
         archetype.allocate(entity);
         unsafe {
             table.allocate(entity);
-            EntityMut::new(self, entity, location)
         }
+        EntityMut::new(self, entity, location)
     }
 
     #[inline]
@@ -242,11 +247,40 @@ impl World {
     }
 
     #[inline]
+    pub(crate) fn get_or_spawn(&mut self, entity: Entity) -> Option<EntityMut> {
+        self.flush();
+        match self.entities.alloc_at_without_replacement(entity) {
+            AllocAtWithoutReplacement::Exists(location) => {
+                Some(EntityMut::new(self, entity, location))
+            }
+            AllocAtWithoutReplacement::DidNotExist => {
+                Some(unsafe { self.spawn_at_internal(entity) })
+            }
+            AllocAtWithoutReplacement::ExistsWithWrongGeneration => None,
+        }
+    }
+
+    pub(crate) fn insert_or_spawn_batch<I, B>(&mut self, iter: I)
+    where
+        I: IntoIterator,
+        I::IntoIter: Iterator<Item = (Entity, B)>,
+        B: Bundle,
+    {
+        self.flush();
+
+        // TODO: Bevy uses a much more complex approach here that is probably faster. Is it worth it?
+        for (entity, bundle) in iter.into_iter() {
+            let mut e = self.get_or_spawn(entity).expect("Entity exists with wrong generation");
+            e.insert_bundle(bundle);
+        }
+    }
+
+    #[inline]
     pub fn query<Q: WorldQuery>(&mut self) -> QueryState<Q, ()> {
         QueryState::new(self)
     }
 
-    pub fn removed<T: Component>(&self) -> std::iter::Cloned<std::slice::Iter<'_, Entity>> {
+    pub fn removed<T: Component>(&self) -> impl Iterator<Item = Entity> + '_ {
         self.component_id::<T>()
             .map_or_else(|| [].iter().cloned(), |id| self.removed_with_id(id))
     }
