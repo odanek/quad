@@ -6,8 +6,8 @@ use crate::{
     app::{App, Stage},
     asset::{Asset, Handle},
     ecs::{
-        Commands, Component, Entity, FilterFetch, Local, Query, QueryItem, Res, ResMut,
-        Resource, RunSystem, SystemParamItem, WorldQuery,
+        Commands, Component, Entity, FilterFetch, Local, Query, QueryItem, Res, ResMut, Resource,
+        RunSystem, SystemParamItem, WorldQuery,
     },
 };
 

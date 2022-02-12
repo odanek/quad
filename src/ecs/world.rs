@@ -10,10 +10,13 @@ use self::entity_ref::{EntityMut, EntityRef};
 
 use super::{
     component::{
-        Bundles, Component, ComponentId, ComponentTicks, Components, ResMut, Resource, ResourceId,
-        Resources, Tick, Bundle,
+        Bundle, Bundles, Component, ComponentId, ComponentTicks, Components, ResMut, Resource,
+        ResourceId, Resources, Tick,
     },
-    entity::{Archetype, ArchetypeId, Archetypes, Entities, Entity, EntityLocation, AllocAtWithoutReplacement},
+    entity::{
+        AllocAtWithoutReplacement, Archetype, ArchetypeId, Archetypes, Entities, Entity,
+        EntityLocation,
+    },
     query::{fetch::WorldQuery, state::QueryState},
     storage::Storages,
     system::SystemTicks,
@@ -270,7 +273,9 @@ impl World {
 
         // TODO: Bevy uses a much more complex approach here that is probably faster. Is it worth it?
         for (entity, bundle) in iter.into_iter() {
-            let mut e = self.get_or_spawn(entity).expect("Entity exists with wrong generation");
+            let mut e = self
+                .get_or_spawn(entity)
+                .expect("Entity exists with wrong generation");
             e.insert_bundle(bundle);
         }
     }

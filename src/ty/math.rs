@@ -7,3 +7,24 @@ pub type Mat2 = cgm::Mat2<f32>;
 pub type Mat3 = cgm::Mat3<f32>;
 pub type Mat4 = cgm::Mat4<f32>;
 pub type Quat = cgm::Quat<f32>;
+
+#[derive(Copy, Clone, PartialEq, Debug)]
+pub struct Size<T: PartialEq = f32> {
+    pub width: T,
+    pub height: T,
+}
+
+impl<T: PartialEq> Size<T> {
+    pub fn new(width: T, height: T) -> Self {
+        Size { width, height }
+    }
+}
+
+impl<T: Default + PartialEq> Default for Size<T> {
+    fn default() -> Self {
+        Self {
+            width: Default::default(),
+            height: Default::default(),
+        }
+    }
+}
