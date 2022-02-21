@@ -12,18 +12,19 @@ mod world;
 
 pub use quad_macros::{Component, Event, Resource};
 
-pub use component::{Component, ComponentId, Res, ResMut, Resource, ResourceId};
+pub use component::{Component, ComponentId, DetectChanges, Res, ResMut, Resource, ResourceId};
 pub use entity::Entity;
 pub use event::{Event, EventId, EventReader, EventWriter, Events};
 pub use query::{
     fetch::{ChangeTrackers, QueryItem, WorldQuery},
     filter::{Added, Changed, FilterFetch, Or, With, Without},
+    state::QueryState,
 };
 pub use schedule::{OptionalSchedule, OptionalScheduleWithInput, Schedule, Scheduler};
 pub use system::{
     command::Commands,
     local::Local,
-    query::Query,
+    query::{Query, QuerySet},
     removed_components::RemovedComponents,
     run_system::RunSystem,
     system_param::{SystemParam, SystemParamItem},

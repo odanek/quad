@@ -6,6 +6,12 @@ use super::WindowBuilder;
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct WindowId(u32);
 
+impl Default for WindowId {
+    fn default() -> Self {
+        Self::primary()
+    }
+}
+
 impl WindowId {
     pub(crate) fn primary() -> Self {
         Self(0)

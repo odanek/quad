@@ -1,4 +1,4 @@
-// mod camera;
+mod cameras;
 mod color;
 // mod mesh;
 mod options;
