@@ -10,7 +10,7 @@ mod render_graph;
 mod render_resource;
 mod renderer;
 mod texture;
-// mod view;
+mod view;
 
 use std::ops::{Deref, DerefMut};
 

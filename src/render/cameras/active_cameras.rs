@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ecs::{Entity, ResMut, Query, Resource};
+use crate::ecs::{Entity, Query, ResMut, Resource};
 
 use super::Camera;
 

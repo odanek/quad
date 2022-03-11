@@ -2,7 +2,6 @@ use crate::{ecs::Component, ty::Mat4};
 
 use super::DepthCalculation;
 
-
 pub trait CameraProjection {
     fn get_projection_matrix(&self) -> Mat4;
     fn update(&mut self, width: f32, height: f32);

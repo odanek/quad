@@ -1,9 +1,10 @@
 use crate::{
-    render::primitives::Frustum,
+    ecs::Bundle,
+    render::{primitives::Frustum, view::VisibleEntities},
     transform::{GlobalTransform, Transform},
-    ty::Vec3, ecs::Bundle,
+    ty::Vec3,
 };
-use cgm::Zero;
+use cgm::{Zero, SquareMatrix};
 
 use super::{
     Camera, CameraProjection, DepthCalculation, OrthographicProjection, PerspectiveProjection,
@@ -101,7 +102,7 @@ impl OrthographicCameraBundle {
         };
         let transform = Transform::from_xyz(0.0, 0.0, far - 0.1);
         let view_projection =
-            orthographic_projection.get_projection_matrix() * transform.compute_matrix().inverse();
+            orthographic_projection.get_projection_matrix() * transform.compute_matrix().inverse().unwrap();
         let frustum = Frustum::from_view_projection(
             &view_projection,
             &transform.translation,

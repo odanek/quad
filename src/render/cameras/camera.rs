@@ -1,12 +1,12 @@
 use crate::{
-    ecs::{Component, EventReader, Res, QuerySet, Entity, Added, QueryState, DetectChanges},
+    ecs::{Added, Component, DetectChanges, Entity, EventReader, QuerySet, QueryState, Res},
     transform::GlobalTransform,
     ty::{Mat4, Vec2, Vec3},
     windowing::{WindowCreated, WindowId, WindowResized, Windows},
 };
 
 use super::CameraProjection;
-use cgm::ElementWise;
+use cgm::{ElementWise, SquareMatrix};
 
 #[derive(Component, Default, Debug)]
 pub struct Camera {
@@ -44,14 +44,16 @@ impl Camera {
         let window_size = Vec2::new(window.width(), window.height());
         // Build a transform to convert from world to NDC using camera data
         let world_to_ndc: Mat4 =
-            self.projection_matrix * camera_transform.compute_matrix().inverse();
-        let ndc_space_coords = Vec3::from_homogeneous(world_to_ndc * world_position.to_homogeneous());
+            self.projection_matrix * camera_transform.compute_matrix().inverse().unwrap();
+        let ndc_space_coords =
+            Vec3::from_homogeneous(world_to_ndc * world_position.to_homogeneous());
         // NDC z-values outside of 0 < z < 1 are outside the camera frustum and are thus not in screen space
         if ndc_space_coords.z < 0.0 || ndc_space_coords.z > 1.0 {
             return None;
         }
         // Once in NDC space, we can discard the z element and rescale x/y to fit the screen
-        let screen_space_coords = ((ndc_space_coords.truncate() + Vec2::new(1.0, 1.0)) / 2.0).mul_element_wise(window_size);
+        let screen_space_coords = ((ndc_space_coords.truncate() + Vec2::new(1.0, 1.0)) / 2.0)
+            .mul_element_wise(window_size);
         Some(screen_space_coords)
         // TODO
         // if !screen_space_coords.is_nan() {

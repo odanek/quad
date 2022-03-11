@@ -17,6 +17,8 @@ use crate::{
     windowing::{WindowId, Windows},
 };
 
+use super::view::{ExtractedView, VisibleEntities};
+
 pub const CAMERA_2D: &'static str = "camera_2d";
 pub const CAMERA_3D: &'static str = "camera_3d";
 

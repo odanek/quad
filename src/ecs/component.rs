@@ -5,7 +5,7 @@ mod ticks;
 mod type_info;
 
 pub use bundle::{Bundle, BundleId, BundleInfo, Bundles};
-pub use change_detection::{CmptMut, Res, ResMut, DetectChanges};
+pub use change_detection::{CmptMut, DetectChanges, Res, ResMut};
 pub use resource::{Resource, ResourceId, Resources};
 pub use ticks::{ComponentTicks, Tick};
 
