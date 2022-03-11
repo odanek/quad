@@ -6,6 +6,7 @@ use crate::{
 };
 
 use super::CameraProjection;
+use cgm::ElementWise;
 
 #[derive(Component, Default, Debug)]
 pub struct Camera {
@@ -44,18 +45,20 @@ impl Camera {
         // Build a transform to convert from world to NDC using camera data
         let world_to_ndc: Mat4 =
             self.projection_matrix * camera_transform.compute_matrix().inverse();
-        let ndc_space_coords: Vec3 = world_to_ndc.project_point3(world_position);
+        let ndc_space_coords = Vec3::from_homogeneous(world_to_ndc * world_position.to_homogeneous());
         // NDC z-values outside of 0 < z < 1 are outside the camera frustum and are thus not in screen space
         if ndc_space_coords.z < 0.0 || ndc_space_coords.z > 1.0 {
             return None;
         }
         // Once in NDC space, we can discard the z element and rescale x/y to fit the screen
-        let screen_space_coords = (ndc_space_coords.truncate() + Vec2::ONE) / 2.0 * window_size;
-        if !screen_space_coords.is_nan() {
-            Some(screen_space_coords)
-        } else {
-            None
-        }
+        let screen_space_coords = ((ndc_space_coords.truncate() + Vec2::new(1.0, 1.0)) / 2.0).mul_element_wise(window_size);
+        Some(screen_space_coords)
+        // TODO
+        // if !screen_space_coords.is_nan() {
+        //     Some(screen_space_coords)
+        // } else {
+        //     None
+        // }
     }
 }
 

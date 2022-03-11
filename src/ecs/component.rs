@@ -154,13 +154,4 @@ impl Components {
             self.add(&info).unwrap()
         }
     }
-
-    pub fn get_or_insert_info(&mut self, info: &TypeInfo) -> ComponentId {
-        let component_id = self.get_id(info.type_id());
-        if let Some(id) = component_id {
-            id
-        } else {
-            self.add(info).unwrap()
-        }
-    }
 }

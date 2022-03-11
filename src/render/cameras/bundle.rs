@@ -1,11 +1,14 @@
 use crate::{
     render::primitives::Frustum,
     transform::{GlobalTransform, Transform},
-    ty::Vec3,
+    ty::Vec3, ecs::Bundle,
 };
 use cgm::Zero;
 
-use super::{Camera, CameraProjection, PerspectiveProjection, OrthographicProjection, DepthCalculation, ScalingMode, CAMERA_2D, CAMERA_3D};
+use super::{
+    Camera, CameraProjection, DepthCalculation, OrthographicProjection, PerspectiveProjection,
+    ScalingMode, CAMERA_2D, CAMERA_3D,
+};
 
 /// Component bundle for camera entities with perspective projection
 ///
