@@ -9,7 +9,7 @@ pub(crate) use builder::WindowBuilder;
 pub use event::*;
 pub use handle::RawWindowHandleWrapper;
 pub use size::{FullScreen, LogicalSize, PhysicalSize, Size};
-pub use window::{Window, WindowId};
+pub use window::{PresentMode, Window, WindowId};
 pub use windows::Windows;
 
 use crate::app::App;

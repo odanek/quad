@@ -2,7 +2,7 @@ use std::{
     collections::{HashMap, HashSet},
     ops::{Deref, DerefMut},
 };
-use wgpu::{PresentMode, TextureFormat};
+use wgpu::TextureFormat;
 
 use crate::{
     app::{App, Stage},
@@ -13,7 +13,7 @@ use crate::{
         texture::BevyDefault,
         RenderWorld,
     },
-    windowing::{RawWindowHandleWrapper, WindowId, Windows},
+    windowing::{PresentMode, RawWindowHandleWrapper, WindowId, Windows},
 };
 
 fn window_render_plugin(app: &mut App, render_app: &mut App) {

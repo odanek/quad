@@ -4,6 +4,26 @@ use crate::ty::{Vec2, Vec2i};
 
 use super::{handle::RawWindowHandleWrapper, WindowBuilder};
 
+#[repr(C)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[doc(alias = "vsync")]
+pub enum PresentMode {
+    /// The presentation engine does **not** wait for a vertical blanking period and
+    /// the request is presented immediately. This is a low-latency presentation mode,
+    /// but visible tearing may be observed. Will fallback to `Fifo` if unavailable on the
+    /// selected platform and backend. Not optimal for mobile.
+    Immediate = 0,
+    /// The presentation engine waits for the next vertical blanking period to update
+    /// the current image, but frames may be submitted without delay. This is a low-latency
+    /// presentation mode and visible tearing will **not** be observed. Will fallback to `Fifo`
+    /// if unavailable on the selected platform and backend. Not optimal for mobile.
+    Mailbox = 1,
+    /// The presentation engine waits for the next vertical blanking period to update
+    /// the current image. The framerate will be capped at the display refresh rate,
+    /// corresponding to the `VSync`. Tearing cannot be observed. Optimal for mobile.
+    Fifo = 2, // NOTE: The explicit ordinal values mirror wgpu and the vulkan spec.
+}
+
 // TODO: Window ids, multiple window handling
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct WindowId(u32);
@@ -26,6 +46,7 @@ impl WindowId {
 
 pub struct Window {
     id: WindowId,
+    present_mode: PresentMode,
     physical_width: u32,
     physical_height: u32,
     backend_scale_factor: f64,
@@ -46,6 +67,7 @@ impl Window {
 
         Window {
             id,
+            present_mode: PresentMode::Fifo,
             physical_width: winit_window.inner_size().width,
             physical_height: winit_window.inner_size().height,
             backend_scale_factor: winit_window.scale_factor(),
@@ -61,6 +83,11 @@ impl Window {
     #[inline]
     pub fn id(&self) -> WindowId {
         self.id
+    }
+
+    #[inline]
+    pub fn present_mode(&self) -> PresentMode {
+        self.present_mode
     }
 
     #[inline]
