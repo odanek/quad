@@ -38,4 +38,12 @@ impl Windows {
         self.window_id_to_winit.insert(id, winit_id);
         self.winit_to_window_id.insert(winit_id, id);
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Window> {
+        self.windows.values()
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Window> {
+        self.windows.values_mut()
+    }
 }

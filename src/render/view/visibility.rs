@@ -1,5 +1,6 @@
 mod render_layers;
 
+use cgm::SquareMatrix;
 pub use render_layers::*;
 
 use crate::{
@@ -60,42 +61,12 @@ impl VisibleEntities {
     }
 }
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
-pub enum VisibilitySystems {
-    CalculateBounds,
-    UpdateOrthographicFrusta,
-    UpdatePerspectiveFrusta,
-    CheckVisibility,
-}
-
+// TODO Make sure the systems are run in correct order (see Bevy) - must run after transform_propagate_system
 pub fn visibility_plugin(app: &mut App) {
-    use VisibilitySystems::*;
-
-    app.add_system_to_stage(
-        Stage::PostUpdate,
-        calculate_bounds.label(CalculateBounds),
-    )
-    .add_system_to_stage(
-        Stage::PostUpdate,
-        update_frusta::<OrthographicProjection>
-            .label(UpdateOrthographicFrusta)
-            .after(TransformSystem::TransformPropagate),
-    )
-    .add_system_to_stage(
-        Stage::PostUpdate,
-        update_frusta::<PerspectiveProjection>
-            .label(UpdatePerspectiveFrusta)
-            .after(TransformSystem::TransformPropagate),
-    )
-    .add_system_to_stage(
-        Stage::PostUpdate,
-        check_visibility
-            .label(CheckVisibility)
-            .after(CalculateBounds)
-            .after(UpdateOrthographicFrusta)
-            .after(UpdatePerspectiveFrusta)
-            .after(TransformSystem::TransformPropagate),
-    );
+    app.add_system_to_stage(Stage::PostUpdate, &calculate_bounds)
+        .add_system_to_stage(Stage::PostUpdate, &update_frusta::<OrthographicProjection>)
+        .add_system_to_stage(Stage::PostUpdate, &update_frusta::<PerspectiveProjection>)
+        .add_system_to_stage(Stage::PostUpdate, &check_visibility);
 }
 
 pub fn calculate_bounds(
@@ -117,7 +88,7 @@ pub fn update_frusta<T: Component + CameraProjection + Send + Sync + 'static>(
 ) {
     for (transform, projection, mut frustum) in views.iter_mut() {
         let view_projection =
-            projection.get_projection_matrix() * transform.compute_matrix().inverse();
+            projection.get_projection_matrix() * transform.compute_matrix().inverse().unwrap();
         *frustum = Frustum::from_view_projection(
             &view_projection,
             &transform.translation,

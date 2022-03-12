@@ -1,6 +1,8 @@
+use raw_window_handle::HasRawWindowHandle;
+
 use crate::ty::{Vec2, Vec2i};
 
-use super::WindowBuilder;
+use super::{handle::RawWindowHandleWrapper, WindowBuilder};
 
 // TODO: Window ids, multiple window handling
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -32,6 +34,7 @@ pub struct Window {
     cursor_position: Option<Vec2>,
     focused: bool,
     winit_window: winit::window::Window,
+    raw_window_handle: RawWindowHandleWrapper,
 }
 
 impl Window {
@@ -51,6 +54,7 @@ impl Window {
             cursor_position: None,
             focused: true,
             winit_window,
+            raw_window_handle: RawWindowHandleWrapper::new(winit_window.raw_window_handle()),
         }
     }
 
@@ -96,6 +100,10 @@ impl Window {
 
     pub(crate) fn winit_window(&self) -> &winit::window::Window {
         &self.winit_window
+    }
+
+    pub(crate) fn raw_window_handle(&self) -> RawWindowHandleWrapper {
+        self.raw_window_handle.clone()
     }
 
     pub(crate) fn update_physical_size(&mut self, width: u32, height: u32) {

@@ -1,33 +1,27 @@
-use std::{ops::{Deref, DerefMut}, collections::{HashMap, HashSet}};
-use wgpu::{TextureFormat, PresentMode};
+use std::{
+    collections::{HashMap, HashSet},
+    ops::{Deref, DerefMut},
+};
+use wgpu::{PresentMode, TextureFormat};
 
-use crate::{windowing::{WindowId, Windows}, render::{render_resource::TextureView, RenderWorld, renderer::{RenderDevice, RenderInstance}}, ecs::{ResMut, Res}};
+use crate::{
+    app::{App, Stage},
+    ecs::{Res, ResMut, Resource},
+    render::{
+        render_resource::TextureView,
+        renderer::{RenderDevice, RenderInstance},
+        texture::BevyDefault,
+        RenderWorld,
+    },
+    windowing::{RawWindowHandleWrapper, WindowId, Windows},
+};
 
-/// Token to ensure a system runs on the main thread.
-#[derive(Default)]
-pub struct NonSendMarker;
-
-pub struct WindowRenderPlugin;
-
-#[derive(SystemLabel, Debug, Clone, PartialEq, Eq, Hash)]
-pub enum WindowSystem {
-    Prepare,
-}
-
-impl Plugin for WindowRenderPlugin {
-    fn build(&self, app: &mut App) {
-        if let Ok(render_app) = app.get_sub_app_mut(RenderApp) {
-            render_app
-                .init_resource::<ExtractedWindows>()
-                .init_resource::<WindowSurfaces>()
-                .init_resource::<NonSendMarker>()
-                .add_system_to_stage(RenderStage::Extract, extract_windows)
-                .add_system_to_stage(
-                    RenderStage::Prepare,
-                    prepare_windows.label(WindowSystem::Prepare),
-                );
-        }
-    }
+fn window_render_plugin(app: &mut App, render_app: &mut App) {
+    render_app
+        .init_resource::<ExtractedWindows>()
+        .init_resource::<WindowSurfaces>()
+        .add_system_to_stage(Stage::RenderExtract, &extract_windows)
+        .add_system_to_stage(Stage::RenderPrepare, &prepare_windows);
 }
 
 pub struct ExtractedWindow {
@@ -40,7 +34,7 @@ pub struct ExtractedWindow {
     pub size_changed: bool,
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct ExtractedWindows {
     pub windows: HashMap<WindowId, ExtractedWindow>,
 }
@@ -99,17 +93,15 @@ fn extract_windows(mut render_world: ResMut<RenderWorld>, windows: Res<Windows>)
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct WindowSurfaces {
     surfaces: HashMap<WindowId, wgpu::Surface>,
     /// List of windows that we have already called the initial `configure_surface` for
     configured_windows: HashSet<WindowId>,
 }
 
+// TODO Make sure this runs on the main thread (see create_surface call below)
 pub fn prepare_windows(
-    // By accessing a NonSend resource, we tell the scheduler to put this system on the main thread,
-    // which is necessary for some OS s
-    _marker: NonSend<NonSendMarker>,
     mut windows: ResMut<ExtractedWindows>,
     mut window_surfaces: ResMut<WindowSurfaces>,
     render_device: Res<RenderDevice>,

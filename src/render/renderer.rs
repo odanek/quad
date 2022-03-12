@@ -67,7 +67,22 @@ impl DerefMut for RenderQueue {
     }
 }
 
-pub type RenderInstance = Instance;
+#[derive(Resource)]
+pub struct RenderInstance(Instance);
+
+impl Deref for RenderInstance {
+    type Target = Instance;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for RenderInstance {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 /// `wgpu::Features` that are not automatically enabled due to having possibly-negative side effects.
 /// `MAPPABLE_PRIMARY_BUFFERS` can have a significant, negative performance impact so should not be

@@ -1,6 +1,7 @@
 pub mod visibility;
 pub mod window;
 
+use cgm::SquareMatrix;
 use crevice::std140::AsStd140;
 pub use visibility::*;
 use wgpu::{
@@ -11,7 +12,7 @@ pub use window::*;
 
 use crate::{
     app::{App, Stage},
-    ecs::{Commands, Component, Entity, Query, Res, ResMut},
+    ecs::{Commands, Component, Entity, Query, Res, ResMut, Resource},
     transform::GlobalTransform,
     ty::{Mat4, Vec3},
 };
@@ -21,9 +22,10 @@ use super::{
     render_asset::RenderAssets,
     render_resource::{DynamicUniformVec, Texture, TextureView},
     renderer::{RenderDevice, RenderQueue},
-    texture::{Image, TextureCache},
+    texture::{BevyDefault, Image, TextureCache},
 };
 
+// TODO This must be called after the window_render_plugin
 pub fn view_plugin(app: &mut App, render_app: &mut App) {
     app.init_resource::<Msaa>();
     visibility_plugin(app);
@@ -31,10 +33,7 @@ pub fn view_plugin(app: &mut App, render_app: &mut App) {
         .init_resource::<ViewUniforms>()
         .add_system_to_stage(Stage::RenderExtract, &extract_msaa)
         .add_system_to_stage(Stage::RenderPrepare, &prepare_view_uniforms)
-        .add_system_to_stage(
-            Stage::RenderPrepare,
-            prepare_view_targets.after(WindowSystem::Prepare),
-        );
+        .add_system_to_stage(Stage::RenderPrepare, &prepare_view_targets); // TODO Ensure that runs after prepare_windows
 }
 
 #[derive(Clone)]
@@ -48,6 +47,7 @@ pub fn view_plugin(app: &mut App, render_app: &mut App) {
 ///     .insert_resource(Msaa { samples: 4 })
 ///     .run();
 /// ```
+#[derive(Resource)]
 pub struct Msaa {
     /// The number of samples to run for Multi-Sample Anti-Aliasing. Higher numbers result in
     /// smoother edges.
@@ -93,7 +93,7 @@ pub struct ViewUniform {
     height: f32,
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct ViewUniforms {
     pub uniforms: DynamicUniformVec<ViewUniform>,
 }
@@ -144,7 +144,7 @@ fn prepare_view_uniforms(
     for (entity, camera) in views.iter() {
         let projection = camera.projection;
         let view = camera.transform.compute_matrix();
-        let inverse_view = view.inverse();
+        let inverse_view = view.inverse().unwrap();
         let view_uniforms = ViewUniformOffset {
             offset: view_uniforms.uniforms.push(ViewUniform {
                 view_proj: projection * inverse_view,

@@ -4,7 +4,7 @@ use crate::{
     transform::{GlobalTransform, Transform},
     ty::Vec3,
 };
-use cgm::{Zero, SquareMatrix};
+use cgm::{SquareMatrix, Zero};
 
 use super::{
     Camera, CameraProjection, DepthCalculation, OrthographicProjection, PerspectiveProjection,
@@ -101,8 +101,8 @@ impl OrthographicCameraBundle {
             ..Default::default()
         };
         let transform = Transform::from_xyz(0.0, 0.0, far - 0.1);
-        let view_projection =
-            orthographic_projection.get_projection_matrix() * transform.compute_matrix().inverse().unwrap();
+        let view_projection = orthographic_projection.get_projection_matrix()
+            * transform.compute_matrix().inverse().unwrap();
         let frustum = Frustum::from_view_projection(
             &view_projection,
             &transform.translation,

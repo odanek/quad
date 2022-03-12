@@ -29,6 +29,7 @@ pub fn image_plugin(app: &mut App, render_app: &mut App) {
         .add_system_to_stage(Stage::RenderCleanup, &update_texture_cache_system);
 }
 
+// TODO Rename to QuadDefault?
 pub trait BevyDefault {
     fn bevy_default() -> Self;
 }

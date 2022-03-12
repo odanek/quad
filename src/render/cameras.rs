@@ -12,12 +12,17 @@ pub use projection::*;
 
 use crate::{
     app::{App, Stage},
+    asset::Assets,
     ecs::{Commands, Component, Entity, Query, Res, Resource},
     transform::GlobalTransform,
-    windowing::{WindowId, Windows},
+    ty::Vec2u,
+    windowing::Windows,
 };
 
-use super::view::{ExtractedView, VisibleEntities};
+use super::{
+    texture::Image,
+    view::{ExtractedView, VisibleEntities},
+};
 
 pub const CAMERA_2D: &'static str = "camera_2d";
 pub const CAMERA_3D: &'static str = "camera_3d";
@@ -42,14 +47,16 @@ pub struct ExtractedCameraNames {
 
 #[derive(Component, Debug)]
 pub struct ExtractedCamera {
-    pub window_id: WindowId,
+    pub target: RenderTarget,
     pub name: Option<String>,
+    pub physical_size: Option<Vec2u>,
 }
 
 fn extract_cameras(
     mut commands: Commands,
     active_cameras: Res<ActiveCameras>,
     windows: Res<Windows>,
+    images: Res<Assets<Image>>,
     query: Query<(Entity, &Camera, &GlobalTransform, &VisibleEntities)>,
 ) {
     let mut entities = HashMap::default();
@@ -58,18 +65,19 @@ fn extract_cameras(
         if let Some((entity, camera, transform, visible_entities)) =
             camera.entity.and_then(|e| query.get(e).ok())
         {
-            if let Some(window) = windows.get(camera.window) {
+            if let Some(size) = camera.target.get_physical_size(&windows, &images) {
                 entities.insert(name.clone(), entity);
                 commands.get_or_spawn(entity).insert_bundle((
                     ExtractedCamera {
-                        window_id: camera.window,
+                        target: camera.target.clone(),
                         name: camera.name.clone(),
+                        physical_size: camera.target.get_physical_size(&windows, &images),
                     },
                     ExtractedView {
                         projection: camera.projection_matrix,
                         transform: *transform,
-                        width: window.physical_width().max(1),
-                        height: window.physical_height().max(1),
+                        width: size.x.max(1),
+                        height: size.y.max(1),
                         near: camera.near,
                         far: camera.far,
                     },
@@ -79,5 +87,5 @@ fn extract_cameras(
         }
     }
 
-    commands.insert_resource(ExtractedCameraNames { entities })
+    commands.insert_resource(ExtractedCameraNames { entities });
 }
