@@ -13,7 +13,7 @@ use crate::ecs::{
 };
 
 use super::{
-    system_param::{SystemParam, SystemParamFetch, SystemParamState},
+    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
     SystemTicks,
 };
 
@@ -223,6 +223,13 @@ where
     type Fetch = QueryState<Q, F>;
 }
 
+unsafe impl<Q: WorldQuery, F: WorldQuery> ReadOnlySystemParamFetch for QueryState<Q, F>
+where
+    Q::Fetch: ReadOnlyFetch,
+    F::Fetch: FilterFetch,
+{
+}
+
 impl<Q: WorldQuery + 'static, F: WorldQuery + 'static> SystemParamState for QueryState<Q, F>
 where
     F::Fetch: FilterFetch,
@@ -289,6 +296,20 @@ where
     F1::Fetch: FilterFetch,
 {
     type Fetch = QuerySetState<(QueryState<Q0, F0>, QueryState<Q1, F1>)>;
+}
+
+unsafe impl<
+        Q0: WorldQuery + 'static,
+        Q1: WorldQuery + 'static,
+        F0: WorldQuery + 'static,
+        F1: WorldQuery + 'static,
+    > ReadOnlySystemParamFetch for QuerySetState<(QueryState<Q0, F0>, QueryState<Q1, F1>)>
+where
+    Q0::Fetch: ReadOnlyFetch,
+    Q1::Fetch: ReadOnlyFetch,
+    F0::Fetch: FilterFetch,
+    F1::Fetch: FilterFetch,
+{
 }
 
 impl<

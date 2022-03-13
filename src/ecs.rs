@@ -1,6 +1,3 @@
-#[macro_use]
-mod macros;
-
 mod component;
 mod entity;
 mod event;
@@ -28,8 +25,8 @@ pub use system::{
     local::Local,
     query::{Query, QuerySet},
     removed_components::RemovedComponents,
-    run_system::RunSystem,
-    system_param::{SystemParam, SystemParamItem},
+    run_system::{RunSystem, SystemState},
+    system_param::{SystemParam, SystemParamItem, ReadOnlySystemParamFetch},
     IntoSystem, System,
 };
 pub use world::{FromWorld, World};

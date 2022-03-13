@@ -1,4 +1,4 @@
-use crate::ecs::{component::Tick, World};
+use crate::{ecs::{component::Tick, World}, macros::all_tuples};
 
 use super::function_system::SystemMeta;
 
@@ -6,7 +6,7 @@ pub trait SystemParamState: Send + Sync + 'static {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self;
 
     #[inline]
-    fn update(&mut self, __world: &World, _system_meta: &mut SystemMeta) {}
+    fn update(&mut self, _world: &World, _system_meta: &mut SystemMeta) {}
 
     #[inline]
     fn apply(&mut self, _world: &mut World) {}
@@ -23,6 +23,8 @@ pub trait SystemParamFetch<'w, 's>: SystemParamState {
     ) -> Self::Item;
 }
 
+pub unsafe trait ReadOnlySystemParamFetch {}
+
 pub trait SystemParam: Sized {
     type Fetch: for<'w, 's> SystemParamFetch<'w, 's>;
 }
@@ -34,6 +36,8 @@ macro_rules! impl_system_param_tuple {
         impl<$($param: SystemParam),*> SystemParam for ($($param,)*) {
             type Fetch = ($($param::Fetch,)*);
         }
+
+        unsafe impl<$($param: ReadOnlySystemParamFetch),*> ReadOnlySystemParamFetch for ($($param,)*) {}
 
         #[allow(unused_variables)]
         #[allow(non_snake_case)]

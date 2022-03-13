@@ -5,7 +5,7 @@ use crate::ecs::{
 
 use super::{
     function_system::SystemMeta,
-    system_param::{SystemParamFetch, SystemParamState},
+    system_param::{SystemParamFetch, SystemParamState, ReadOnlySystemParamFetch},
     System,
 };
 
@@ -81,6 +81,20 @@ impl<Param: SystemParam> SystemState<Param> {
 
     fn update(&mut self, world: &World) {
         self.param_state.update(world, &mut self.meta);
+    }
+
+    /// Retrieve the [`SystemParam`] values. This can only be called when all parameters are read-only.
+    #[inline]
+    pub fn get<'w, 's>(
+        &'s mut self,
+        world: &'w World,
+    ) -> <Param::Fetch as SystemParamFetch<'w, 's>>::Item
+    where
+        Param::Fetch: ReadOnlySystemParamFetch,
+    {
+        self.update(world); // TODO Is this necessary?
+        // SAFE: Param is read-only and doesn't allow mutable access to World. It also matches the World this SystemState was created with.
+        unsafe { self.get_unchecked_manual(world, world.change_tick()) } // TODO Should the change tick be incremented here?
     }
 
     unsafe fn get_unchecked_manual<'w, 's>(

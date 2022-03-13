@@ -7,7 +7,7 @@ use crate::ecs::{
 
 use super::{
     function_system::SystemMeta,
-    system_param::{SystemParam, SystemParamFetch, SystemParamState},
+    system_param::{SystemParam, SystemParamFetch, SystemParamState, ReadOnlySystemParamFetch},
 };
 
 pub struct RemovedComponents<'w, T> {
@@ -26,6 +26,8 @@ pub struct RemovedComponentsState<T> {
     component_id: ComponentId,
     marker: PhantomData<T>,
 }
+
+unsafe impl<T: Component> ReadOnlySystemParamFetch for RemovedComponentsState<T> {}
 
 impl<'w, T: Component> SystemParam for RemovedComponents<'w, T> {
     type Fetch = RemovedComponentsState<T>;

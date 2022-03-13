@@ -3,7 +3,7 @@ use std::{
     collections::HashMap,
 };
 
-use crate::ecs::storage::Table;
+use crate::{ecs::storage::Table, macros::all_tuples};
 
 use super::{
     ticks::{ComponentTicks, Tick},

@@ -5,13 +5,13 @@ use std::{
     ptr::{self, NonNull},
 };
 
-use crate::ecs::{
+use crate::{ecs::{
     component::{CmptMut, Component, ComponentId, ComponentTicks},
     entity::{Archetype, Entity},
     storage::Tables,
     system::SystemTicks,
     World,
-};
+}, macros::all_pair_tuples};
 
 use super::access::FilteredAccess;
 

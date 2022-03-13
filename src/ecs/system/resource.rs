@@ -6,7 +6,7 @@ use crate::ecs::{
 use std::{any::type_name, marker::PhantomData};
 
 use super::{
-    system_param::{SystemParam, SystemParamFetch, SystemParamState},
+    system_param::{SystemParam, SystemParamFetch, SystemParamState, ReadOnlySystemParamFetch},
     SystemTicks,
 };
 
@@ -14,6 +14,8 @@ pub struct ResState<T> {
     resource_id: ResourceId,
     marker: PhantomData<T>,
 }
+
+unsafe impl<T: Resource> ReadOnlySystemParamFetch for ResState<T> {}
 
 impl<'w, T: Resource> SystemParam for Res<'w, T> {
     type Fetch = ResState<T>;
@@ -65,6 +67,8 @@ impl<'w, 's, T: Resource> SystemParamFetch<'w, 's> for ResState<T> {
 }
 
 pub struct OptionResState<T>(ResState<T>);
+
+unsafe impl<T: Resource> ReadOnlySystemParamFetch for OptionResState<T> {}
 
 impl<'a, T: Resource> SystemParam for Option<Res<'a, T>> {
     type Fetch = OptionResState<T>;

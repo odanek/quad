@@ -6,7 +6,7 @@ mod primitives;
 mod render_asset;
 mod render_component;
 mod render_graph;
-// mod render_phase;
+mod render_phase;
 mod render_resource;
 mod renderer;
 mod texture;

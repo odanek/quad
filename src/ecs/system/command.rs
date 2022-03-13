@@ -8,7 +8,7 @@ use crate::ecs::{
 
 use super::{
     function_system::SystemMeta,
-    system_param::{SystemParam, SystemParamFetch, SystemParamState},
+    system_param::{SystemParam, SystemParamFetch, SystemParamState, ReadOnlySystemParamFetch},
 };
 
 #[derive(Default)]
@@ -433,6 +433,8 @@ impl Command for RemoveFromParent {
         world.entity_mut(self.child).remove_from_parent();
     }
 }
+
+unsafe impl ReadOnlySystemParamFetch for CommandQueue {}
 
 impl<'w, 's> SystemParam for Commands<'w, 's> {
     type Fetch = CommandQueue;

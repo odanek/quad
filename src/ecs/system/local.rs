@@ -4,7 +4,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use super::system_param::{SystemParam, SystemParamFetch, SystemParamState};
+use super::system_param::{SystemParam, SystemParamFetch, SystemParamState, ReadOnlySystemParamFetch};
 
 pub trait LocalResource: Send + Sync + 'static {}
 impl<T> LocalResource for T where T: Send + Sync + 'static {}
@@ -37,6 +37,8 @@ impl<'a, T: LocalResource> DerefMut for Local<'a, T> {
 }
 
 pub struct LocalState<T: LocalResource>(T);
+
+unsafe impl<T: LocalResource> ReadOnlySystemParamFetch for LocalState<T> {}
 
 impl<'a, T: LocalResource + FromWorld> SystemParam for Local<'a, T> {
     type Fetch = LocalState<T>;
