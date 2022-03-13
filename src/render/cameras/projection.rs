@@ -1,4 +1,4 @@
-use crate::{ecs::Component, ty::Mat4};
+use crate::{ecs::Component, ty::{Mat4, Vec4}};
 
 use super::DepthCalculation;
 
@@ -19,7 +19,7 @@ pub struct PerspectiveProjection {
 
 impl CameraProjection for PerspectiveProjection {
     fn get_projection_matrix(&self) -> Mat4 {
-        Mat4::perspective_infinite_reverse_rh(self.fov, self.aspect_ratio, self.near)
+        perspective_infinite_reverse_rh(self.fov, self.aspect_ratio, self.near)
     }
 
     fn update(&mut self, width: f32, height: f32) {
@@ -82,7 +82,7 @@ pub struct OrthographicProjection {
 
 impl CameraProjection for OrthographicProjection {
     fn get_projection_matrix(&self) -> Mat4 {
-        Mat4::orthographic_rh(
+        orthographic_rh(
             self.left * self.scale,
             self.right * self.scale,
             self.bottom * self.scale,
@@ -166,4 +166,32 @@ impl Default for OrthographicProjection {
             depth_calculation: DepthCalculation::Distance,
         }
     }
+}
+
+fn perspective_infinite_reverse_rh<T: cgm::Float>(fov_y_radians: T, aspect_ratio: T, z_near: T) -> cgm::Mat4<T> {
+    debug_assert!(z_near > T::ZERO);
+    let f = T::ONE / (T::HALF * fov_y_radians).tan();
+    cgm::Mat4::from_cols(
+        cgm::Vec4::new(f / aspect_ratio, T::ZERO, T::ZERO, T::ZERO),
+        cgm::Vec4::new(T::ZERO, f, T::ZERO, T::ZERO),
+        cgm::Vec4::new(T::ZERO, T::ZERO, T::ZERO, -T::ONE),
+        cgm::Vec4::new(T::ZERO, T::ZERO, z_near, T::ZERO),
+    )
+}
+
+fn orthographic_rh<T: cgm::Float>(left: T, right: T, bottom: T, top: T, near: T, far: T) -> cgm::Mat4<T> {
+    let rcp_width = T::ONE / (right - left);
+    let rcp_height = T::ONE / (top - bottom);
+    let r = T::ONE / (near - far);
+    cgm::Mat4::from_cols(
+        cgm::Vec4::new(rcp_width + rcp_width, T::ZERO, T::ZERO, T::ZERO),
+        cgm::Vec4::new(T::ZERO, rcp_height + rcp_height, T::ZERO, T::ZERO),
+        cgm::Vec4::new(T::ZERO, T::ZERO, r, T::ZERO),
+        cgm::Vec4::new(
+            -(left + right) * rcp_width,
+            -(top + bottom) * rcp_height,
+            r * near,
+            T::ONE,
+        ),
+    )
 }
