@@ -9,7 +9,7 @@ use crate::{
     ecs::{Commands, Component, Entity, Query, QuerySet, QueryState, Res, With, Without},
     render::{
         cameras::{Camera, CameraProjection, OrthographicProjection, PerspectiveProjection},
-        primitives::{Aabb, Frustum},
+        primitives::{Aabb, Frustum}, mesh::Mesh,
     },
     transform::GlobalTransform,
 };

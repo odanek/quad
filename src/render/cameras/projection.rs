@@ -1,4 +1,4 @@
-use crate::{ecs::Component, ty::{Mat4, Vec4}};
+use crate::{ecs::Component, ty::Mat4};
 
 use super::DepthCalculation;
 
@@ -168,7 +168,11 @@ impl Default for OrthographicProjection {
     }
 }
 
-fn perspective_infinite_reverse_rh<T: cgm::Float>(fov_y_radians: T, aspect_ratio: T, z_near: T) -> cgm::Mat4<T> {
+fn perspective_infinite_reverse_rh<T: cgm::Float>(
+    fov_y_radians: T,
+    aspect_ratio: T,
+    z_near: T,
+) -> cgm::Mat4<T> {
     debug_assert!(z_near > T::ZERO);
     let f = T::ONE / (T::HALF * fov_y_radians).tan();
     cgm::Mat4::from_cols(
@@ -179,7 +183,14 @@ fn perspective_infinite_reverse_rh<T: cgm::Float>(fov_y_radians: T, aspect_ratio
     )
 }
 
-fn orthographic_rh<T: cgm::Float>(left: T, right: T, bottom: T, top: T, near: T, far: T) -> cgm::Mat4<T> {
+fn orthographic_rh<T: cgm::Float>(
+    left: T,
+    right: T,
+    bottom: T,
+    top: T,
+    near: T,
+    far: T,
+) -> cgm::Mat4<T> {
     let rcp_width = T::ONE / (right - left);
     let rcp_height = T::ONE / (top - bottom);
     let r = T::ONE / (near - far);

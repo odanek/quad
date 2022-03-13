@@ -10,6 +10,7 @@ use super::{
     Component, ComponentId, ComponentStatus, Components,
 };
 
+#[allow(clippy::missing_safety_doc)]
 pub unsafe trait Bundle: Send + Sync + 'static {
     fn component_ids(components: &mut Components) -> Vec<ComponentId>;
 
@@ -23,8 +24,8 @@ pub unsafe trait Bundle: Send + Sync + 'static {
 macro_rules! bundle_impl {
     ($($name: ident),*) => {
         unsafe impl<$($name: Component),*> Bundle for ($($name,)*) {
-            fn component_ids(components: &mut Components) -> Vec<ComponentId> {
-                vec![$(components.get_or_insert::<$name>()),*]
+            fn component_ids(_components: &mut Components) -> Vec<ComponentId> {
+                vec![$(_components.get_or_insert::<$name>()),*]
             }
 
             #[allow(unused_variables, unused_mut, clippy::unused_unit)]
@@ -108,7 +109,7 @@ impl Bundles {
         let id = self.bundle_ids.entry(TypeId::of::<T>()).or_insert_with(|| {
             let component_ids = T::component_ids(components);
             let id = BundleId(bundle_infos.len());
-            let bundle_info = initialize_bundle(type_name::<T>(), component_ids, id, components);
+            let bundle_info = initialize_bundle(type_name::<T>(), component_ids, id);
             bundle_infos.push(bundle_info);
             id
         });
@@ -121,7 +122,6 @@ fn initialize_bundle(
     bundle_type_name: &'static str,
     component_ids: Vec<ComponentId>,
     id: BundleId,
-    components: &mut Components,
 ) -> BundleInfo {
     let mut deduped = component_ids.clone();
     deduped.sort();

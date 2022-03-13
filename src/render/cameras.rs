@@ -24,8 +24,8 @@ use super::{
     view::{ExtractedView, VisibleEntities},
 };
 
-pub const CAMERA_2D: &'static str = "camera_2d";
-pub const CAMERA_3D: &'static str = "camera_3d";
+pub const CAMERA_2D: &str = "camera_2d";
+pub const CAMERA_3D: &str = "camera_3d";
 
 pub fn camera_plugin(app: &mut App, render_app: &mut App) {
     let mut active_cameras = ActiveCameras::default();

@@ -14,6 +14,7 @@ use super::{
 };
 
 pub trait FilterFetch: for<'w, 's> Fetch<'w, 's> {
+    #[allow(clippy::missing_safety_doc)]
     unsafe fn archetype_filter_fetch(&mut self, archetype_index: usize) -> bool;
 }
 

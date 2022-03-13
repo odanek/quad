@@ -302,29 +302,29 @@ where
     F1::Fetch: FilterFetch,
 {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
-        let mut Q0 = QueryState::<Q0, F0>::new(world);
+        let q0 = QueryState::<Q0, F0>::new(world);
         if !system_meta
             .component_access
-            .is_compatible(&Q0.component_access)
+            .is_compatible(&q0.component_access)
         {
             panic!("Query parameters in system {} access components in a way that conflicts with Rust mutability rules.", system_meta.name);
         }
 
-        let mut Q1 = QueryState::<Q1, F1>::new(world);
+        let q1 = QueryState::<Q1, F1>::new(world);
         if !system_meta
             .component_access
-            .is_compatible(&Q1.component_access)
+            .is_compatible(&q1.component_access)
         {
             panic!("Query parameters in system {} access components in a way that conflicts with Rust mutability rules.", system_meta.name);
         }
 
         system_meta
             .component_access
-            .add(Q0.component_access.clone());
+            .add(q0.component_access.clone());
         system_meta
             .component_access
-            .add(Q1.component_access.clone());
-        QuerySetState((Q0, Q1))
+            .add(q1.component_access.clone());
+        QuerySetState((q0, q1))
     }
 
     #[inline]

@@ -1,6 +1,6 @@
 mod cameras;
 mod color;
-// mod mesh;
+mod mesh;
 mod options;
 mod primitives;
 mod render_asset;

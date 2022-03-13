@@ -193,9 +193,7 @@ impl World {
         self.entities.update_location(entity, location);
         let table = &mut self.storages.tables[archetype.table_id()];
         archetype.allocate(entity);
-        unsafe {
-            table.allocate(entity);
-        }
+        table.allocate(entity);
         EntityMut::new(self, entity, location)
     }
 

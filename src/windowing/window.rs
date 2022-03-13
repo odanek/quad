@@ -54,8 +54,8 @@ pub struct Window {
     position: Option<Vec2i>,
     cursor_position: Option<Vec2>,
     focused: bool,
-    winit_window: winit::window::Window,
     raw_window_handle: RawWindowHandleWrapper,
+    winit_window: winit::window::Window,
 }
 
 impl Window {
@@ -75,8 +75,8 @@ impl Window {
             position,
             cursor_position: None,
             focused: true,
-            winit_window,
             raw_window_handle: RawWindowHandleWrapper::new(winit_window.raw_window_handle()),
+            winit_window,
         }
     }
 

@@ -135,6 +135,7 @@ impl Components {
     }
 
     #[inline]
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn get_info_unchecked(&self, id: ComponentId) -> &ComponentInfo {
         self.components.get_unchecked(id.index())
     }

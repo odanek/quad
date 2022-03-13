@@ -96,6 +96,7 @@ where
     }
 
     #[inline]
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn get_unchecked<'w, 's>(
         &'s mut self,
         world: &'w World,
@@ -109,6 +110,7 @@ where
         )
     }
 
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn get_unchecked_manual<'w, 's>(
         &'s self,
         world: &'w World,
@@ -149,6 +151,7 @@ where
     }
 
     #[inline]
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn iter_unchecked<'w, 's>(
         &'s mut self,
         world: &'w World,
@@ -161,6 +164,7 @@ where
     }
 
     #[inline]
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn iter_unchecked_manual<'w, 's>(
         &'s self,
         world: &'w World,
@@ -194,6 +198,7 @@ where
     }
 
     #[inline]
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn for_each_unchecked<'w, 's>(
         &'s mut self,
         world: &'w World,
@@ -207,6 +212,7 @@ where
         );
     }
 
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn for_each_unchecked_manual<'w, 's>(
         &'s self,
         world: &'w World,
