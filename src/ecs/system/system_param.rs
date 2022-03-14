@@ -1,4 +1,7 @@
-use crate::{ecs::{component::Tick, World}, macros::all_tuples};
+use crate::{
+    ecs::{component::Tick, World},
+    macros::all_tuples,
+};
 
 use super::function_system::SystemMeta;
 
@@ -23,6 +26,7 @@ pub trait SystemParamFetch<'w, 's>: SystemParamState {
     ) -> Self::Item;
 }
 
+#[allow(clippy::missing_safety_doc)]
 pub unsafe trait ReadOnlySystemParamFetch {}
 
 pub trait SystemParam: Sized {

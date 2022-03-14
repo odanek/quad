@@ -7,7 +7,7 @@ use crate::ecs::{
 
 use super::{
     function_system::SystemMeta,
-    system_param::{SystemParam, SystemParamFetch, SystemParamState, ReadOnlySystemParamFetch},
+    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
 };
 
 pub struct RemovedComponents<'w, T> {

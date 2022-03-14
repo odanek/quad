@@ -47,17 +47,6 @@ impl TypeUuid for Mesh {
 /// [`shape::Cube`](crate::mesh::shape::Cube) or [`shape::Box`](crate::mesh::shape::Box), but you can also construct
 /// one yourself.
 ///
-/// Example of constructing a mesh:
-/// ```
-/// # use bevy_render::mesh::{Mesh, Indices};
-/// # use bevy_render::render_resource::PrimitiveTopology;
-/// fn create_triangle() -> Mesh {
-///     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-///     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vec![[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [1.0, 1.0, 0.0]]);
-///     mesh.set_indices(Some(Indices::U32(vec![0,1,2])));
-///     mesh
-/// }
-/// ```
 impl Mesh {
     /// Where the vertex is located in space. Use in conjunction with [`Mesh::insert_attribute`]
     pub const ATTRIBUTE_POSITION: MeshVertexAttribute =
@@ -576,7 +565,7 @@ impl VertexAttributeValues {
     /// mesh, all of the [`VertexAttributeValues`] must have the same length.
     pub fn len(&self) -> usize {
         use VertexAttributeValues::*;
-        
+
         match *self {
             Float32(ref values) => values.len(),
             Sint32(ref values) => values.len(),

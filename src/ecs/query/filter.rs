@@ -1,12 +1,15 @@
 use std::{cell::UnsafeCell, marker::PhantomData, ptr};
 
-use crate::{ecs::{
-    component::{Component, ComponentId, ComponentTicks},
-    entity::Archetype,
-    storage::Tables,
-    system::SystemTicks,
-    World,
-}, macros::all_pair_tuples};
+use crate::{
+    ecs::{
+        component::{Component, ComponentId, ComponentTicks},
+        entity::Archetype,
+        storage::Tables,
+        system::SystemTicks,
+        World,
+    },
+    macros::all_pair_tuples,
+};
 
 use super::{
     access::FilteredAccess,

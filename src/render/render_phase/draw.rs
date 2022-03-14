@@ -2,8 +2,12 @@ use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{any::TypeId, collections::HashMap, fmt::Debug, hash::Hash, ops::Range};
 
 use crate::{
-    ecs::{Entity, Res, SystemParam, SystemParamItem, World, ReadOnlySystemParamFetch, SystemState},
-    render::render_resource::{CachedPipelineId, RenderPipelineCache}, macros::all_tuples,
+    ecs::{
+        Entity, ReadOnlySystemParamFetch, Res, Resource, SystemParam, SystemParamItem, SystemState,
+        World,
+    },
+    macros::all_tuples,
+    render::render_resource::{CachedPipelineId, RenderPipelineCache},
 };
 
 use super::TrackedRenderPass;
@@ -76,6 +80,7 @@ impl<P: PhaseItem> DrawFunctionsInternal<P> {
 
 /// Stores all draw functions for the [`PhaseItem`] type hidden behind a reader-writer lock.
 /// To access them the [`DrawFunctions::read`] and [`DrawFunctions::write`] methods are used.
+#[derive(Resource)]
 pub struct DrawFunctions<P: PhaseItem> {
     internal: RwLock<DrawFunctionsInternal<P>>,
 }
@@ -109,19 +114,6 @@ impl<P: PhaseItem> DrawFunctions<P> {
 /// They can be registered as a [`Draw`] function via the
 /// [`AddRenderCommand::add_render_command`] method.
 ///
-/// # Example
-/// The `DrawPbr` draw function is created from the following render command
-/// tuple.  Const generics are used to set specific bind group locations:
-///
-/// ```ignore
-/// pub type DrawPbr = (
-///     SetItemPipeline,
-///     SetMeshViewBindGroup<0>,
-///     SetStandardMaterialBindGroup<1>,
-///     SetTransformBindGroup<2>,
-///     DrawMesh,
-/// );
-/// ```
 pub trait RenderCommand<P: PhaseItem> {
     /// Specifies all ECS data required by [`RenderCommand::render`].
     /// All parameters have to be read only.
@@ -286,39 +278,5 @@ where
     ) {
         let param = self.state.get(world);
         C::render(view, item, param, pass);
-    }
-}
-
-/// Registers a [`RenderCommand`] as a [`Draw`] function.
-/// They are stored inside the [`DrawFunctions`] resource of the app.
-pub trait AddRenderCommand {
-    /// Adds the [`RenderCommand`] for the specified [`RenderPhase`](super::RenderPhase) to the app.
-    fn add_render_command<P: PhaseItem, C: RenderCommand<P> + Send + Sync + 'static>(
-        &mut self,
-    ) -> &mut Self
-    where
-        <C::Param as SystemParam>::Fetch: ReadOnlySystemParamFetch;
-}
-
-impl AddRenderCommand for App {
-    fn add_render_command<P: PhaseItem, C: RenderCommand<P> + Send + Sync + 'static>(
-        &mut self,
-    ) -> &mut Self
-    where
-        <C::Param as SystemParam>::Fetch: ReadOnlySystemParamFetch,
-    {
-        let draw_function = RenderCommandState::<P, C>::new(&mut self.world);
-        let draw_functions = self
-            .world
-            .get_resource::<DrawFunctions<P>>()
-            .unwrap_or_else(|| {
-                panic!(
-                    "DrawFunctions<{}> must be added to the world as a resource \
-                     before adding render commands to it",
-                    std::any::type_name::<P>(),
-                );
-            });
-        draw_functions.write().add_with::<C, _>(draw_function);
-        self
     }
 }

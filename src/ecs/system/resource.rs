@@ -6,7 +6,7 @@ use crate::ecs::{
 use std::{any::type_name, marker::PhantomData};
 
 use super::{
-    system_param::{SystemParam, SystemParamFetch, SystemParamState, ReadOnlySystemParamFetch},
+    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
     SystemTicks,
 };
 

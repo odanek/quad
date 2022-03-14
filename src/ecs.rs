@@ -26,7 +26,7 @@ pub use system::{
     query::{Query, QuerySet},
     removed_components::RemovedComponents,
     run_system::{RunSystem, SystemState},
-    system_param::{SystemParam, SystemParamItem, ReadOnlySystemParamFetch},
+    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamItem},
     IntoSystem, System,
 };
 pub use world::{FromWorld, World};

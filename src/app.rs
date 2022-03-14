@@ -9,9 +9,12 @@ use crate::{
         asset_plugin, update_asset_storage_system, Asset, AssetEvent, AssetLoader, AssetServer,
         AssetServerSettings, Assets,
     },
-    ecs::{Event, Events, FromWorld, IntoSystem, Res, ResMut, Resource, World},
+    ecs::{
+        Event, Events, FromWorld, IntoSystem, ReadOnlySystemParamFetch, Res, ResMut, Resource,
+        SystemParam, World,
+    },
     input::input_plugin,
-    render::render_plugin,
+    render::{render_plugin, DrawFunctions, PhaseItem, RenderCommand, RenderCommandState},
     timing::{timing_plugin, Time},
     windowing::{windowing_plugin, Window, Windows},
 };
@@ -118,6 +121,19 @@ impl App {
             .add_system_to_stage(Stage::LoadAssets, &update_asset_storage_system::<T>)
             .add_event::<AssetEvent<T>>();
 
+        self
+    }
+
+    // TODO AddRenderCommand trait?
+    pub(crate) fn add_render_command<P: PhaseItem, C: RenderCommand<P> + Send + Sync + 'static>(
+        &mut self,
+    ) -> &mut Self
+    where
+        <C::Param as SystemParam>::Fetch: ReadOnlySystemParamFetch,
+    {
+        let draw_function = RenderCommandState::<P, C>::new(&mut self.world);
+        let draw_functions = self.world.resource::<DrawFunctions<P>>();
+        draw_functions.write().add_with::<C, _>(draw_function);
         self
     }
 

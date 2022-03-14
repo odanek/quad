@@ -1,28 +1,5 @@
 //! These implementations allow you to
 //! convert `std::vec::Vec<T>` to `VertexAttributeValues::T` and back.
-//!
-//! # Examples
-//!
-//! ```
-//! use bevy_render::mesh::VertexAttributeValues;
-//!
-//! // creating std::vec::Vec
-//! let buffer = vec![[0_u32; 4]; 10];
-//!
-//! // converting std::vec::Vec to bevy_render::mesh::VertexAttributeValues
-//! let values = VertexAttributeValues::from(buffer.clone());
-//!
-//! // converting bevy_render::mesh::VertexAttributeValues to std::vec::Vec with two ways
-//! let result_into: Vec<[u32; 4]> = values.clone().try_into().unwrap();
-//! let result_from: Vec<[u32; 4]> = Vec::try_from(values.clone()).unwrap();
-//!
-//! // getting an error when trying to convert incorrectly
-//! let error: Result<Vec<u32>, _> = values.try_into();
-//!
-//! assert_eq!(buffer, result_into);
-//! assert_eq!(buffer, result_from);
-//! assert!(error.is_err());
-//! ```
 
 use thiserror::Error;
 
@@ -355,7 +332,7 @@ impl TryFrom<VertexAttributeValues> for Vec<f32> {
 #[cfg(test)]
 mod tests {
     use super::VertexAttributeValues;
-    
+
     #[test]
     fn f32() {
         let buffer = vec![0.0; 10];

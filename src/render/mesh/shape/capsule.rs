@@ -1,6 +1,9 @@
 use wgpu::PrimitiveTopology;
 
-use crate::{render::mesh::{Mesh, Indices}, ty::{Vec3, Vec2}};
+use crate::{
+    render::mesh::{Indices, Mesh},
+    ty::{Vec2, Vec3},
+};
 use cgm::Zero;
 
 /// A cylinder with hemispheres at the top and bottom

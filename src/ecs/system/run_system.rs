@@ -5,7 +5,7 @@ use crate::ecs::{
 
 use super::{
     function_system::SystemMeta,
-    system_param::{SystemParamFetch, SystemParamState, ReadOnlySystemParamFetch},
+    system_param::{ReadOnlySystemParamFetch, SystemParamFetch, SystemParamState},
     System,
 };
 
@@ -93,7 +93,7 @@ impl<Param: SystemParam> SystemState<Param> {
         Param::Fetch: ReadOnlySystemParamFetch,
     {
         self.update(world); // TODO Is this necessary?
-        // SAFE: Param is read-only and doesn't allow mutable access to World. It also matches the World this SystemState was created with.
+                            // SAFE: Param is read-only and doesn't allow mutable access to World. It also matches the World this SystemState was created with.
         unsafe { self.get_unchecked_manual(world, world.change_tick()) } // TODO Should the change tick be incremented here?
     }
 

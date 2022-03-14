@@ -2,7 +2,7 @@ use wgpu::PrimitiveTopology;
 
 use std::f32::consts::PI;
 
-use crate::render::mesh::{Mesh, Indices};
+use crate::render::mesh::{Indices, Mesh};
 
 /// A sphere made of sectors and stacks.
 #[allow(clippy::upper_case_acronyms)]

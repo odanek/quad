@@ -1,7 +1,12 @@
 use std::ops::Range;
 use wgpu::{IndexFormat, RenderPass, ShaderStages};
 
-use crate::render::{render_resource::{RenderPipelineId, BindGroupId, BufferId, RenderPipeline, BindGroup, BufferSlice, Buffer}, color::Color};
+use crate::render::{
+    color::Color,
+    render_resource::{
+        BindGroup, BindGroupId, Buffer, BufferId, BufferSlice, RenderPipeline, RenderPipelineId,
+    },
+};
 
 /// Tracks the current [`TrackedRenderPass`] state to ensure draw calls are valid.
 #[derive(Debug, Default)]
@@ -233,16 +238,6 @@ impl<'a> TrackedRenderPass<'a> {
     ///
     /// The structure expected in `indirect_buffer` is the following:
     ///
-    /// ```rust
-    /// #[repr(C)]
-    /// struct DrawIndirect {
-    ///     vertex_count: u32, // The number of vertices to draw.
-    ///     instance_count: u32, // The number of instances to draw.
-    ///     first_vertex: u32, // The Index of the first vertex to draw.
-    ///     first_instance: u32, // The instance ID of the first instance to draw.
-    ///     // has to be 0, unless [`Features::INDIRECT_FIRST_INSTANCE`] is enabled.
-    /// }
-    /// ```
     pub fn draw_indirect(&mut self, indirect_buffer: &'a Buffer, indirect_offset: u64) {
         log::trace!("draw indirect: {:?} {}", indirect_buffer, indirect_offset);
         self.pass.draw_indirect(indirect_buffer, indirect_offset);
@@ -256,17 +251,6 @@ impl<'a> TrackedRenderPass<'a> {
     ///
     /// The structure expected in `indirect_buffer` is the following:
     ///
-    /// ```rust
-    /// #[repr(C)]
-    /// struct DrawIndexedIndirect {
-    ///     vertex_count: u32, // The number of vertices to draw.
-    ///     instance_count: u32, // The number of instances to draw.
-    ///     first_index: u32, // The base index within the index buffer.
-    ///     vertex_offset: i32, // The value added to the vertex index before indexing into the vertex buffer.
-    ///     first_instance: u32, // The instance ID of the first instance to draw.
-    ///     // has to be 0, unless [`Features::INDIRECT_FIRST_INSTANCE`] is enabled.
-    /// }
-    /// ```
     pub fn draw_indexed_indirect(&mut self, indirect_buffer: &'a Buffer, indirect_offset: u64) {
         log::trace!(
             "draw indexed indirect: {:?} {}",
@@ -343,15 +327,6 @@ impl<'a> TrackedRenderPass<'a> {
     ///
     /// Push a new debug group over the internal stack. Subsequent render commands and debug
     /// markers are grouped into this new group, until [`pop_debug_group`] is called.
-    ///
-    /// ```
-    /// # fn example(mut pass: bevy_render::render_phase::TrackedRenderPass<'static>) {
-    /// pass.push_debug_group("Render the car");
-    /// // [setup pipeline etc...]
-    /// pass.draw(0..64, 0..1);
-    /// pass.pop_debug_group();
-    /// # }
-    /// ```
     ///
     /// Note that [`push_debug_group`] and [`pop_debug_group`] must always be called in pairs.
     ///

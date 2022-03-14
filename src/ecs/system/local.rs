@@ -4,7 +4,9 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use super::system_param::{SystemParam, SystemParamFetch, SystemParamState, ReadOnlySystemParamFetch};
+use super::system_param::{
+    ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState,
+};
 
 pub trait LocalResource: Send + Sync + 'static {}
 impl<T> LocalResource for T where T: Send + Sync + 'static {}

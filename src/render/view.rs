@@ -38,15 +38,6 @@ pub fn view_plugin(app: &mut App, render_app: &mut App) {
 
 #[derive(Clone)]
 /// Configuration resource for [Multi-Sample Anti-Aliasing](https://en.wikipedia.org/wiki/Multisample_anti-aliasing).
-///
-/// # Example
-/// ```
-/// # use bevy_app::prelude::App;
-/// # use bevy_render::prelude::Msaa;
-/// App::new()
-///     .insert_resource(Msaa { samples: 4 })
-///     .run();
-/// ```
 #[derive(Resource)]
 pub struct Msaa {
     /// The number of samples to run for Multi-Sample Anti-Aliasing. Higher numbers result in

@@ -13,4 +13,3 @@ fn mesh_plugin(app: &mut App) {
     app.add_asset::<Mesh>();
     render_asset_plugin::<Mesh>(app);
 }
-

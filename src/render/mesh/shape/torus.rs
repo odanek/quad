@@ -1,7 +1,10 @@
 use cgm::InnerSpace;
 use wgpu::PrimitiveTopology;
 
-use crate::{render::mesh::{Mesh, Indices}, ty::Vec3};
+use crate::{
+    render::mesh::{Indices, Mesh},
+    ty::Vec3,
+};
 
 /// A torus (donut) shape.
 #[derive(Debug, Clone, Copy)]

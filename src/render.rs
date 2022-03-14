@@ -25,6 +25,8 @@ use self::{
     render_resource::{Shader, ShaderLoader},
 };
 
+pub(crate) use render_phase::{DrawFunctions, PhaseItem, RenderCommand, RenderCommandState}; // TODO Should not be public
+
 #[derive(Debug, Hash, PartialEq, Eq, Clone)]
 pub enum RenderStage {
     Extract,
