@@ -1,6 +1,9 @@
 use std::{borrow::Cow, collections::HashMap, fmt::Debug};
 
-use crate::{ecs::World, render::renderer::RenderContext};
+use crate::{
+    ecs::{Resource, World},
+    render::renderer::RenderContext,
+};
 
 use super::{
     Edge, Node, NodeId, NodeLabel, NodeRunError, NodeState, RenderGraphContext, RenderGraphError,
@@ -22,7 +25,7 @@ use super::{
 ///
 /// Additionally a render graph can contain multiple sub graphs, which are run by the
 /// corresponding nodes. Every render graph can have it’s own optional input node.
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct RenderGraph {
     nodes: HashMap<NodeId, NodeState>,
     node_names: HashMap<Cow<'static, str>, NodeId>,

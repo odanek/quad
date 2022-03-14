@@ -1,7 +1,6 @@
 mod cameras;
 mod color;
 mod mesh;
-mod options;
 mod primitives;
 mod render_asset;
 mod render_component;
@@ -9,6 +8,7 @@ mod render_graph;
 mod render_phase;
 mod render_resource;
 mod renderer;
+mod settings;
 mod texture;
 mod view;
 
@@ -21,8 +21,8 @@ use crate::{
 };
 
 use self::{
-    options::WgpuOptions,
     render_resource::{Shader, ShaderLoader},
+    settings::WgpuSettings,
 };
 
 pub(crate) use render_phase::{DrawFunctions, PhaseItem, RenderCommand, RenderCommandState}; // TODO Should not be public
@@ -59,8 +59,8 @@ impl DerefMut for RenderWorld {
 struct ScratchRenderWorld(World);
 
 pub fn render_plugin(app: &mut App, render_app: &mut App) {
-    let mut options = app
-        .get_resource::<WgpuOptions>()
+    let mut settings = app
+        .get_resource::<WgpuSettings>()
         .as_deref()
         .cloned()
         .unwrap_or_default();
@@ -68,7 +68,7 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
     app.add_asset::<Shader>()
         .init_asset_loader::<ShaderLoader>();
 
-    let instance = wgpu::Instance::new(options.backends);
+    let instance = wgpu::Instance::new(settings.backends);
     let surface = {
         let windows = app.resource_mut::<Windows>();
         let raw_handle = windows
@@ -78,13 +78,13 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
     };
 
     let request_adapter_options = wgpu::RequestAdapterOptions {
-        power_preference: options.power_preference,
+        power_preference: settings.power_preference,
         compatible_surface: surface.as_ref(),
         ..Default::default()
     };
-    let (device, queue) = futures_lite::future::block_on(renderer::initialize_renderer(
+    let (device, queue, _) = futures_lite::future::block_on(renderer::initialize_renderer(
         &instance,
-        &mut options,
+        &mut settings,
         &request_adapter_options,
     ));
 
