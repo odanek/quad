@@ -14,9 +14,8 @@ use crate::{
         SystemParam, World,
     },
     input::input_plugin,
-    render::{render_plugin, DrawFunctions, PhaseItem, RenderCommand, RenderCommandState},
     timing::{timing_plugin, Time},
-    windowing::{windowing_plugin, Window, Windows},
+    windowing::{windowing_plugin, Window, Windows}, render::{render_plugin, render_phase::{PhaseItem, RenderCommand, RenderCommandState, DrawFunctions}},
 };
 
 use self::systems::Systems;

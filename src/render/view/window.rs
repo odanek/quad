@@ -16,7 +16,7 @@ use crate::{
     windowing::{PresentMode, RawWindowHandleWrapper, WindowId, Windows},
 };
 
-fn window_render_plugin(render_app: &mut App) {
+pub fn window_render_plugin(render_app: &mut App) {
     render_app
         .init_resource::<ExtractedWindows>()
         .init_resource::<WindowSurfaces>()

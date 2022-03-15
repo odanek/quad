@@ -15,7 +15,7 @@ use crate::ecs::{Entity, ResMut, Resource, With, World};
 use super::{
     render_graph::RenderGraph,
     settings::WgpuSettings,
-    view::{ExtractedWindows, ViewTarget},
+    view::{ViewTarget, window::ExtractedWindows},
 };
 
 /// Updates the [`RenderGraph`] with all of its nodes and then runs it to render the entire frame.
@@ -71,6 +71,12 @@ pub fn render_system(world: &mut World) {
 #[derive(Resource)]
 pub struct RenderQueue(Arc<Queue>);
 
+impl Clone for RenderQueue {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
 impl Deref for RenderQueue {
     type Target = Arc<Queue>;
 
@@ -102,13 +108,30 @@ impl DerefMut for RenderInstance {
     }
 }
 
+#[derive(Resource)]
+pub struct RenderAdapterInfo(AdapterInfo);
+
+impl Clone for RenderAdapterInfo {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl Deref for RenderAdapterInfo {
+    type Target = AdapterInfo;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 /// Initializes the renderer by retrieving and preparing the GPU instance, device and queue
 /// for the specified backend.
 pub async fn initialize_renderer(
     instance: &Instance,
     options: &WgpuSettings,
     request_adapter_options: &RequestAdapterOptions<'_>,
-) -> (RenderDevice, RenderQueue, AdapterInfo) {
+) -> (RenderDevice, RenderQueue, RenderAdapterInfo) {
     let adapter = instance
         .request_adapter(request_adapter_options)
         .await
@@ -235,7 +258,7 @@ pub async fn initialize_renderer(
         .unwrap();
     let device = Arc::new(device);
     let queue = Arc::new(queue);
-    (RenderDevice::from(device), RenderQueue(queue), adapter_info)
+    (RenderDevice::from(device), RenderQueue(queue), RenderAdapterInfo(adapter_info))
 }
 
 /// The context with all information required to interact with the GPU.

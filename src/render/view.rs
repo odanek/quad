@@ -8,7 +8,6 @@ use wgpu::{
     Color, Extent3d, Operations, RenderPassColorAttachment, TextureDescriptor, TextureDimension,
     TextureFormat, TextureUsages,
 };
-pub use window::*;
 
 use crate::{
     app::{App, Stage},
@@ -16,6 +15,8 @@ use crate::{
     transform::GlobalTransform,
     ty::{Mat4, Vec3},
 };
+
+use self::window::ExtractedWindows;
 
 use super::{
     cameras::ExtractedCamera,

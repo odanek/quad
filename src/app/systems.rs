@@ -24,8 +24,34 @@ pub enum Stage {
 }
 
 #[derive(Default)]
+pub struct SequentialSystems(Vec<BoxedSystem>);
+
+impl SequentialSystems {
+    pub fn add<S>(&mut self, system: S)
+    where
+        S: System<In = (), Out = ()>,
+    {
+        self.0.push(Box::new(system));
+    }
+
+    pub fn run(&mut self, world: &mut World) {
+        for system in self.0 {
+            unsafe {
+                system.run((), world);
+            }
+        }
+    }
+
+    pub fn apply_buffers(&mut self, world: &mut World) {
+        for system in self.0 {
+            system.apply_buffers(world);
+        }
+    }
+}
+
+#[derive(Default)]
 pub struct Systems {
-    systems: HashMap<Stage, Vec<BoxedSystem>>,
+    systems: HashMap<Stage, SequentialSystems>,
 }
 
 impl Systems {
@@ -33,17 +59,18 @@ impl Systems {
     where
         S: System<In = (), Out = ()>,
     {
-        let vec = self.systems.entry(stage).or_insert_with(Vec::new);
-        vec.push(Box::new(system));
+        let list = self.systems.entry(stage).or_insert_with(Vec::new);
+        list.add(system);
+    }
+
+    pub fn get(&mut self, stage: Stage) -> Option<&mut SequentialSystems> {
+        self.systems.get_mut(&stage)
     }
 
     pub fn run(&mut self, stage: Stage, world: &mut World) {
         if let Some(systems) = self.systems.get_mut(&stage) {
-            for system in systems {
-                unsafe {
-                    system.run((), world);
-                }
-            }
+            systems.run(world);
+            systems.apply_buffers(world);
         }
     }
 }
