@@ -1,14 +1,20 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, marker::PhantomData};
 
 use cgm::{ElementWise, SquareMatrix};
 use wgpu::Extent3d;
 
 use crate::{
+    app::{App, Stage},
     asset::{AssetEvent, Assets, Handle},
-    ecs::{Added, Component, DetectChanges, Entity, EventReader, QuerySet, QueryState, Res},
+    ecs::{
+        Added, Commands, Component, DetectChanges, Entity, EventReader, Query, QuerySet,
+        QueryState, Res, ResMut, Resource, With,
+    },
     render::{
-        render_asset::RenderAssets, render_resource::TextureView, texture::Image,
-        view::ExtractedWindows,
+        render_asset::RenderAssets,
+        render_resource::TextureView,
+        texture::Image,
+        view::{ExtractedView, ExtractedWindows, VisibleEntities},
     },
     transform::GlobalTransform,
     ty::{Mat4, Vec2, Vec2u, Vec3},
@@ -20,7 +26,6 @@ use super::CameraProjection;
 #[derive(Component, Default, Debug)]
 pub struct Camera {
     pub projection_matrix: Mat4,
-    pub name: Option<String>,
     pub target: RenderTarget,
     pub depth_calculation: DepthCalculation,
     pub near: f32,
@@ -200,4 +205,101 @@ pub fn camera_system<T: CameraProjection + Component>(
             }
         }
     }
+}
+
+pub fn camera_type_plugin<T: Component + Default>(app: &mut App, render_app: &mut App) {
+    app.init_resource::<ActiveCamera<T>>()
+        // TODO Initialize the camera
+        //.add_startup_system_to_stage(StartupStage::PostStartup, set_active_camera::<T>)
+        .add_system_to_stage(Stage::PostUpdate, &set_active_camera::<T>);
+    render_app.add_system_to_stage(Stage::RenderExtract, &extract_cameras::<T>);
+}
+
+/// The canonical source of the "active camera" of the given camera type `T`.
+#[derive(Debug, Resource)]
+pub struct ActiveCamera<T: Component> {
+    camera: Option<Entity>,
+    marker: PhantomData<T>,
+}
+
+impl<T: Component> Default for ActiveCamera<T> {
+    fn default() -> Self {
+        Self {
+            camera: Default::default(),
+            marker: Default::default(),
+        }
+    }
+}
+
+impl<T: Component> Clone for ActiveCamera<T> {
+    fn clone(&self) -> Self {
+        Self {
+            camera: self.camera,
+            marker: self.marker,
+        }
+    }
+}
+
+impl<T: Component> ActiveCamera<T> {
+    /// Sets the active camera to the given `camera` entity.
+    pub fn set(&mut self, camera: Entity) {
+        self.camera = Some(camera);
+    }
+
+    /// Returns the active camera, if it exists.
+    pub fn get(&self) -> Option<Entity> {
+        self.camera
+    }
+}
+
+pub fn set_active_camera<T: Component>(
+    mut active_camera: ResMut<ActiveCamera<T>>,
+    cameras: Query<Entity, With<T>>,
+) {
+    if active_camera.get().is_some() {
+        return;
+    }
+
+    if let Some(camera) = cameras.iter().next() {
+        active_camera.camera = Some(camera);
+    }
+}
+
+#[derive(Component, Debug)]
+pub struct ExtractedCamera {
+    pub target: RenderTarget,
+    pub physical_size: Option<Vec2u>,
+}
+
+pub fn extract_cameras<M: Component + Default>(
+    mut commands: Commands,
+    windows: Res<Windows>,
+    images: Res<Assets<Image>>,
+    active_camera: Res<ActiveCamera<M>>,
+    query: Query<(&Camera, &GlobalTransform, &VisibleEntities), With<M>>,
+) {
+    if let Some(entity) = active_camera.get() {
+        if let Ok((camera, transform, visible_entities)) = query.get(entity) {
+            if let Some(size) = camera.target.get_physical_size(&windows, &images) {
+                commands.get_or_spawn(entity).insert_bundle((
+                    ExtractedCamera {
+                        target: camera.target.clone(),
+                        physical_size: camera.target.get_physical_size(&windows, &images),
+                    },
+                    ExtractedView {
+                        projection: camera.projection_matrix,
+                        transform: *transform,
+                        width: size.x.max(1),
+                        height: size.y.max(1),
+                        near: camera.near,
+                        far: camera.far,
+                    },
+                    visible_entities.clone(),
+                    M::default(),
+                ));
+            }
+        }
+    }
+
+    commands.insert_resource(active_camera.clone())
 }

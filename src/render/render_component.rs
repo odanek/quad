@@ -7,7 +7,7 @@ use crate::{
     asset::{Asset, Handle},
     ecs::{
         Commands, Component, Entity, FilterFetch, Local, Query, QueryItem, Res, ResMut, Resource,
-        RunSystem, SystemParamItem, WorldQuery,
+        StaticSystemParam, WorldQuery,
     },
 };
 
@@ -43,6 +43,15 @@ pub trait ExtractComponent: Component {
     fn extract_component(item: QueryItem<Self::Query>) -> Self;
 }
 
+/// This plugin prepares the components of the corresponding type for the GPU
+/// by transforming them into uniforms.
+///
+/// They can then be accessed from the [`ComponentUniforms`] resource.
+/// For referencing the newly created uniforms a [`DynamicUniformIndex`] is inserted
+/// for every processed entity.
+///
+/// Therefore it sets up the [`RenderStage::Prepare`](crate::RenderStage::Prepare) step
+/// for the specified [`ExtractComponent`].
 pub fn uniform_component_plugin<C: Component + AsStd140 + Clone>(render_app: &mut App) {
     render_app
         .insert_resource(ComponentUniforms::<C>::default())
@@ -91,26 +100,35 @@ fn prepare_uniform_components<C: Component>(
     C: AsStd140 + Clone,
 {
     component_uniforms.uniforms.clear();
-    for (entity, component) in components.iter() {
-        commands
-            .get_or_spawn(entity)
-            .insert(DynamicUniformIndex::<C> {
-                index: component_uniforms.uniforms.push(component.clone()),
-                marker: PhantomData,
-            });
-    }
+    let entities = components
+        .iter()
+        .map(|(entity, component)| {
+            (
+                entity,
+                (DynamicUniformIndex::<C> {
+                    index: component_uniforms.uniforms.push(component.clone()),
+                    marker: PhantomData,
+                },),
+            )
+        })
+        .collect::<Vec<_>>();
+    commands.insert_or_spawn_batch(entities);
 
     component_uniforms
         .uniforms
         .write_buffer(&render_device, &render_queue);
 }
 
-pub fn extract_component_plugin<C: ExtractComponent>(app: &mut App, render_app: &mut App)
+/// This plugin extracts the components into the "render world".
+///
+/// Therefore it sets up the [`RenderStage::Extract`](crate::RenderStage::Extract) step
+/// for the specified [`ExtractComponent`].
+
+pub fn extract_component_plugin<C: ExtractComponent>(render_app: &mut App)
 where
     <C::Filter as WorldQuery>::Fetch: FilterFetch,
 {
-    let system = ExtractComponentSystem::<C>::system(&mut app.world);
-    render_app.add_system_to_stage(Stage::RenderExtract, system);
+    render_app.add_system_to_stage(Stage::RenderExtract, &extract_components::<C>);
 }
 
 impl<T: Asset> ExtractComponent for Handle<T> {
@@ -124,25 +142,17 @@ impl<T: Asset> ExtractComponent for Handle<T> {
 }
 
 /// This system extracts all components of the corresponding [`ExtractComponent`] type.
-pub struct ExtractComponentSystem<C: ExtractComponent>(PhantomData<C>);
-
-impl<C: ExtractComponent> RunSystem for ExtractComponentSystem<C>
-where
+fn extract_components<C: ExtractComponent>(
+    mut commands: Commands,
+    mut previous_len: Local<usize>,
+    mut query: StaticSystemParam<Query<(Entity, C::Query), C::Filter>>,
+) where
     <C::Filter as WorldQuery>::Fetch: FilterFetch,
 {
-    type Param = (
-        Commands<'static, 'static>,
-        // the previous amount of extracted components
-        Local<'static, usize>,
-        Query<'static, 'static, (Entity, C::Query), C::Filter>,
-    );
-
-    fn run((mut commands, mut previous_len, mut query): SystemParamItem<Self::Param>) {
-        let mut values = Vec::with_capacity(*previous_len);
-        for (entity, query_item) in query.iter_mut() {
-            values.push((entity, (C::extract_component(query_item),)));
-        }
-        *previous_len = values.len();
-        commands.insert_or_spawn_batch(values);
+    let mut values = Vec::with_capacity(*previous_len);
+    for (entity, query_item) in query.iter_mut() {
+        values.push((entity, (C::extract_component(query_item),)));
     }
+    *previous_len = values.len();
+    commands.insert_or_spawn_batch(values);
 }

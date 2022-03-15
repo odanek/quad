@@ -11,7 +11,6 @@ pub mod local;
 pub mod query;
 pub mod removed_components;
 pub mod resource;
-pub mod run_system;
 pub mod system_param;
 
 pub trait System: Send + Sync + 'static {

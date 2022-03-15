@@ -1,3 +1,8 @@
+use std::{
+    marker::PhantomData,
+    ops::{Deref, DerefMut},
+};
+
 use crate::{
     ecs::{component::Tick, World},
     macros::all_tuples,
@@ -34,6 +39,132 @@ pub trait SystemParam: Sized {
 }
 
 pub type SystemParamItem<'w, 's, P> = <<P as SystemParam>::Fetch as SystemParamFetch<'w, 's>>::Item;
+
+pub struct SystemState<Param: SystemParam> {
+    meta: SystemMeta,
+    param_state: <Param as SystemParam>::Fetch,
+}
+
+impl<Param: SystemParam> SystemState<Param> {
+    pub fn new(world: &mut World) -> Self {
+        let mut meta = SystemMeta::new(std::any::type_name::<Param>().to_owned());
+        let param_state = <Param::Fetch as SystemParamState>::new(world, &mut meta);
+        Self { meta, param_state }
+    }
+
+    #[inline]
+    pub fn meta(&self) -> &SystemMeta {
+        &self.meta
+    }
+
+    pub fn apply(&mut self, world: &mut World) {
+        self.param_state.apply(world);
+    }
+
+    fn update(&mut self, world: &World) {
+        self.param_state.update(world, &mut self.meta);
+    }
+
+    /// Retrieve the [`SystemParam`] values. This can only be called when all parameters are read-only.
+    #[inline]
+    pub fn get<'w, 's>(
+        &'s mut self,
+        world: &'w World,
+    ) -> <Param::Fetch as SystemParamFetch<'w, 's>>::Item
+    where
+        Param::Fetch: ReadOnlySystemParamFetch,
+    {
+        self.update(world); // TODO Is this necessary?
+                            // SAFE: Param is read-only and doesn't allow mutable access to World. It also matches the World this SystemState was created with.
+        unsafe { self.get_unchecked_manual(world, world.change_tick()) } // TODO Should the change tick be incremented here?
+    }
+
+    unsafe fn get_unchecked_manual<'w, 's>(
+        &'s mut self,
+        world: &'w World,
+        change_tick: Tick,
+    ) -> <Param::Fetch as SystemParamFetch<'w, 's>>::Item {
+        <Param::Fetch as SystemParamFetch>::get_param(
+            &mut self.param_state,
+            &self.meta,
+            world,
+            change_tick,
+        )
+    }
+
+    fn advance_tick(&mut self, change_tick: Tick) {
+        self.meta.last_change_tick = change_tick;
+    }
+}
+
+pub struct StaticSystemParam<'w, 's, P: SystemParam>(SystemParamItem<'w, 's, P>);
+
+impl<'w, 's, P: SystemParam> Deref for StaticSystemParam<'w, 's, P> {
+    type Target = SystemParamItem<'w, 's, P>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<'w, 's, P: SystemParam> DerefMut for StaticSystemParam<'w, 's, P> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<'w, 's, P: SystemParam> StaticSystemParam<'w, 's, P> {
+    pub fn into_inner(self) -> SystemParamItem<'w, 's, P> {
+        self.0
+    }
+}
+
+pub struct StaticSystemParamState<S, P>(S, PhantomData<fn() -> P>);
+
+unsafe impl<'w, 's, S: ReadOnlySystemParamFetch, P> ReadOnlySystemParamFetch
+    for StaticSystemParamState<S, P>
+{
+}
+
+impl<'world, 'state, P: SystemParam + 'static> SystemParam
+    for StaticSystemParam<'world, 'state, P>
+{
+    type Fetch = StaticSystemParamState<P::Fetch, P>;
+}
+
+impl<'world, 'state, S: SystemParamFetch<'world, 'state>, P: SystemParam + 'static>
+    SystemParamFetch<'world, 'state> for StaticSystemParamState<S, P>
+where
+    P: SystemParam<Fetch = S>,
+{
+    type Item = StaticSystemParam<'world, 'state, P>;
+
+    unsafe fn get_param(
+        state: &'state mut Self,
+        system_meta: &SystemMeta,
+        world: &'world World,
+        change_tick: Tick,
+    ) -> Self::Item {
+        // Safe: We properly delegate SystemParamState
+        StaticSystemParam(S::get_param(&mut state.0, system_meta, world, change_tick))
+    }
+}
+
+impl<'w, 's, S: SystemParamState, P: SystemParam + 'static> SystemParamState
+    for StaticSystemParamState<S, P>
+{
+    fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
+        Self(S::new(world, system_meta), PhantomData)
+    }
+
+    fn update(&mut self, world: &World, system_meta: &mut SystemMeta) {
+        self.0.update(world, system_meta)
+    }
+
+    fn apply(&mut self, world: &mut World) {
+        self.0.apply(world)
+    }
+}
 
 macro_rules! impl_system_param_tuple {
     ($($param: ident),*) => {
