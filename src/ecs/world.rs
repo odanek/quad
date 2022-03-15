@@ -20,7 +20,7 @@ use super::{
     query::{fetch::WorldQuery, state::QueryState},
     storage::Storages,
     system::SystemTicks,
-    Res,
+    FilterFetch, Res,
 };
 
 #[derive(Default)]
@@ -280,6 +280,14 @@ impl World {
 
     #[inline]
     pub fn query<Q: WorldQuery>(&mut self) -> QueryState<Q, ()> {
+        QueryState::new(self)
+    }
+
+    #[inline]
+    pub fn query_filtered<Q: WorldQuery, F: WorldQuery>(&mut self) -> QueryState<Q, F>
+    where
+        F::Fetch: FilterFetch,
+    {
         QueryState::new(self)
     }
 
