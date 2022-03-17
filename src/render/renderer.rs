@@ -15,7 +15,7 @@ use crate::ecs::{Entity, ResMut, Resource, With, World};
 use super::{
     render_graph::RenderGraph,
     settings::WgpuSettings,
-    view::{ViewTarget, window::ExtractedWindows},
+    view::{window::ExtractedWindows, ViewTarget},
 };
 
 /// Updates the [`RenderGraph`] with all of its nodes and then runs it to render the entire frame.
@@ -258,7 +258,11 @@ pub async fn initialize_renderer(
         .unwrap();
     let device = Arc::new(device);
     let queue = Arc::new(queue);
-    (RenderDevice::from(device), RenderQueue(queue), RenderAdapterInfo(adapter_info))
+    (
+        RenderDevice::from(device),
+        RenderQueue(queue),
+        RenderAdapterInfo(adapter_info),
+    )
 }
 
 /// The context with all information required to interact with the GPU.

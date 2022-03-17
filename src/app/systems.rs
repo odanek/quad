@@ -35,7 +35,7 @@ impl SequentialSystems {
     }
 
     pub fn run(&mut self, world: &mut World) {
-        for system in self.0 {
+        for system in &mut self.0 {
             unsafe {
                 system.run((), world);
             }
@@ -43,7 +43,7 @@ impl SequentialSystems {
     }
 
     pub fn apply_buffers(&mut self, world: &mut World) {
-        for system in self.0 {
+        for system in &mut self.0 {
             system.apply_buffers(world);
         }
     }
@@ -59,8 +59,7 @@ impl Systems {
     where
         S: System<In = (), Out = ()>,
     {
-        let list = self.systems.entry(stage).or_insert_with(Vec::new);
-        list.add(system);
+        self.systems.entry(stage).or_default().add(system);
     }
 
     pub fn get(&mut self, stage: Stage) -> Option<&mut SequentialSystems> {

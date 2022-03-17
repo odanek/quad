@@ -23,7 +23,7 @@ use crate::{
         mesh::mesh_plugin,
         render_graph::RenderGraph,
         render_resource::RenderPipelineCache,
-        renderer::{render_system},
+        renderer::render_system,
         texture::image_plugin,
         view::{view_plugin, window::window_render_plugin},
     },
@@ -124,7 +124,7 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
 fn update_render_app(app_world: &mut World, render_app: &mut App) {
     // reserve all existing app entities for use in render_app
     // they can only be spawned using `get_or_spawn()`
-    let meta_len = app_world.entities().meta.len();
+    let meta_len = app_world.entities().meta_len();
     render_app
         .world
         .entities()
@@ -180,7 +180,7 @@ fn extract(app_world: &mut World, render_app: &mut App) {
         .systems
         .get(Stage::RenderExtract)
         .unwrap()
-        .run(&mut app_world);
+        .run(app_world);
 
     // add the render world back to the render app
     let render_world = app_world.remove_resource::<RenderWorld>().unwrap();

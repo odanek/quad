@@ -78,6 +78,11 @@ impl Entities {
     }
 
     #[inline]
+    pub fn meta_len(&self) -> usize {
+        self.meta.len()
+    }
+
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
@@ -93,7 +98,7 @@ impl Entities {
                 id,
             }
         } else {
-            let id = u32::try_from(self.meta.len()).expect("too many entities");
+            let id = u32::try_from(self.meta.len()).expect("Too many entities");
             self.meta.push(EntityMeta::EMPTY);
             Entity { generation: 0, id }
         }
@@ -166,6 +171,21 @@ impl Entities {
         }
     }
 
+    pub fn reserve_entities(&self, count: u32) {
+        // Use one atomic subtract to grab a range of new IDs. The range might be
+        // entirely nonnegative, meaning all IDs come from the freelist, or entirely
+        // negative, meaning they are all new IDs to allocate, or a mix of both.
+        self.free_cursor.fetch_sub(count as i64, Ordering::Relaxed);
+    }
+
+    // This resets the generation of existing meta so some invalid Entity objects may become valid again in the future
+    pub fn clear(&mut self) {
+        self.meta.clear();
+        self.pending.clear();
+        *self.free_cursor.get_mut() = 0;
+        self.len = 0;
+    }
+
     pub fn has(&self, entity: Entity) -> bool {
         let index = entity.id as usize;
         index < self.meta.len() && self.meta[index].generation == entity.generation
@@ -174,22 +194,12 @@ impl Entities {
     pub fn get(&self, entity: Entity) -> Option<EntityLocation> {
         if (entity.id as usize) < self.meta.len() {
             let meta = &self.meta[entity.id as usize];
-            if meta.generation != entity.generation {
+            if meta.generation != entity.generation
+                || meta.location.archetype_id == ArchetypeId::INVALID
+            {
                 return None;
             }
             Some(meta.location)
-        } else {
-            None
-        }
-    }
-
-    pub fn get_mut(&mut self, entity: Entity) -> Option<&mut EntityLocation> {
-        if (entity.id as usize) < self.meta.len() {
-            let meta = &mut self.meta[entity.id as usize];
-            if meta.generation != entity.generation {
-                return None;
-            }
-            Some(&mut meta.location)
         } else {
             None
         }
@@ -205,7 +215,7 @@ impl Entities {
         self.meta[entity.id as usize].location = location;
     }
 
-    pub fn flush(&mut self, mut init: impl FnMut(Entity) -> EntityLocation) {
+    pub unsafe fn flush(&mut self, mut init: impl FnMut(Entity) -> EntityLocation) {
         let free_cursor = self.free_cursor.get_mut();
         let mut current_free_cursor = *free_cursor;
 
@@ -235,6 +245,12 @@ impl Entities {
             };
             meta.location = init(entity);
             self.len += 1;
+        }
+    }
+
+    pub fn flush_as_invalid(&mut self) {
+        unsafe {
+            self.flush(|_entity| EntityLocation::EMPTY);
         }
     }
 

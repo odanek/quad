@@ -54,6 +54,11 @@ impl World {
     }
 
     #[inline]
+    pub(crate) fn entities_mut(&mut self) -> &mut Entities {
+        &mut self.entities
+    }
+
+    #[inline]
     pub(crate) fn archetypes(&self) -> &Archetypes {
         &self.archetypes
     }
@@ -210,9 +215,20 @@ impl World {
     pub fn despawn_all(&mut self) {
         // TODO: Track removed components?
         for archetype in self.archetypes.iter_mut() {
+            // TODO: Make this faster by just resetting the list of meta locations? Or just clear and keep track of highest generation so far?
             for entity in archetype.entities() {
                 self.entities.free(*entity);
             }
+            archetype.clear();
+            unsafe {
+                self.storages.tables[archetype.table_id()].clear();
+            }
+        }
+    }
+
+    pub(crate) fn clear_entities(&mut self) {
+        self.entities.clear();
+        for archetype in self.archetypes.iter_mut() {
             archetype.clear();
             unsafe {
                 self.storages.tables[archetype.table_id()].clear();

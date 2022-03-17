@@ -14,7 +14,7 @@ use crate::{
         render_asset::RenderAssets,
         render_resource::TextureView,
         texture::Image,
-        view::{ExtractedView, VisibleEntities, window::ExtractedWindows},
+        view::{window::ExtractedWindows, ExtractedView, VisibleEntities},
     },
     transform::GlobalTransform,
     ty::{Mat4, Vec2, Vec2u, Vec3},
