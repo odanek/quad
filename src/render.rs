@@ -120,8 +120,7 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
     image_plugin(app, render_app);
 }
 
-// TODO Call this from quad RunContext update
-fn update_render_app(app_world: &mut World, render_app: &mut App) {
+pub fn update_render_app(app_world: &mut World, render_app: &mut App) {
     // reserve all existing app entities for use in render_app
     // they can only be spawned using `get_or_spawn()`
     let meta_len = app_world.entities().meta_len();

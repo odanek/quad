@@ -16,10 +16,11 @@ use crate::{
     input::input_plugin,
     render::{
         render_phase::{DrawFunctions, PhaseItem, RenderCommand, RenderCommandState},
-        render_plugin,
+        render_plugin, update_render_app,
     },
     timing::{timing_plugin, Time},
     windowing::{windowing_plugin, Window, Windows},
+    Scene, SceneResult,
 };
 
 use self::systems::Systems;
@@ -61,7 +62,8 @@ impl App {
         self
     }
 
-    pub fn add_render_plugin(&mut self, render_app: &mut App) -> &mut Self {
+    // TODO Move to MainApp trait
+    pub(crate) fn add_render_plugin(&mut self, render_app: &mut App) -> &mut Self {
         render_plugin(self, render_app);
         self
     }
@@ -156,22 +158,30 @@ impl App {
         windows.add(window);
         self
     }
+}
 
-    pub fn update(&mut self) {
-        self.before_update();
-        self.after_update();
-    }
+pub trait MainApp {
+    fn update_main_app(&mut self, render_app: &mut App, scene: &mut dyn Scene) -> SceneResult;
+}
 
-    pub(crate) fn before_update(&mut self) {
+impl MainApp for App {
+    fn update_main_app(&mut self, render_app: &mut App, scene: &mut dyn Scene) -> SceneResult {
         self.world.resource_mut::<Time>().update();
         self.systems.run(Stage::LoadAssets, &mut self.world);
         self.systems.run(Stage::PreUpdate, &mut self.world);
-    }
 
-    pub(crate) fn after_update(&mut self) {
+        let result = scene.update(&mut self.world);
+        if matches!(result, SceneResult::Quit) {
+            return result;
+        }
+
         self.systems.run(Stage::PostUpdate, &mut self.world);
         self.systems.run(Stage::AssetEvents, &mut self.world);
         self.systems.run(Stage::Flush, &mut self.world);
         self.world.clear_trackers();
+
+        update_render_app(&mut self.world, render_app);
+
+        result
     }
 }

@@ -8,6 +8,7 @@ impl RawWindowHandleWrapper {
         Self(handle)
     }
 
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn get_handle(&self) -> HasRawWindowHandleWrapper {
         HasRawWindowHandleWrapper(self.0)
     }

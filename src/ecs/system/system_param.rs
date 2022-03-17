@@ -91,10 +91,6 @@ impl<Param: SystemParam> SystemState<Param> {
             change_tick,
         )
     }
-
-    fn advance_tick(&mut self, change_tick: Tick) {
-        self.meta.last_change_tick = change_tick;
-    }
 }
 
 pub struct StaticSystemParam<'w, 's, P: SystemParam>(SystemParamItem<'w, 's, P>);

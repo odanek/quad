@@ -38,10 +38,6 @@ impl WindowId {
     pub(crate) fn primary() -> Self {
         Self(0)
     }
-
-    pub(crate) fn new(id: u32) -> Self {
-        Self(id)
-    }
 }
 
 pub struct Window {

@@ -1,5 +1,5 @@
 use crate::{
-    app::App,
+    app::{App, MainApp},
     ecs::Events,
     input::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
@@ -47,16 +47,8 @@ impl RunContext {
     }
 
     pub fn update_scene(&mut self) -> SceneResult {
-        self.app.before_update();
-
-        let result = self.scene.update(&mut self.app.world);
-        if matches!(result, SceneResult::Quit) {
-            return result;
-        }
-
-        self.app.after_update();
-
-        result
+        self.app
+            .update_main_app(&mut self.render_app, self.scene.as_mut())
     }
 
     pub fn get_window_id(&self, id: winit::window::WindowId) -> Option<WindowId> {

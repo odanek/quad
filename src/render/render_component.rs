@@ -142,6 +142,7 @@ impl<T: Asset> ExtractComponent for Handle<T> {
 }
 
 /// This system extracts all components of the corresponding [`ExtractComponent`] type.
+#[allow(clippy::type_complexity)]
 fn extract_components<C: ExtractComponent>(
     mut commands: Commands,
     mut previous_len: Local<usize>,

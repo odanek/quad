@@ -70,6 +70,7 @@ pub fn visibility_plugin(app: &mut App) {
         .add_system_to_stage(Stage::PostUpdate, &check_visibility);
 }
 
+#[allow(clippy::type_complexity)]
 pub fn calculate_bounds(
     mut commands: Commands,
     meshes: Res<Assets<Mesh>>,
@@ -99,6 +100,7 @@ pub fn update_frusta<T: Component + CameraProjection + Send + Sync + 'static>(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn check_visibility(
     mut view_query: Query<(&mut VisibleEntities, &Frustum, Option<&RenderLayers>), With<Camera>>,
     mut visible_entity_query: QuerySet<(
