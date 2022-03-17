@@ -9,6 +9,7 @@ pub mod input;
 pub mod reflect;
 pub mod render;
 mod run;
+pub mod sprite;
 pub mod tasks;
 pub mod timing;
 pub mod transform;
