@@ -1,23 +1,27 @@
 use std::hash::Hash;
 use std::marker::PhantomData;
 
+use crate::app::{App, Stage};
 use crate::asset::{Asset, AssetServer, Handle};
-use crate::ecs::{Bundle, Entity, FromWorld, Query, Res, ResMut, SystemParamItem, World};
+use crate::ecs::{Bundle, Entity, FromWorld, Query, Res, ResMut, SystemParamItem, World, Resource};
 use crate::render::mesh::{Mesh, MeshVertexBufferLayout};
-use crate::render::render_asset::{RenderAsset, RenderAssets};
+use crate::render::render_asset::{render_asset_plugin, RenderAsset, RenderAssets};
+use crate::render::render_component::extract_component_plugin;
 use crate::render::render_phase::{
     DrawFunctions, EntityRenderCommand, RenderCommandResult, RenderPhase, SetItemPipeline,
     TrackedRenderPass,
 };
 use crate::render::render_resource::{
     BindGroup, BindGroupLayout, RenderPipelineCache, RenderPipelineDescriptor, Shader,
+    SpecializedMeshPipeline, SpecializedMeshPipelineError, SpecializedMeshPipelines,
 };
 use crate::render::renderer::RenderDevice;
 use crate::render::view::{ComputedVisibility, Msaa, Visibility, VisibleEntities};
 use crate::transform::{GlobalTransform, Transform};
+use crate::ty::FloatOrd;
 
 use super::{
-    DrawMesh2d, Mesh2dHandle, Mesh2dPipeline, Mesh2dUniform, SetMesh2dBindGroup,
+    DrawMesh2d, Mesh2dHandle, Mesh2dPipeline, Mesh2dPipelineKey, Mesh2dUniform, SetMesh2dBindGroup,
     SetMesh2dViewBindGroup,
 };
 
@@ -160,29 +164,19 @@ pub trait SpecializedMaterial2d: Asset + RenderAsset {
 
 /// Adds the necessary ECS resources and render logic to enable rendering entities using the given [`SpecializedMaterial2d`]
 /// asset type (which includes [`Material2d`] types).
-pub struct Material2dPlugin<M: SpecializedMaterial2d>(PhantomData<M>);
+pub fn material_2d_plugin<M: SpecializedMaterial2d>(app: &mut App, render_app: &mut App) {
+    app.add_asset::<M>();
+    extract_component_plugin::<Handle<M>>(render_app);
+    render_asset_plugin::<M>(render_app);
 
-impl<M: SpecializedMaterial2d> Default for Material2dPlugin<M> {
-    fn default() -> Self {
-        Self(Default::default())
-    }
+    render_app
+        .add_render_command::<Transparent2d, DrawMaterial2d<M>>()
+        .init_resource::<Material2dPipeline<M>>()
+        .init_resource::<SpecializedMeshPipelines<Material2dPipeline<M>>>()
+        .add_system_to_stage(Stage::RenderQueue, &queue_material2d_meshes::<M>);
 }
 
-impl<M: SpecializedMaterial2d> Plugin for Material2dPlugin<M> {
-    fn build(&self, app: &mut App) {
-        app.add_asset::<M>()
-            .add_plugin(ExtractComponentPlugin::<Handle<M>>::default())
-            .add_plugin(RenderAssetPlugin::<M>::default());
-        if let Ok(render_app) = app.get_sub_app_mut(RenderApp) {
-            render_app
-                .add_render_command::<Transparent2d, DrawMaterial2d<M>>()
-                .init_resource::<Material2dPipeline<M>>()
-                .init_resource::<SpecializedMeshPipelines<Material2dPipeline<M>>>()
-                .add_system_to_stage(RenderStage::Queue, queue_material2d_meshes::<M>);
-        }
-    }
-}
-
+#[derive(Resource)]
 pub struct Material2dPipeline<M: SpecializedMaterial2d> {
     pub mesh2d_pipeline: Mesh2dPipeline,
     pub material2d_layout: BindGroupLayout,
@@ -228,13 +222,13 @@ impl<M: SpecializedMaterial2d> FromWorld for Material2dPipeline<M> {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
         let render_device = world.resource::<RenderDevice>();
-        let material2d_layout = M::bind_group_layout(render_device);
+        let material2d_layout = M::bind_group_layout(render_device.as_ref());
 
         Material2dPipeline {
             mesh2d_pipeline: world.resource::<Mesh2dPipeline>().clone(),
             material2d_layout,
-            vertex_shader: M::vertex_shader(asset_server),
-            fragment_shader: M::fragment_shader(asset_server),
+            vertex_shader: M::vertex_shader(asset_server.as_ref()),
+            fragment_shader: M::fragment_shader(asset_server.as_ref()),
             marker: PhantomData,
         }
     }
@@ -252,7 +246,10 @@ pub struct SetMaterial2dBindGroup<M: SpecializedMaterial2d, const I: usize>(Phan
 impl<M: SpecializedMaterial2d, const I: usize> EntityRenderCommand
     for SetMaterial2dBindGroup<M, I>
 {
-    type Param = (Res<'static, RenderAssets<M>>, SQuery<Read<Handle<M>>>);
+    type Param = (
+        Res<'static, RenderAssets<M>>,
+        Query<'static, 'static, &'static Handle<M>>,
+    );
     fn render<'w>(
         _view: Entity,
         item: Entity,
@@ -321,7 +318,7 @@ pub fn queue_material2d_meshes<M: SpecializedMaterial2d>(
                             }
                         };
 
-                        let mesh_z = mesh2d_uniform.transform.w_axis.z;
+                        let mesh_z = mesh2d_uniform.transform.w.z;
                         transparent_phase.add(Transparent2d {
                             entity: *visible_entity,
                             draw_function: draw_transparent_pbr,

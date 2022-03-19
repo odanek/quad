@@ -18,12 +18,12 @@ use super::render_asset::render_asset_plugin;
 // TODO: Use Plugin trait like Bevy? How to deal with plugins requiring the RenderApp?
 pub fn image_plugin(app: &mut App, render_app: &mut App) {
     app.init_asset_loader::<ImageTextureLoader>();
-    render_asset_plugin::<Image>(render_app);
     app.add_asset::<Image>();
     app.world
         .resource_mut::<Assets<Image>>()
         .set_untracked(DEFAULT_IMAGE_HANDLE, Image::default());
 
+    render_asset_plugin::<Image>(render_app);
     render_app
         .init_resource::<TextureCache>()
         .add_system_to_stage(Stage::RenderCleanup, &update_texture_cache_system);

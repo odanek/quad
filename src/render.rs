@@ -116,7 +116,7 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
     window_render_plugin(render_app);
     camera_plugin(app, render_app);
     view_plugin(app, render_app);
-    mesh_plugin(app);
+    mesh_plugin(app, render_app);
     image_plugin(app, render_app);
 }
 

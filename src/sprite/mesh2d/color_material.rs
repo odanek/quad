@@ -1,8 +1,16 @@
-use crevice::std140::AsStd140;
+use crevice::std140::{AsStd140, Std140};
+use uuid::{uuid, Uuid};
+use wgpu::{
+    util::BufferInitDescriptor, BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor,
+    BindGroupLayoutEntry, BindingResource, BindingType, BufferBindingType, BufferSize,
+    BufferUsages, SamplerBindingType, ShaderStages, TextureSampleType, TextureViewDimension,
+};
 
 use crate::{
-    asset::{AssetServer, Handle, HandleUntyped},
+    app::App,
+    asset::{load_internal_asset, AssetServer, Assets, Handle, HandleUntyped},
     ecs::{Res, SystemParamItem},
+    reflect::TypeUuid,
     render::{
         color::Color,
         render_asset::{PrepareAssetError, RenderAsset, RenderAssets},
@@ -10,6 +18,7 @@ use crate::{
         renderer::RenderDevice,
         texture::Image,
     },
+    sprite::material_2d_plugin,
     ty::Vec4,
 };
 
@@ -18,38 +27,35 @@ use super::{Material2d, Material2dPipeline, MaterialMesh2dBundle};
 pub const COLOR_MATERIAL_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 3253086872234592509);
 
-#[derive(Default)]
-pub struct ColorMaterialPlugin;
+fn color_material_plugin(app: &mut App, render_app: &mut App) {
+    load_internal_asset!(
+        app,
+        COLOR_MATERIAL_SHADER_HANDLE,
+        "color_material.wgsl",
+        Shader::from_wgsl
+    );
 
-impl Plugin for ColorMaterialPlugin {
-    fn build(&self, app: &mut App) {
-        load_internal_asset!(
-            app,
-            COLOR_MATERIAL_SHADER_HANDLE,
-            "color_material.wgsl",
-            Shader::from_wgsl
+    material_2d_plugin::<ColorMaterial>(app, render_app);
+
+    app.world
+        .resource_mut::<Assets<ColorMaterial>>()
+        .set_untracked(
+            Handle::<ColorMaterial>::default(),
+            ColorMaterial {
+                color: Color::rgb(1.0, 0.0, 1.0),
+                ..Default::default()
+            },
         );
-
-        app.add_plugin(Material2dPlugin::<ColorMaterial>::default());
-
-        app.world
-            .resource_mut::<Assets<ColorMaterial>>()
-            .set_untracked(
-                Handle::<ColorMaterial>::default(),
-                ColorMaterial {
-                    color: Color::rgb(1.0, 0.0, 1.0),
-                    ..Default::default()
-                },
-            );
-    }
 }
-
 /// A [2d material](Material2d) that renders [2d meshes](crate::Mesh2dHandle) with a texture tinted by a uniform color
-#[derive(Debug, Clone, TypeUuid)]
-#[uuid = "e228a544-e3ca-4e1e-bb9d-4d8bc1ad8c19"]
+#[derive(Debug, Clone)]
 pub struct ColorMaterial {
     pub color: Color,
     pub texture: Option<Handle<Image>>,
+}
+
+impl TypeUuid for ColorMaterial {
+    const TYPE_UUID: Uuid = uuid!("e228a544-e3ca-4e1e-bb9d-4d8bc1ad8c19");
 }
 
 impl Default for ColorMaterial {

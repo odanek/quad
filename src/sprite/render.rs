@@ -1,8 +1,47 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::HashMap};
 
-use bytemuck::{Pod, Zeroable};
+use bytemuck_derive::{Pod, Zeroable};
+use cgm::{Zero};
+use crevice::std140::AsStd140;
+use uuid::Uuid;
+use wgpu::{
+    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
+    BindingResource, BindingType, BlendState, BufferBindingType, BufferSize, BufferUsages,
+    ColorTargetState, ColorWrites, FrontFace, MultisampleState, PolygonMode, PrimitiveState,
+    PrimitiveTopology, SamplerBindingType, ShaderStages, TextureFormat, TextureSampleType,
+    TextureViewDimension, VertexFormat, VertexStepMode,
+};
 
-use crate::render::render_resource::BindGroupLayout;
+use crate::{
+    asset::{AssetEvent, Assets, Handle, HandleId},
+    ecs::{
+        Commands, Component, Entity, EventReader, FromWorld, Query, Res, ResMut, SystemParamItem,
+        World, Resource,
+    },
+    render::{
+        color::Color,
+        render_asset::RenderAssets,
+        render_phase::{
+            BatchedPhaseItem, DrawFunctions, EntityRenderCommand, RenderCommand,
+            RenderCommandResult, RenderPhase, SetItemPipeline, TrackedRenderPass,
+        },
+        render_resource::{
+            BindGroup, BindGroupLayout, BufferVec, FragmentState, RenderPipelineCache,
+            RenderPipelineDescriptor, Shader, SpecializedPipeline, SpecializedPipelines,
+            VertexBufferLayout, VertexState,
+        },
+        renderer::{RenderDevice, RenderQueue},
+        texture::{Image, BevyDefault},
+        view::{Msaa, ViewUniform, ViewUniformOffset, ViewUniforms, Visibility},
+        RenderWorld,
+    },
+    transform::GlobalTransform,
+    ty::{FloatOrd, Vec2},
+};
+
+use super::{Rect, Sprite, TextureAtlas, TextureAtlasSprite};
+
+#[derive(Resource)]
 pub struct SpritePipeline {
     view_layout: BindGroupLayout,
     material_layout: BindGroupLayout,
@@ -158,12 +197,12 @@ pub struct ExtractedSprite {
     pub flip_y: bool,
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct ExtractedSprites {
     pub sprites: Vec<ExtractedSprite>,
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct SpriteAssetEvents {
     pub images: Vec<AssetEvent<Image>>,
 }
@@ -258,6 +297,7 @@ struct ColoredSpriteVertex {
     pub color: u32,
 }
 
+#[derive(Resource)]
 pub struct SpriteMeta {
     vertices: BufferVec<SpriteVertex>,
     colored_vertices: BufferVec<ColoredSpriteVertex>,
@@ -277,17 +317,17 @@ impl Default for SpriteMeta {
 const QUAD_INDICES: [usize; 6] = [0, 2, 3, 0, 1, 2];
 
 const QUAD_VERTEX_POSITIONS: [Vec2; 4] = [
-    const_vec2!([-0.5, -0.5]),
-    const_vec2!([0.5, -0.5]),
-    const_vec2!([0.5, 0.5]),
-    const_vec2!([-0.5, 0.5]),
+    Vec2::new(-0.5, -0.5),
+    Vec2::new(0.5, -0.5),
+    Vec2::new(0.5, 0.5),
+    Vec2::new(-0.5, 0.5),
 ];
 
 const QUAD_UVS: [Vec2; 4] = [
-    const_vec2!([0., 1.]),
-    const_vec2!([1., 1.]),
-    const_vec2!([1., 0.]),
-    const_vec2!([0., 0.]),
+    Vec2::new(0., 1.),
+    Vec2::new(1., 1.),
+    Vec2::new(1., 0.),
+    Vec2::new(0., 0.),
 ];
 
 #[derive(Component, Eq, PartialEq, Copy, Clone)]
@@ -296,7 +336,7 @@ pub struct SpriteBatch {
     colored: bool,
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct ImageBindGroups {
     values: HashMap<Handle<Image>, BindGroup>,
 }
@@ -382,7 +422,7 @@ pub fn queue_sprites(
                 image_handle_id: HandleId::Id(Uuid::nil(), u64::MAX),
                 colored: false,
             };
-            let mut current_batch_entity = Entity::from_raw(u32::MAX);
+            let mut current_batch_entity = Entity::new(u32::MAX);
             let mut current_image_size = Vec2::ZERO;
             // Add a phase item for each sprite, and detect when succesive items can be batched.
             // Spawn an entity with a `SpriteBatch` component for each possible batch.
@@ -533,7 +573,10 @@ pub type DrawSprite = (
 
 pub struct SetSpriteViewBindGroup<const I: usize>;
 impl<const I: usize> EntityRenderCommand for SetSpriteViewBindGroup<I> {
-    type Param = (SRes<SpriteMeta>, SQuery<Read<ViewUniformOffset>>);
+    type Param = (
+        Res<'static, SpriteMeta>,
+        Query<'static, 'static, &'static ViewUniformOffset>,
+    );
 
     fn render<'w>(
         view: Entity,
@@ -552,7 +595,10 @@ impl<const I: usize> EntityRenderCommand for SetSpriteViewBindGroup<I> {
 }
 pub struct SetSpriteTextureBindGroup<const I: usize>;
 impl<const I: usize> EntityRenderCommand for SetSpriteTextureBindGroup<I> {
-    type Param = (SRes<ImageBindGroups>, SQuery<Read<SpriteBatch>>);
+    type Param = (
+        Res<'static, ImageBindGroups>,
+        Query<'static, 'static, &'static SpriteBatch>,
+    );
 
     fn render<'w>(
         _view: Entity,
@@ -577,7 +623,10 @@ impl<const I: usize> EntityRenderCommand for SetSpriteTextureBindGroup<I> {
 
 pub struct DrawSpriteBatch;
 impl<P: BatchedPhaseItem> RenderCommand<P> for DrawSpriteBatch {
-    type Param = (SRes<SpriteMeta>, SQuery<Read<SpriteBatch>>);
+    type Param = (
+        Res<'static, SpriteMeta>,
+        Query<'static, 'static, &'static SpriteBatch>,
+    );
 
     fn render<'w>(
         _view: Entity,

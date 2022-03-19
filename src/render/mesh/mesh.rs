@@ -19,7 +19,7 @@ use crate::{
         render_resource::{Buffer, VertexBufferLayout},
         renderer::RenderDevice,
     },
-    ty::Vec3,
+    ty::{Vec3},
 };
 
 pub const INDEX_BUFFER_ASSET_INDEX: u64 = 0;
@@ -384,16 +384,14 @@ impl From<MeshVertexAttribute> for MeshVertexAttributeId {
     }
 }
 
-// TODO Bevy uses the Hashed type here to memoize the hash
-pub type MeshVertexBufferLayout = InnerMeshVertexBufferLayout;
-
+// TODO Bevy use Hashed here to improve performance
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
-pub struct InnerMeshVertexBufferLayout {
+pub struct MeshVertexBufferLayout {
     attribute_ids: Vec<MeshVertexAttributeId>,
     layout: VertexBufferLayout,
 }
 
-impl InnerMeshVertexBufferLayout {
+impl MeshVertexBufferLayout {
     #[inline]
     pub fn contains(&self, attribute_id: impl Into<MeshVertexAttributeId>) -> bool {
         self.attribute_ids.contains(&attribute_id.into())

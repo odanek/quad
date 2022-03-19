@@ -1,4 +1,36 @@
-use crate::render::{render_resource::BindGroupLayout, renderer::RenderDevice, texture::GpuImage};
+use cgm::{SquareMatrix, Matrix};
+use crevice::std140::AsStd140;
+use wgpu::{
+    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
+    BindingType, BlendState, BufferBindingType, BufferSize, ColorTargetState, ColorWrites,
+    Extent3d, Face, FrontFace, ImageCopyTexture, ImageDataLayout, MultisampleState, Origin3d,
+    PolygonMode, PrimitiveState, PrimitiveTopology, ShaderStages, TextureAspect, TextureDimension,
+    TextureFormat, TextureViewDescriptor,
+};
+
+use crate::{
+    app::{App, Stage},
+    asset::{load_internal_asset, Handle, HandleUntyped},
+    ecs::{
+        Commands, Component, Entity, FromWorld, Local, Query, Res, SystemParamItem, With, World, Resource,
+    },
+    render::{
+        mesh::{GpuBufferInfo, Mesh, MeshVertexBufferLayout},
+        render_asset::RenderAssets,
+        render_component::{uniform_component_plugin, ComponentUniforms, DynamicUniformIndex},
+        render_phase::{EntityRenderCommand, RenderCommandResult, TrackedRenderPass},
+        render_resource::{
+            BindGroup, BindGroupLayout, FragmentState, RenderPipelineDescriptor, Sampler, Shader,
+            SpecializedMeshPipeline, SpecializedMeshPipelineError, SpecializedMeshPipelines,
+            TextureView, VertexState,
+        },
+        renderer::{RenderDevice, RenderQueue},
+        texture::{GpuImage, Image, BevyDefault, TextureFormatPixelInfo},
+        view::{ComputedVisibility, ExtractedView, ViewUniform, ViewUniformOffset, ViewUniforms},
+    },
+    transform::GlobalTransform,
+    ty::{Mat4, Size}, reflect::TypeUuid,
+};
 
 /// Component for rendering with meshes in the 2d pipeline, usually with a [2d material](crate::Material2d) such as [`ColorMaterial`](crate::ColorMaterial).
 ///
@@ -12,9 +44,6 @@ impl From<Handle<Mesh>> for Mesh2dHandle {
     }
 }
 
-#[derive(Default)]
-pub struct Mesh2dRenderPlugin;
-
 pub const MESH2D_VIEW_BIND_GROUP_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 6901431444735842434);
 pub const MESH2D_STRUCT_HANDLE: HandleUntyped =
@@ -22,35 +51,30 @@ pub const MESH2D_STRUCT_HANDLE: HandleUntyped =
 pub const MESH2D_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 2971387252468633715);
 
-impl Plugin for Mesh2dRenderPlugin {
-    fn build(&self, app: &mut bevy_app::App) {
-        load_internal_asset!(app, MESH2D_SHADER_HANDLE, "mesh2d.wgsl", Shader::from_wgsl);
-        load_internal_asset!(
-            app,
-            MESH2D_STRUCT_HANDLE,
-            "mesh2d_struct.wgsl",
-            Shader::from_wgsl
-        );
-        load_internal_asset!(
-            app,
-            MESH2D_VIEW_BIND_GROUP_HANDLE,
-            "mesh2d_view_bind_group.wgsl",
-            Shader::from_wgsl
-        );
+pub fn mesh_2d_render_plugin(app: &mut App, render_app: &mut App) {
+    load_internal_asset!(app, MESH2D_SHADER_HANDLE, "mesh2d.wgsl", Shader::from_wgsl);
+    load_internal_asset!(
+        app,
+        MESH2D_STRUCT_HANDLE,
+        "mesh2d_struct.wgsl",
+        Shader::from_wgsl
+    );
+    load_internal_asset!(
+        app,
+        MESH2D_VIEW_BIND_GROUP_HANDLE,
+        "mesh2d_view_bind_group.wgsl",
+        Shader::from_wgsl
+    );
 
-        app.add_plugin(UniformComponentPlugin::<Mesh2dUniform>::default());
+    uniform_component_plugin::<Mesh2dUniform>(render_app);
 
-        if let Ok(render_app) = app.get_sub_app_mut(RenderApp) {
-            render_app
-                .init_resource::<Mesh2dPipeline>()
-                .init_resource::<SpecializedMeshPipelines<Mesh2dPipeline>>()
-                .add_system_to_stage(RenderStage::Extract, extract_mesh2d)
-                .add_system_to_stage(RenderStage::Queue, queue_mesh2d_bind_group)
-                .add_system_to_stage(RenderStage::Queue, queue_mesh2d_view_bind_groups);
-        }
-    }
+    render_app
+        .init_resource::<Mesh2dPipeline>()
+        .init_resource::<SpecializedMeshPipelines<Mesh2dPipeline>>()
+        .add_system_to_stage(Stage::RenderExtract, &extract_mesh2d)
+        .add_system_to_stage(Stage::RenderQueue, &queue_mesh2d_bind_group)
+        .add_system_to_stage(Stage::RenderQueue, &queue_mesh2d_view_bind_groups);
 }
-
 #[derive(Component, AsStd140, Clone)]
 pub struct Mesh2dUniform {
     pub transform: Mat4,
@@ -85,7 +109,7 @@ pub fn extract_mesh2d(
                 Mesh2dUniform {
                     flags: MeshFlags::empty().bits,
                     transform,
-                    inverse_transpose_model: transform.inverse().transpose(),
+                    inverse_transpose_model: transform.inverse().unwrap().transpose(),
                 },
             ),
         ));
@@ -94,7 +118,7 @@ pub fn extract_mesh2d(
     commands.insert_or_spawn_batch(values);
 }
 
-#[derive(Clone)]
+#[derive(Clone, Resource)]
 pub struct Mesh2dPipeline {
     pub view_layout: BindGroupLayout,
     pub mesh_layout: BindGroupLayout,
@@ -318,6 +342,7 @@ impl SpecializedMeshPipeline for Mesh2dPipeline {
     }
 }
 
+#[derive(Resource)]
 pub struct Mesh2dBindGroup {
     pub value: BindGroup,
 }
@@ -374,7 +399,8 @@ pub fn queue_mesh2d_view_bind_groups(
 
 pub struct SetMesh2dViewBindGroup<const I: usize>;
 impl<const I: usize> EntityRenderCommand for SetMesh2dViewBindGroup<I> {
-    type Param = SQuery<(Read<ViewUniformOffset>, Read<Mesh2dViewBindGroup>)>;
+    type Param =
+        Query<'static, 'static, (&'static ViewUniformOffset, &'static Mesh2dViewBindGroup)>;
     #[inline]
     fn render<'w>(
         view: Entity,
@@ -392,8 +418,8 @@ impl<const I: usize> EntityRenderCommand for SetMesh2dViewBindGroup<I> {
 pub struct SetMesh2dBindGroup<const I: usize>;
 impl<const I: usize> EntityRenderCommand for SetMesh2dBindGroup<I> {
     type Param = (
-        SRes<Mesh2dBindGroup>,
-        SQuery<Read<DynamicUniformIndex<Mesh2dUniform>>>,
+        Res<'static, Mesh2dBindGroup>,
+        Query<'static, 'static, &'static DynamicUniformIndex<Mesh2dUniform>>,
     );
     #[inline]
     fn render<'w>(
@@ -414,7 +440,10 @@ impl<const I: usize> EntityRenderCommand for SetMesh2dBindGroup<I> {
 
 pub struct DrawMesh2d;
 impl EntityRenderCommand for DrawMesh2d {
-    type Param = (SRes<RenderAssets<Mesh>>, SQuery<Read<Mesh2dHandle>>);
+    type Param = (
+        Res<'static, RenderAssets<Mesh>>,
+        Query<'static, 'static, &'static Mesh2dHandle>,
+    );
     #[inline]
     fn render<'w>(
         _view: Entity,

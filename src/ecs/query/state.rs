@@ -1,3 +1,5 @@
+use thiserror::Error;
+
 use crate::ecs::{
     component::{ComponentId, Tick},
     entity::{ArchetypeGeneration, ArchetypeId},
@@ -237,7 +239,10 @@ where
     }
 }
 
+#[derive(Error, Debug)]
 pub enum QueryEntityError {
+    #[error("The given entity does not have the requested component.")]
     QueryDoesNotMatch,
+    #[error("The requested entity does not exist.")]
     NoSuchEntity,
 }
