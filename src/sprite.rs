@@ -1,8 +1,8 @@
 mod bundle;
 mod dynamic_texture_atlas_builder;
-// mod mesh2d;
+mod mesh2d;
 mod rect;
-// mod render;
+mod render;
 mod sprite;
 mod texture_atlas;
 mod texture_atlas_builder;
@@ -11,9 +11,9 @@ pub mod collide_aabb;
 
 pub use bundle::*;
 pub use dynamic_texture_atlas_builder::*;
-// pub use mesh2d::*;
+pub use mesh2d::*;
 pub use rect::*;
-// pub use render::*;
+pub use render::*;
 pub use sprite::*;
 pub use texture_atlas::*;
 pub use texture_atlas_builder::*;
