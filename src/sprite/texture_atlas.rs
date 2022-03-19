@@ -1,11 +1,16 @@
 use std::collections::HashMap;
 
-use uuid::{Uuid, uuid};
+use uuid::{uuid, Uuid};
 
-use crate::{asset::Handle, render::{texture::Image, color::Color}, ty::Vec2, reflect::TypeUuid, ecs::Component};
+use crate::{
+    asset::Handle,
+    ecs::Component,
+    reflect::TypeUuid,
+    render::{color::Color, texture::Image},
+    ty::Vec2,
+};
 
 use super::Rect;
-
 
 /// An atlas containing multiple textures (like a spritesheet or a tilemap).
 /// [Example usage animating sprite.](https://github.com/bevyengine/bevy/blob/latest/examples/2d/sprite_sheet.rs)

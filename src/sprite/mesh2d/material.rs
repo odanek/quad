@@ -1,18 +1,25 @@
-
 use std::hash::Hash;
 use std::marker::PhantomData;
 
 use crate::asset::{Asset, AssetServer, Handle};
-use crate::ecs::{FromWorld, World, Res, Entity, SystemParamItem, ResMut, Query, Bundle};
-use crate::render::mesh::{MeshVertexBufferLayout, Mesh};
+use crate::ecs::{Bundle, Entity, FromWorld, Query, Res, ResMut, SystemParamItem, World};
+use crate::render::mesh::{Mesh, MeshVertexBufferLayout};
 use crate::render::render_asset::{RenderAsset, RenderAssets};
-use crate::render::render_phase::{SetItemPipeline, EntityRenderCommand, TrackedRenderPass, RenderCommandResult, DrawFunctions, RenderPhase};
-use crate::render::render_resource::{BindGroup, BindGroupLayout, Shader, RenderPipelineDescriptor, RenderPipelineCache};
+use crate::render::render_phase::{
+    DrawFunctions, EntityRenderCommand, RenderCommandResult, RenderPhase, SetItemPipeline,
+    TrackedRenderPass,
+};
+use crate::render::render_resource::{
+    BindGroup, BindGroupLayout, RenderPipelineCache, RenderPipelineDescriptor, Shader,
+};
 use crate::render::renderer::RenderDevice;
-use crate::render::view::{Msaa, VisibleEntities, Visibility, ComputedVisibility};
-use crate::transform::{Transform, GlobalTransform};
+use crate::render::view::{ComputedVisibility, Msaa, Visibility, VisibleEntities};
+use crate::transform::{GlobalTransform, Transform};
 
-use super::{Mesh2dPipeline, SetMesh2dViewBindGroup, SetMesh2dBindGroup, DrawMesh2d, Mesh2dHandle, Mesh2dUniform};
+use super::{
+    DrawMesh2d, Mesh2dHandle, Mesh2dPipeline, Mesh2dUniform, SetMesh2dBindGroup,
+    SetMesh2dViewBindGroup,
+};
 
 /// Materials are used alongside [`Material2dPlugin`] and [`MaterialMesh2dBundle`]
 /// to spawn entities that are rendered with a specific [`Material2d`] type. They serve as an easy to use high level

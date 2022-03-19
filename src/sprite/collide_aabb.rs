@@ -1,7 +1,6 @@
 //! Utilities for detecting if and on which side two axis-aligned bounding boxes (AABB) collide.
 
-use crate::ty::{Vec3, Vec2};
-
+use crate::ty::{Vec2, Vec3};
 
 #[derive(Debug)]
 pub enum Collision {

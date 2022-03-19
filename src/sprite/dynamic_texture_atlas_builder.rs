@@ -1,9 +1,12 @@
-use guillotiere::{AtlasAllocator, size2, Allocation};
+use guillotiere::{size2, Allocation, AtlasAllocator};
 
-use crate::{ty::Vec2, asset::Assets, render::texture::{Image, TextureFormatPixelInfo}};
+use crate::{
+    asset::Assets,
+    render::texture::{Image, TextureFormatPixelInfo},
+    ty::Vec2,
+};
 
-use super::{TextureAtlas, Rect};
-
+use super::{Rect, TextureAtlas};
 
 pub struct DynamicTextureAtlasBuilder {
     pub atlas_allocator: AtlasAllocator,

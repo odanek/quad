@@ -1,5 +1,4 @@
-use crate::render::{render_resource::BindGroupLayout, texture::GpuImage, renderer::RenderDevice};
-
+use crate::render::{render_resource::BindGroupLayout, renderer::RenderDevice, texture::GpuImage};
 
 /// Component for rendering with meshes in the 2d pipeline, usually with a [2d material](crate::Material2d) such as [`ColorMaterial`](crate::ColorMaterial).
 ///

@@ -1,7 +1,10 @@
 use crate::{
     asset::Handle,
     ecs::Bundle,
-    render::{texture::{Image, DEFAULT_IMAGE_HANDLE}, view::Visibility},
+    render::{
+        texture::{Image, DEFAULT_IMAGE_HANDLE},
+        view::Visibility,
+    },
     transform::{GlobalTransform, Transform},
 };
 

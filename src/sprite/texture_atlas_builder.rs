@@ -1,12 +1,19 @@
 use std::collections::HashMap;
 
-use rectangle_pack::{GroupedRectsToPlace, RectToInsert, PackedLocation, TargetBin, pack_rects, volume_heuristic, contains_smallest_box};
+use rectangle_pack::{
+    contains_smallest_box, pack_rects, volume_heuristic, GroupedRectsToPlace, PackedLocation,
+    RectToInsert, TargetBin,
+};
 use thiserror::Error;
-use wgpu::{TextureFormat, Extent3d, TextureDimension};
+use wgpu::{Extent3d, TextureDimension, TextureFormat};
 
-use crate::{asset::{Handle, Assets}, render::texture::{Image, TextureFormatPixelInfo}, ty::Vec2};
+use crate::{
+    asset::{Assets, Handle},
+    render::texture::{Image, TextureFormatPixelInfo},
+    ty::Vec2,
+};
 
-use super::{TextureAtlas, Rect};
+use super::{Rect, TextureAtlas};
 
 #[derive(Debug, Error)]
 pub enum TextureAtlasBuilderError {
@@ -119,13 +126,15 @@ impl TextureAtlasBuilder {
         } else if let Some(converted_texture) = texture.convert(self.format) {
             log::debug!(
                 "Converting texture from '{:?}' to '{:?}'",
-                texture.texture_descriptor.format, self.format
+                texture.texture_descriptor.format,
+                self.format
             );
             Self::copy_texture_to_atlas(atlas_texture, &converted_texture, packed_location);
         } else {
             log::error!(
                 "Error converting texture from '{:?}' to '{:?}', ignoring",
-                texture.texture_descriptor.format, self.format
+                texture.texture_descriptor.format,
+                self.format
             );
         }
     }
@@ -215,7 +224,8 @@ impl TextureAtlasBuilder {
             if texture.texture_descriptor.format != self.format && !self.auto_format_conversion {
                 log::warn!(
                     "Loading a texture of format '{:?}' in an atlas with format '{:?}'",
-                    texture.texture_descriptor.format, self.format
+                    texture.texture_descriptor.format,
+                    self.format
                 );
                 return Err(TextureAtlasBuilderError::WrongFormat);
             }

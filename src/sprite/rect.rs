@@ -1,6 +1,5 @@
 use crate::ty::Vec2;
 
-
 /// A rectangle defined by two points. There is no defined origin, so 0,0 could be anywhere
 /// (top-left, bottom-left, etc)
 #[repr(C)]
