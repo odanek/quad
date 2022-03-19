@@ -19,7 +19,7 @@ use crate::{
         render_resource::{Buffer, VertexBufferLayout},
         renderer::RenderDevice,
     },
-    ty::{Vec3},
+    ty::Vec3,
 };
 
 pub const INDEX_BUFFER_ASSET_INDEX: u64 = 0;

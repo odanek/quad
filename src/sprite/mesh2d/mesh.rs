@@ -1,4 +1,4 @@
-use cgm::{SquareMatrix, Matrix};
+use cgm::{Matrix, SquareMatrix};
 use crevice::std140::AsStd140;
 use wgpu::{
     BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
@@ -12,8 +12,10 @@ use crate::{
     app::{App, Stage},
     asset::{load_internal_asset, Handle, HandleUntyped},
     ecs::{
-        Commands, Component, Entity, FromWorld, Local, Query, Res, SystemParamItem, With, World, Resource,
+        Commands, Component, Entity, FromWorld, Local, Query, Res, Resource, SystemParamItem, With,
+        World,
     },
+    reflect::TypeUuid,
     render::{
         mesh::{GpuBufferInfo, Mesh, MeshVertexBufferLayout},
         render_asset::RenderAssets,
@@ -25,11 +27,11 @@ use crate::{
             TextureView, VertexState,
         },
         renderer::{RenderDevice, RenderQueue},
-        texture::{GpuImage, Image, BevyDefault, TextureFormatPixelInfo},
+        texture::{BevyDefault, GpuImage, Image, TextureFormatPixelInfo},
         view::{ComputedVisibility, ExtractedView, ViewUniform, ViewUniformOffset, ViewUniforms},
     },
     transform::GlobalTransform,
-    ty::{Mat4, Size}, reflect::TypeUuid,
+    ty::{Mat4, Size},
 };
 
 /// Component for rendering with meshes in the 2d pipeline, usually with a [2d material](crate::Material2d) such as [`ColorMaterial`](crate::ColorMaterial).

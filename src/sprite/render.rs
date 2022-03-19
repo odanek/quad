@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, collections::HashMap};
 
 use bytemuck_derive::{Pod, Zeroable};
-use cgm::{Zero};
+use cgm::Zero;
 use crevice::std140::AsStd140;
 use uuid::Uuid;
 use wgpu::{
@@ -15,8 +15,8 @@ use wgpu::{
 use crate::{
     asset::{AssetEvent, Assets, Handle, HandleId},
     ecs::{
-        Commands, Component, Entity, EventReader, FromWorld, Query, Res, ResMut, SystemParamItem,
-        World, Resource,
+        Commands, Component, Entity, EventReader, FromWorld, Query, Res, ResMut, Resource,
+        SystemParamItem, World,
     },
     render::{
         color::Color,
@@ -31,7 +31,7 @@ use crate::{
             VertexBufferLayout, VertexState,
         },
         renderer::{RenderDevice, RenderQueue},
-        texture::{Image, BevyDefault},
+        texture::{BevyDefault, Image},
         view::{Msaa, ViewUniform, ViewUniformOffset, ViewUniforms, Visibility},
         RenderWorld,
     },
