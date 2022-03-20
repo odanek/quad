@@ -13,7 +13,7 @@ use crate::{
 
 use super::{
     access::FilteredAccess,
-    fetch::{Fetch, FetchState, WorldQuery},
+    fetch::{Fetch, FetchState, WorldQuery, ReadOnlyFetch},
 };
 
 pub trait FilterFetch: for<'w, 's> Fetch<'w, 's> {
@@ -35,8 +35,11 @@ pub struct With<T>(PhantomData<T>);
 
 impl<T: Component> WorldQuery for With<T> {
     type Fetch = WithFetch<T>;
+    type ReadOnlyFetch = WithFetch<T>;
     type State = WithState<T>;
 }
+
+unsafe impl<T> ReadOnlyFetch for WithFetch<T> {}
 
 pub struct WithFetch<T> {
     marker: PhantomData<T>,
@@ -96,12 +99,15 @@ pub struct Without<T>(PhantomData<T>);
 
 impl<T: Component> WorldQuery for Without<T> {
     type Fetch = WithoutFetch<T>;
+    type ReadOnlyFetch = WithoutFetch<T>;
     type State = WithoutState<T>;
 }
 
 pub struct WithoutFetch<T> {
     marker: PhantomData<T>,
 }
+
+unsafe impl<T> ReadOnlyFetch for WithoutFetch<T> {}
 
 pub struct WithoutState<T> {
     component_id: ComponentId,
@@ -173,12 +179,14 @@ macro_rules! impl_query_filter_tuple {
         }
 
         impl<$($filter: WorldQuery),*> WorldQuery for Or<($($filter,)*)>
-            where $($filter::Fetch: FilterFetch),*
+            where $($filter::Fetch: FilterFetch, $filter::ReadOnlyFetch: FilterFetch),*
         {
             type Fetch = Or<($(OrFetch<$filter::Fetch>,)*)>;
             type State = Or<($($filter::State,)*)>;
+            type ReadOnlyFetch = Or<($(OrFetch<$filter::ReadOnlyFetch>,)*)>;
         }
 
+        unsafe impl<$($filter: FilterFetch + ReadOnlyFetch),*> ReadOnlyFetch for Or<($(OrFetch<$filter>,)*)> {}
 
         #[allow(unused_variables)]
         #[allow(non_snake_case)]
@@ -243,6 +251,8 @@ pub struct AddedFetch<T> {
     system_ticks: SystemTicks,
 }
 
+unsafe impl<T: Component> ReadOnlyFetch for AddedFetch<T> {}
+
 pub struct AddedState<T> {
     component_id: ComponentId,
     marker: PhantomData<T>,
@@ -250,6 +260,7 @@ pub struct AddedState<T> {
 
 impl<T: Component> WorldQuery for Added<T> {
     type Fetch = AddedFetch<T>;
+    type ReadOnlyFetch = AddedFetch<T>;
     type State = AddedState<T>;
 }
 
@@ -315,6 +326,8 @@ pub struct ChangedFetch<T> {
     system_ticks: SystemTicks,
 }
 
+unsafe impl<T: Component> ReadOnlyFetch for ChangedFetch<T> {}
+
 pub struct ChangedState<T> {
     component_id: ComponentId,
     marker: PhantomData<T>,
@@ -322,6 +335,7 @@ pub struct ChangedState<T> {
 
 impl<T: Component> WorldQuery for Changed<T> {
     type Fetch = ChangedFetch<T>;
+    type ReadOnlyFetch = ChangedFetch<T>;
     type State = ChangedState<T>;
 }
 

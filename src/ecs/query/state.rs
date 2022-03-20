@@ -140,24 +140,41 @@ where
     }
 
     #[inline]
-    pub fn iter<'w, 's>(&'s mut self, world: &'w World) -> QueryIter<'w, 's, Q, F>
-    where
-        Q::Fetch: ReadOnlyFetch,
-    {
+    pub fn iter<'w, 's>(
+        &'s mut self,
+        world: &'w World,
+    ) -> QueryIter<'w, 's, Q, Q::ReadOnlyFetch, F> {
         unsafe { self.iter_unchecked(world) }
     }
 
     #[inline]
-    pub fn iter_mut<'w, 's>(&'s mut self, world: &'w mut World) -> QueryIter<'w, 's, Q, F> {
+    pub fn iter_mut<'w, 's>(
+        &'s mut self,
+        world: &'w mut World,
+    ) -> QueryIter<'w, 's, Q, Q::Fetch, F> {
         unsafe { self.iter_unchecked(world) }
+    }
+
+    #[inline]
+    pub fn iter_manual<'w, 's>(
+        &'s self,
+        world: &'w World,
+    ) -> QueryIter<'w, 's, Q, Q::ReadOnlyFetch, F> {
+        // TODO Validate that correct world is used
+        unsafe {
+            self.iter_unchecked_manual(
+                world,
+                SystemTicks::new(world.last_change_tick(), world.change_tick()),
+            )
+        }
     }
 
     #[inline]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn iter_unchecked<'w, 's>(
+    pub unsafe fn iter_unchecked<'w, 's, QF: Fetch<'w, 's, State = Q::State>>(
         &'s mut self,
         world: &'w World,
-    ) -> QueryIter<'w, 's, Q, F> {
+    ) -> QueryIter<'w, 's, Q, QF, F> {
         self.update_archetypes(world);
         self.iter_unchecked_manual(
             world,
@@ -167,11 +184,11 @@ where
 
     #[inline]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn iter_unchecked_manual<'w, 's>(
+    pub unsafe fn iter_unchecked_manual<'w, 's, QF: Fetch<'w, 's, State = Q::State>>(
         &'s self,
         world: &'w World,
         system_ticks: SystemTicks,
-    ) -> QueryIter<'w, 's, Q, F> {
+    ) -> QueryIter<'w, 's, Q, QF, F> {
         QueryIter::new(world, self, system_ticks)
     }
 

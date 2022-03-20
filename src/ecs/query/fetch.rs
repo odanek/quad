@@ -20,6 +20,7 @@ use super::access::FilteredAccess;
 
 pub trait WorldQuery {
     type Fetch: for<'w, 's> Fetch<'w, 's, State = Self::State>;
+    type ReadOnlyFetch: for<'w, 's> Fetch<'w, 's, State = Self::State> + ReadOnlyFetch;
     type State: FetchState;
 }
 
@@ -48,6 +49,7 @@ pub unsafe trait ReadOnlyFetch {}
 
 impl WorldQuery for Entity {
     type Fetch = EntityFetch;
+    type ReadOnlyFetch = EntityFetch;
     type State = EntityState;
 }
 
@@ -100,6 +102,7 @@ impl<'w, 's> Fetch<'w, 's> for EntityFetch {
 
 impl<T: Component> WorldQuery for &T {
     type Fetch = ReadFetch<T>;
+    type ReadOnlyFetch = ReadFetch<T>;
     type State = ReadState<T>;
 }
 
@@ -176,6 +179,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for ReadFetch<T> {
 
 impl<T: Component> WorldQuery for &mut T {
     type Fetch = WriteFetch<T>;
+    type ReadOnlyFetch = ReadOnlyWriteFetch<T>;
     type State = WriteState<T>;
 }
 
@@ -192,6 +196,50 @@ impl<T> Clone for WriteFetch<T> {
             table_ticks: self.table_ticks,
             system_ticks: self.system_ticks,
         }
+    }
+}
+
+pub struct ReadOnlyWriteFetch<T> {
+    table_components: NonNull<T>,
+}
+
+impl<T> Clone for ReadOnlyWriteFetch<T> {
+    fn clone(&self) -> Self {
+        Self {
+            table_components: self.table_components,
+        }
+    }
+}
+
+unsafe impl<T> ReadOnlyFetch for ReadOnlyWriteFetch<T> {}
+
+impl<'w, 's, T: Component> Fetch<'w, 's> for ReadOnlyWriteFetch<T> {
+    type Item = &'w T;
+    type State = WriteState<T>;
+
+    unsafe fn new(_world: &World, _state: &Self::State, _system_ticks: SystemTicks) -> Self {
+        Self {
+            table_components: NonNull::dangling(),
+        }
+    }
+
+    #[inline]
+    unsafe fn set_archetype(
+        &mut self,
+        state: &Self::State,
+        archetype: &Archetype,
+        tables: &Tables,
+    ) {
+        self.table_components = tables[archetype.table_id()]
+            .get_column(state.component_id)
+            .unwrap()
+            .get_data_ptr()
+            .cast::<T>();
+    }
+
+    #[inline]
+    unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item {
+        &*self.table_components.as_ptr().add(archetype_index)
     }
 }
 
@@ -258,6 +306,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for WriteFetch<T> {
 
 impl<T: WorldQuery> WorldQuery for Option<T> {
     type Fetch = OptionFetch<T::Fetch>;
+    type ReadOnlyFetch = OptionFetch<T::ReadOnlyFetch>;
     type State = OptionState<T::State>;
 }
 
@@ -344,6 +393,7 @@ impl<T: Component> ChangeTrackers<T> {
 
 impl<T: Component> WorldQuery for ChangeTrackers<T> {
     type Fetch = ChangeTrackersFetch<T>;
+    type ReadOnlyFetch = ChangeTrackersFetch<T>;
     type State = ChangeTrackersState<T>;
 }
 
@@ -475,6 +525,7 @@ macro_rules! impl_tuple_fetch {
 
         impl<$($name: WorldQuery),*> WorldQuery for ($($name,)*) {
             type Fetch = ($($name::Fetch,)*);
+            type ReadOnlyFetch = ($($name::ReadOnlyFetch,)*);
             type State = ($($name::State,)*);
         }
 

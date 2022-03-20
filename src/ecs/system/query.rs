@@ -59,7 +59,7 @@ where
     }
 
     #[inline]
-    pub fn iter(&self) -> QueryIter<'w, 's, Q, F>
+    pub fn iter(&self) -> QueryIter<'w, 's, Q, Q::ReadOnlyFetch, F>
     where
         Q::Fetch: ReadOnlyFetch,
     {
@@ -70,7 +70,7 @@ where
     }
 
     #[inline]
-    pub fn iter_mut(&mut self) -> QueryIter<'w, 's, Q, F> {
+    pub fn iter_mut(&mut self) -> QueryIter<'w, 's, Q, Q::Fetch, F> {
         unsafe {
             self.state
                 .iter_unchecked_manual(self.world, self.system_ticks)
@@ -79,7 +79,7 @@ where
 
     #[inline]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn iter_unsafe(&self) -> QueryIter<'_, '_, Q, F> {
+    pub unsafe fn iter_unsafe(&self) -> QueryIter<'_, '_, Q, Q::Fetch, F> {
         self.state
             .iter_unchecked_manual(self.world, self.system_ticks)
     }
@@ -183,7 +183,7 @@ where
         }
     }
 
-    pub fn single(&self) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QuerySingleError>
+    pub fn single(&self) -> Result<<Q::ReadOnlyFetch as Fetch<'w, 's>>::Item, QuerySingleError>
     where
         Q::Fetch: ReadOnlyFetch,
     {

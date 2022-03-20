@@ -13,7 +13,7 @@ use super::{
     state::QueryState,
 };
 
-pub struct QueryIter<'w, 's, Q: WorldQuery, F: WorldQuery>
+pub struct QueryIter<'w, 's, Q: WorldQuery, QF: Fetch<'w, 's, State = Q::State>, F: WorldQuery>
 where
     F::Fetch: FilterFetch,
 {
@@ -22,22 +22,23 @@ where
     query_state: &'s QueryState<Q, F>,
     world: &'w World,
     archetype_id_iter: Iter<'s, ArchetypeId>,
-    fetch: Q::Fetch,
+    fetch: QF,
     filter: F::Fetch,
     current_len: usize,
     current_index: usize,
 }
 
-impl<'w, 's, Q: WorldQuery, F: WorldQuery> QueryIter<'w, 's, Q, F>
+impl<'w, 's, Q: WorldQuery, QF, F: WorldQuery> QueryIter<'w, 's, Q, QF, F>
 where
     F::Fetch: FilterFetch,
+    QF: Fetch<'w, 's, State = Q::State>,
 {
     pub unsafe fn new(
         world: &'w World,
         query_state: &'s QueryState<Q, F>,
         system_ticks: SystemTicks,
     ) -> Self {
-        let fetch = <Q::Fetch as Fetch>::new(world, &query_state.fetch_state, system_ticks);
+        let fetch = QF::new(world, &query_state.fetch_state, system_ticks);
         let filter = <F::Fetch as Fetch>::new(world, &query_state.filter_state, system_ticks);
 
         QueryIter {
@@ -83,11 +84,12 @@ where
     }
 }
 
-impl<'w, 's, Q: WorldQuery, F: WorldQuery> Iterator for QueryIter<'w, 's, Q, F>
+impl<'w, 's, Q: WorldQuery, QF, F: WorldQuery> Iterator for QueryIter<'w, 's, Q, QF, F>
 where
     F::Fetch: FilterFetch,
+    QF: Fetch<'w, 's, State = Q::State>,
 {
-    type Item = <Q::Fetch as Fetch<'w, 's>>::Item;
+    type Item = QF::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
@@ -131,7 +133,10 @@ where
     }
 }
 
-impl<'w, 's, Q: WorldQuery> ExactSizeIterator for QueryIter<'w, 's, Q, ()> {
+impl<'w, 's, Q: WorldQuery, QF> ExactSizeIterator for QueryIter<'w, 's, Q, QF, ()>
+where
+    QF: Fetch<'w, 's, State = Q::State>,
+{
     fn len(&self) -> usize {
         self.query_state
             .matched_archetypes
