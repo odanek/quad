@@ -8,7 +8,7 @@ use crate::{
     asset::{Assets, Handle},
     ecs::{Commands, Component, Entity, Query, QuerySet, QueryState, Res, With, Without},
     render::{
-        cameras::{Camera, CameraProjection, OrthographicProjection, PerspectiveProjection},
+        cameras::{Camera, CameraProjection, OrthographicProjection},
         mesh::Mesh,
         primitives::{Aabb, Frustum},
     },
@@ -66,7 +66,6 @@ impl VisibleEntities {
 pub fn visibility_plugin(app: &mut App) {
     app.add_system_to_stage(Stage::PostUpdate, &calculate_bounds)
         .add_system_to_stage(Stage::PostUpdate, &update_frusta::<OrthographicProjection>)
-        .add_system_to_stage(Stage::PostUpdate, &update_frusta::<PerspectiveProjection>)
         .add_system_to_stage(Stage::PostUpdate, &check_visibility);
 }
 

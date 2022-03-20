@@ -12,20 +12,7 @@ use super::{Image, ImageType, TextureError};
 #[derive(Clone, Default)]
 pub struct ImageTextureLoader;
 
-const FILE_EXTENSIONS: &[&str] = &[
-    #[cfg(feature = "png")]
-    "png",
-    #[cfg(feature = "dds")]
-    "dds",
-    #[cfg(feature = "tga")]
-    "tga",
-    #[cfg(feature = "jpeg")]
-    "jpg",
-    #[cfg(feature = "jpeg")]
-    "jpeg",
-    #[cfg(feature = "bmp")]
-    "bmp",
-];
+const FILE_EXTENSIONS: &[&str] = &["png", "tga", "jpg", "jpeg", "bmp"];
 
 impl AssetLoader for ImageTextureLoader {
     fn load<'a>(

@@ -9,43 +9,6 @@ pub trait CameraProjection {
     fn far(&self) -> f32;
 }
 
-#[derive(Component, Debug, Clone)]
-pub struct PerspectiveProjection {
-    pub fov: f32,
-    pub aspect_ratio: f32,
-    pub near: f32,
-    pub far: f32,
-}
-
-impl CameraProjection for PerspectiveProjection {
-    fn get_projection_matrix(&self) -> Mat4 {
-        perspective_infinite_reverse_rh(self.fov, self.aspect_ratio, self.near)
-    }
-
-    fn update(&mut self, width: f32, height: f32) {
-        self.aspect_ratio = width / height;
-    }
-
-    fn depth_calculation(&self) -> DepthCalculation {
-        DepthCalculation::Distance
-    }
-
-    fn far(&self) -> f32 {
-        self.far
-    }
-}
-
-impl Default for PerspectiveProjection {
-    fn default() -> Self {
-        PerspectiveProjection {
-            fov: std::f32::consts::PI / 4.0,
-            near: 0.1,
-            far: 1000.0,
-            aspect_ratio: 1.0,
-        }
-    }
-}
-
 // TODO: make this a component instead of a property
 #[derive(Debug, Clone)]
 pub enum WindowOrigin {
@@ -166,21 +129,6 @@ impl Default for OrthographicProjection {
             depth_calculation: DepthCalculation::Distance,
         }
     }
-}
-
-fn perspective_infinite_reverse_rh<T: cgm::Float>(
-    fov_y_radians: T,
-    aspect_ratio: T,
-    z_near: T,
-) -> cgm::Mat4<T> {
-    debug_assert!(z_near > T::ZERO);
-    let f = T::ONE / (T::HALF * fov_y_radians).tan();
-    cgm::Mat4::from_cols(
-        cgm::Vec4::new(f / aspect_ratio, T::ZERO, T::ZERO, T::ZERO),
-        cgm::Vec4::new(T::ZERO, f, T::ZERO, T::ZERO),
-        cgm::Vec4::new(T::ZERO, T::ZERO, T::ZERO, -T::ONE),
-        cgm::Vec4::new(T::ZERO, T::ZERO, z_near, T::ZERO),
-    )
 }
 
 fn orthographic_rh<T: cgm::Float>(

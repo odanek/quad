@@ -46,27 +46,11 @@ impl From<Handle<Mesh>> for Mesh2dHandle {
     }
 }
 
-pub const MESH2D_VIEW_BIND_GROUP_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 6901431444735842434);
-pub const MESH2D_STRUCT_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 8994673400261890424);
 pub const MESH2D_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 2971387252468633715);
 
 pub fn mesh_2d_render_plugin(app: &mut App, render_app: &mut App) {
     load_internal_asset!(app, MESH2D_SHADER_HANDLE, "mesh2d.wgsl", Shader::from_wgsl);
-    // load_internal_asset!(
-    //     app,
-    //     MESH2D_STRUCT_HANDLE,
-    //     "mesh2d_struct.wgsl",
-    //     Shader::from_wgsl
-    // );
-    // load_internal_asset!(
-    //     app,
-    //     MESH2D_VIEW_BIND_GROUP_HANDLE,
-    //     "mesh2d_view_bind_group.wgsl",
-    //     Shader::from_wgsl
-    // );
 
     uniform_component_plugin::<Mesh2dUniform>(render_app);
 
@@ -77,6 +61,7 @@ pub fn mesh_2d_render_plugin(app: &mut App, render_app: &mut App) {
         .add_system_to_stage(Stage::RenderQueue, &queue_mesh2d_bind_group)
         .add_system_to_stage(Stage::RenderQueue, &queue_mesh2d_view_bind_groups);
 }
+
 #[derive(Component, AsStd140, Clone)]
 pub struct Mesh2dUniform {
     pub transform: Mat4,
@@ -300,9 +285,6 @@ impl SpecializedMeshPipeline for Mesh2dPipeline {
             shader_defs.push(String::from("VERTEX_TANGENTS"));
             vertex_attributes.push(Mesh::ATTRIBUTE_TANGENT.at_shader_location(3));
         }
-
-        #[cfg(feature = "webgl")]
-        shader_defs.push(String::from("NO_ARRAY_TEXTURES_SUPPORT"));
 
         let vertex_buffer_layout = layout.get_layout(&vertex_attributes)?;
 

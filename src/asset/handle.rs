@@ -38,6 +38,7 @@ impl<'a> From<AssetPath<'a>> for HandleId {
 impl HandleId {
     #[inline]
     pub fn random<T: Asset>() -> Self {
+        // TODO Why random????
         HandleId::Id(T::TYPE_UUID, rand::random())
     }
 
