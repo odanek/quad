@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, collections::HashMap};
 
 use bytemuck_derive::{Pod, Zeroable};
-use cgm::Zero;
+use cgm::{ElementWise, Zero};
 use crevice::std140::AsStd140;
 use uuid::Uuid;
 use wgpu::{
@@ -50,7 +50,6 @@ pub struct SpritePipeline {
 
 impl FromWorld for SpritePipeline {
     fn from_world(world: &mut World) -> Self {
-        let world = world.cell();
         let render_device = world.get_resource::<RenderDevice>().unwrap();
 
         let view_layout = render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
@@ -250,7 +249,7 @@ pub fn extract_sprites(
             continue;
         }
         // PERF: we don't check in this function that the `Image` asset is ready, since it should be in most cases and hashing the handle is expensive
-        extracted_sprites.sprites.alloc().init(ExtractedSprite {
+        extracted_sprites.sprites.push(ExtractedSprite {
             color: sprite.color,
             transform: *transform,
             // Use the full texture
@@ -268,7 +267,7 @@ pub fn extract_sprites(
         }
         if let Some(texture_atlas) = texture_atlases.get(texture_atlas_handle) {
             let rect = Some(texture_atlas.textures[atlas_sprite.index as usize]);
-            extracted_sprites.sprites.alloc().init(ExtractedSprite {
+            extracted_sprites.sprites.push(ExtractedSprite {
                 color: atlas_sprite.color,
                 transform: *transform,
                 // Select the area in the texture atlas
@@ -488,7 +487,8 @@ pub fn queue_sprites(
                 if let Some(rect) = extracted_sprite.rect {
                     let rect_size = rect.size();
                     for uv in &mut uvs {
-                        *uv = (rect.min + *uv * rect_size) / current_image_size;
+                        *uv = (rect.min + uv.mul_element_wise(rect_size))
+                            .div_element_wise(current_image_size);
                     }
                     quad_size = rect_size;
                 }
@@ -500,10 +500,8 @@ pub fn queue_sprites(
 
                 // Apply size and global transform
                 let positions = QUAD_VERTEX_POSITIONS.map(|quad_pos| {
-                    extracted_sprite
-                        .transform
-                        .mul_vec3((quad_pos * quad_size).extend(0.))
-                        .into()
+                    let pos = quad_pos.mul_element_wise(quad_size).extend(0.);
+                    (extracted_sprite.transform * pos).into()
                 });
 
                 // These items will be sorted by depth with other phase items

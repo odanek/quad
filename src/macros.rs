@@ -13,6 +13,9 @@ macro_rules! all_tuples {
         $macro!(A, B, C, D, E, F, G, H, I, J);
         $macro!(A, B, C, D, E, F, G, H, I, J, K);
         $macro!(A, B, C, D, E, F, G, H, I, J, K, L);
+        $macro!(A, B, C, D, E, F, G, H, I, J, K, L, M);
+        $macro!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
+        $macro!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
     };
 }
 
