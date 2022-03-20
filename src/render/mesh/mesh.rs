@@ -61,10 +61,6 @@ impl Mesh {
     pub const ATTRIBUTE_UV_0: MeshVertexAttribute =
         MeshVertexAttribute::new("Vertex_Uv", 2, VertexFormat::Float32x2);
 
-    /// The direction of the vertex tangent. Used for normal mapping
-    pub const ATTRIBUTE_TANGENT: MeshVertexAttribute =
-        MeshVertexAttribute::new("Vertex_Tangent", 3, VertexFormat::Float32x4);
-
     /// Per vertex coloring. Use in conjunction with [`Mesh::insert_attribute`]
     pub const ATTRIBUTE_COLOR: MeshVertexAttribute =
         MeshVertexAttribute::new("Vertex_Color", 4, VertexFormat::Uint32);

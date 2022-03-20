@@ -21,9 +21,6 @@ struct Vertex {
     [[location(0)]] position: vec3<f32>;
     [[location(1)]] normal: vec3<f32>;
     [[location(2)]] uv: vec2<f32>;
-#ifdef VERTEX_TANGENTS
-    [[location(3)]] tangent: vec4<f32>;
-#endif
 };
 
 struct VertexOutput {
@@ -31,9 +28,6 @@ struct VertexOutput {
     [[location(0)]] world_position: vec4<f32>;
     [[location(1)]] world_normal: vec3<f32>;
     [[location(2)]] uv: vec2<f32>;
-#ifdef VERTEX_TANGENTS
-    [[location(3)]] world_tangent: vec4<f32>;
-#endif
 };
 
 [[group(0), binding(0)]]
@@ -55,16 +49,6 @@ fn vertex(vertex: Vertex) -> VertexOutput {
         mesh.inverse_transpose_model[1].xyz,
         mesh.inverse_transpose_model[2].xyz
     ) * vertex.normal;
-#ifdef VERTEX_TANGENTS
-    out.world_tangent = vec4<f32>(
-        mat3x3<f32>(
-            mesh.model[0].xyz,
-            mesh.model[1].xyz,
-            mesh.model[2].xyz
-        ) * vertex.tangent.xyz,
-        vertex.tangent.w
-    );
-#endif
     return out;
 }
 
@@ -73,9 +57,6 @@ struct FragmentInput {
     [[location(0)]] world_position: vec4<f32>;
     [[location(1)]] world_normal: vec3<f32>;
     [[location(2)]] uv: vec2<f32>;
-#ifdef VERTEX_TANGENTS
-    [[location(3)]] world_tangent: vec4<f32>;
-#endif
 };
 
 [[stage(fragment)]]
