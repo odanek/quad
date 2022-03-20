@@ -544,11 +544,7 @@ impl<'w, 's, State: FetchState> Fetch<'w, 's> for NopFetch<State> {
     type State = State;
 
     #[inline]
-    unsafe fn new(
-        _world: &World,
-        _state: &Self::State,
-        _system_ticks: SystemTicks,
-    ) -> Self {
+    unsafe fn new(_world: &World, _state: &Self::State, _system_ticks: SystemTicks) -> Self {
         Self { state: PhantomData }
     }
 

@@ -3,6 +3,7 @@ mod dynamic_texture_atlas_builder;
 mod mesh2d;
 mod rect;
 mod render;
+#[allow(clippy::module_inception)]
 mod sprite;
 mod texture_atlas;
 mod texture_atlas_builder;
@@ -32,7 +33,7 @@ pub struct SpritePlugin;
 pub const SPRITE_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 2763343953151597127);
 
-fn sprite_plugin(app: &mut App, render_app: &mut App) {
+pub fn sprite_plugin(app: &mut App, render_app: &mut App) {
     let mut shaders = app.world.resource_mut::<Assets<Shader>>();
     let sprite_shader = Shader::from_wgsl(include_str!("sprite/render/sprite.wgsl"));
     shaders.set_untracked(SPRITE_SHADER_HANDLE, sprite_shader);

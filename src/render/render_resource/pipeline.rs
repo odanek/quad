@@ -2,7 +2,7 @@ use std::{borrow::Cow, ops::Deref, sync::Arc};
 use uuid::Uuid;
 use wgpu::{
     BufferAddress, ColorTargetState, DepthStencilState, MultisampleState, PrimitiveState,
-    VertexAttribute, VertexStepMode, VertexFormat,
+    VertexAttribute, VertexFormat, VertexStepMode,
 };
 
 use crate::asset::Handle;
@@ -77,7 +77,7 @@ impl Deref for ComputePipeline {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct RenderPipelineDescriptor {
     pub label: Option<Cow<'static, str>>,
     pub layout: Option<Vec<BindGroupLayout>>,
@@ -88,7 +88,7 @@ pub struct RenderPipelineDescriptor {
     pub fragment: Option<FragmentState>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VertexState {
     pub shader: Handle<Shader>,
     pub shader_defs: Vec<String>,
@@ -131,7 +131,7 @@ impl VertexBufferLayout {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FragmentState {
     pub shader: Handle<Shader>,
     pub shader_defs: Vec<String>,

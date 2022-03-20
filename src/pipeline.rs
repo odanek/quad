@@ -321,6 +321,7 @@ pub fn extract_core_pipeline_camera_phases(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn prepare_core_views_system(
     mut commands: Commands,
     mut texture_cache: ResMut<TextureCache>,

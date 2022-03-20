@@ -87,7 +87,7 @@ impl<S: SpecializedMeshPipeline> SpecializedMeshPipelines<S> {
         // TODO Bevy uses PreHashMap here, is this change ok and fast enough?
         let map = self
             .mesh_layout_cache
-            .entry(layout)
+            .entry(layout.clone())
             .or_insert_with(Default::default);
 
         // let map = self
@@ -113,7 +113,7 @@ impl<S: SpecializedMeshPipeline> SpecializedMeshPipelines<S> {
                 // TODO Changed from Bevy, is it ok?
                 let layout_map = self
                     .vertex_layout_cache
-                    .entry(&descriptor.vertex.buffers[0])
+                    .entry(descriptor.vertex.buffers[0].clone())
                     .or_insert_with(Default::default);
 
                 // let layout_map = match self

@@ -9,7 +9,7 @@ use crate::ecs::{
 
 use super::{
     access::FilteredAccess,
-    fetch::{Fetch, FetchState, ReadOnlyFetch, WorldQuery, NopFetch},
+    fetch::{Fetch, FetchState, NopFetch, ReadOnlyFetch, WorldQuery},
     filter::FilterFetch,
     iter::QueryIter,
 };

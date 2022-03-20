@@ -104,11 +104,16 @@ where
     }
 
     #[inline]
-    pub fn get(&self, entity: Entity) -> Result<<Q::ReadOnlyFetch as Fetch<'w, 's>>::Item, QueryEntityError>
-    {
+    pub fn get(
+        &self,
+        entity: Entity,
+    ) -> Result<<Q::ReadOnlyFetch as Fetch<'w, 's>>::Item, QueryEntityError> {
         unsafe {
-            self.state
-                .get_unchecked_manual::<Q::ReadOnlyFetch>(self.world, entity, self.system_ticks)
+            self.state.get_unchecked_manual::<Q::ReadOnlyFetch>(
+                self.world,
+                entity,
+                self.system_ticks,
+            )
         }
     }
 

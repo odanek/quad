@@ -18,6 +18,7 @@ use crate::{
         render_phase::{DrawFunctions, PhaseItem, RenderCommand, RenderCommandState},
         render_plugin, update_render_app,
     },
+    sprite::sprite_plugin,
     timing::{timing_plugin, Time},
     windowing::{windowing_plugin, Window, Windows},
     Scene, SceneResult,
@@ -65,6 +66,7 @@ impl App {
     // TODO Move to MainApp trait
     pub(crate) fn add_render_plugin(&mut self, render_app: &mut App) -> &mut Self {
         render_plugin(self, render_app);
+        sprite_plugin(self, render_app);
         self
     }
 

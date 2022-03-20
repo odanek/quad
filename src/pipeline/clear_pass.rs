@@ -20,6 +20,7 @@ use crate::{
 use super::{ClearColor, RenderTargetClearColors};
 
 pub struct ClearPassNode {
+    #[allow(clippy::type_complexity)]
     query: QueryState<
         (
             &'static ViewTarget,

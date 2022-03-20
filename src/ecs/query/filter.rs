@@ -13,7 +13,7 @@ use crate::{
 
 use super::{
     access::FilteredAccess,
-    fetch::{Fetch, FetchState, WorldQuery, ReadOnlyFetch},
+    fetch::{Fetch, FetchState, ReadOnlyFetch, WorldQuery},
 };
 
 pub trait FilterFetch: for<'w, 's> Fetch<'w, 's> {
