@@ -1,6 +1,5 @@
 #[allow(clippy::module_inception)]
 mod mesh;
-pub mod shape;
 
 pub use mesh::*;
 
