@@ -27,7 +27,7 @@ use super::{Material2d, Material2dPipeline, MaterialMesh2dBundle};
 pub const COLOR_MATERIAL_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 3253086872234592509);
 
-fn color_material_plugin(app: &mut App, render_app: &mut App) {
+pub fn color_material_plugin(app: &mut App, render_app: &mut App) {
     load_internal_asset!(
         app,
         COLOR_MATERIAL_SHADER_HANDLE,

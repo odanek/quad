@@ -4,6 +4,7 @@ use std::marker::PhantomData;
 use crate::app::{App, Stage};
 use crate::asset::{Asset, AssetServer, Handle};
 use crate::ecs::{Bundle, Entity, FromWorld, Query, Res, ResMut, Resource, SystemParamItem, World};
+use crate::pipeline::Transparent2d;
 use crate::render::mesh::{Mesh, MeshVertexBufferLayout};
 use crate::render::render_asset::{render_asset_plugin, RenderAsset, RenderAssets};
 use crate::render::render_component::extract_component_plugin;

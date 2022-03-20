@@ -55,18 +55,18 @@ pub const MESH2D_SHADER_HANDLE: HandleUntyped =
 
 pub fn mesh_2d_render_plugin(app: &mut App, render_app: &mut App) {
     load_internal_asset!(app, MESH2D_SHADER_HANDLE, "mesh2d.wgsl", Shader::from_wgsl);
-    load_internal_asset!(
-        app,
-        MESH2D_STRUCT_HANDLE,
-        "mesh2d_struct.wgsl",
-        Shader::from_wgsl
-    );
-    load_internal_asset!(
-        app,
-        MESH2D_VIEW_BIND_GROUP_HANDLE,
-        "mesh2d_view_bind_group.wgsl",
-        Shader::from_wgsl
-    );
+    // load_internal_asset!(
+    //     app,
+    //     MESH2D_STRUCT_HANDLE,
+    //     "mesh2d_struct.wgsl",
+    //     Shader::from_wgsl
+    // );
+    // load_internal_asset!(
+    //     app,
+    //     MESH2D_VIEW_BIND_GROUP_HANDLE,
+    //     "mesh2d_view_bind_group.wgsl",
+    //     Shader::from_wgsl
+    // );
 
     uniform_component_plugin::<Mesh2dUniform>(render_app);
 

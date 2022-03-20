@@ -6,6 +6,7 @@ pub mod app;
 pub mod asset;
 pub mod ecs;
 pub mod input;
+pub mod pipeline;
 pub mod reflect;
 pub mod render;
 mod run;

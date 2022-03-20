@@ -18,6 +18,7 @@ use crate::{
         Commands, Component, Entity, EventReader, FromWorld, Query, Res, ResMut, Resource,
         SystemParamItem, World,
     },
+    pipeline::Transparent2d,
     render::{
         color::Color,
         render_asset::RenderAssets,
@@ -39,7 +40,7 @@ use crate::{
     ty::{FloatOrd, Vec2},
 };
 
-use super::{Rect, Sprite, TextureAtlas, TextureAtlasSprite};
+use super::{Rect, Sprite, TextureAtlas, TextureAtlasSprite, SPRITE_SHADER_HANDLE};
 
 #[derive(Resource)]
 pub struct SpritePipeline {
