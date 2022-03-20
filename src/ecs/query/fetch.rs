@@ -534,3 +534,33 @@ macro_rules! impl_tuple_fetch {
 }
 
 all_pair_tuples!(impl_tuple_fetch);
+
+pub struct NopFetch<State> {
+    state: PhantomData<State>,
+}
+
+impl<'w, 's, State: FetchState> Fetch<'w, 's> for NopFetch<State> {
+    type Item = ();
+    type State = State;
+
+    #[inline]
+    unsafe fn new(
+        _world: &World,
+        _state: &Self::State,
+        _system_ticks: SystemTicks,
+    ) -> Self {
+        Self { state: PhantomData }
+    }
+
+    #[inline(always)]
+    unsafe fn set_archetype(
+        &mut self,
+        _state: &Self::State,
+        _archetype: &Archetype,
+        _tables: &Tables,
+    ) {
+    }
+
+    #[inline(always)]
+    unsafe fn archetype_fetch(&mut self, _archetype_index: usize) -> Self::Item {}
+}

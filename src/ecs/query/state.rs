@@ -9,7 +9,7 @@ use crate::ecs::{
 
 use super::{
     access::FilteredAccess,
-    fetch::{Fetch, FetchState, ReadOnlyFetch, WorldQuery},
+    fetch::{Fetch, FetchState, ReadOnlyFetch, WorldQuery, NopFetch},
     filter::FilterFetch,
     iter::QueryIter,
 };
@@ -54,7 +54,7 @@ where
     pub fn is_empty(&self, world: &World) -> bool {
         let tick = Tick::default();
         unsafe {
-            self.iter_unchecked_manual(world, SystemTicks::new(tick, tick))
+            self.iter_unchecked_manual::<NopFetch<Q::State>>(world, SystemTicks::new(tick, tick))
                 .none_remaining()
         }
     }
@@ -105,20 +105,36 @@ where
         entity: Entity,
     ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError> {
         self.update_archetypes(world);
-        self.get_unchecked_manual(
+        self.get_unchecked_manual::<Q::Fetch>(
             world,
             entity,
             SystemTicks::new(world.last_change_tick(), world.change_tick()),
         )
     }
 
+    #[inline]
+    pub fn get_manual<'w, 's>(
+        &'s self,
+        world: &'w World,
+        entity: Entity,
+    ) -> Result<<Q::ReadOnlyFetch as Fetch<'w, 's>>::Item, QueryEntityError> {
+        // TODO Validate world
+        unsafe {
+            self.get_unchecked_manual::<Q::ReadOnlyFetch>(
+                world,
+                entity,
+                SystemTicks::new(world.last_change_tick(), world.change_tick()),
+            )
+        }
+    }
+
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn get_unchecked_manual<'w, 's>(
+    pub unsafe fn get_unchecked_manual<'w, 's, QF: Fetch<'w, 's, State = Q::State>>(
         &'s self,
         world: &'w World,
         entity: Entity,
         system_ticks: SystemTicks,
-    ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError> {
+    ) -> Result<QF::Item, QueryEntityError> {
         let location = world
             .entities()
             .get(entity)
@@ -127,7 +143,7 @@ where
             return Err(QueryEntityError::QueryDoesNotMatch);
         }
         let archetype = &world.archetype(location.archetype_id);
-        let mut fetch = <Q::Fetch as Fetch>::new(world, &self.fetch_state, system_ticks);
+        let mut fetch = QF::new(world, &self.fetch_state, system_ticks);
         let mut filter = <F::Fetch as Fetch>::new(world, &self.filter_state, system_ticks);
 
         fetch.set_archetype(&self.fetch_state, archetype, &world.storages().tables);

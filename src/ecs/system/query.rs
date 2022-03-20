@@ -104,13 +104,11 @@ where
     }
 
     #[inline]
-    pub fn get(&self, entity: Entity) -> Result<<Q::Fetch as Fetch>::Item, QueryEntityError>
-    where
-        Q::Fetch: ReadOnlyFetch,
+    pub fn get(&self, entity: Entity) -> Result<<Q::ReadOnlyFetch as Fetch<'w, 's>>::Item, QueryEntityError>
     {
         unsafe {
             self.state
-                .get_unchecked_manual(self.world, entity, self.system_ticks)
+                .get_unchecked_manual::<Q::ReadOnlyFetch>(self.world, entity, self.system_ticks)
         }
     }
 
@@ -121,7 +119,7 @@ where
     ) -> Result<<Q::Fetch as Fetch>::Item, QueryEntityError> {
         unsafe {
             self.state
-                .get_unchecked_manual(self.world, entity, self.system_ticks)
+                .get_unchecked_manual::<Q::Fetch>(self.world, entity, self.system_ticks)
         }
     }
 
@@ -130,9 +128,9 @@ where
     pub unsafe fn get_unchecked(
         &self,
         entity: Entity,
-    ) -> Result<<Q::Fetch as Fetch>::Item, QueryEntityError> {
+    ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError> {
         self.state
-            .get_unchecked_manual(self.world, entity, self.system_ticks)
+            .get_unchecked_manual::<Q::Fetch>(self.world, entity, self.system_ticks)
     }
 
     #[inline]
