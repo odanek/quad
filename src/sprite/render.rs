@@ -40,7 +40,10 @@ use crate::{
     ty::{FloatOrd, Vec2},
 };
 
-use super::{Rect, Sprite, TextureAtlas, TextureAtlasSprite, SPRITE_SHADER_HANDLE};
+use super::{
+    Rect, Sprite, TextureAtlas, TextureAtlasSprite, SPRITE_COLORED_SHADER_HANDLE,
+    SPRITE_SHADER_HANDLE,
+};
 
 #[derive(Resource)]
 pub struct SpritePipeline {
@@ -139,20 +142,25 @@ impl SpecializedPipeline for SpritePipeline {
         let vertex_layout =
             VertexBufferLayout::from_vertex_formats(VertexStepMode::Vertex, formats);
 
-        let mut shader_defs = Vec::new();
-        if key.contains(SpritePipelineKey::COLORED) {
-            shader_defs.push("COLORED".to_string());
-        }
+        let colored = key.contains(SpritePipelineKey::COLORED);
+        let shader_handle = || {
+            if colored {
+                SPRITE_COLORED_SHADER_HANDLE
+            } else {
+                SPRITE_SHADER_HANDLE
+            }
+        };
+        let shader_defs = Vec::new();
 
         RenderPipelineDescriptor {
             vertex: VertexState {
-                shader: SPRITE_SHADER_HANDLE.typed::<Shader>(),
+                shader: shader_handle().typed::<Shader>(),
                 entry_point: "vertex".into(),
                 shader_defs: shader_defs.clone(),
                 buffers: vec![vertex_layout],
             },
             fragment: Some(FragmentState {
-                shader: SPRITE_SHADER_HANDLE.typed::<Shader>(),
+                shader: shader_handle().typed::<Shader>(),
                 shader_defs,
                 entry_point: "fragment".into(),
                 targets: vec![ColorTargetState {
