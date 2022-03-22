@@ -23,7 +23,6 @@ use super::{
     FilterFetch, Res,
 };
 
-#[derive(Default)]
 pub struct World {
     resources: Resources,
     archetypes: Archetypes,
@@ -34,6 +33,22 @@ pub struct World {
     removed_components: HashMap<ComponentId, Vec<Entity>>,
     last_change_tick: Tick,
     change_tick: AtomicU32,
+}
+
+impl Default for World {
+    fn default() -> Self {
+        Self {
+            resources: Default::default(),
+            archetypes: Default::default(),
+            entities: Default::default(),
+            components: Default::default(),
+            storages: Default::default(),
+            bundles: Default::default(),
+            removed_components: Default::default(),
+            last_change_tick: Default::default(),
+            change_tick: AtomicU32::new(1), // So that changes are detected for first system run
+        }
+    }
 }
 
 #[allow(dead_code)]

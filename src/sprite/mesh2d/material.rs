@@ -167,8 +167,8 @@ pub trait SpecializedMaterial2d: Asset + RenderAsset {
 /// asset type (which includes [`Material2d`] types).
 pub fn material_2d_plugin<M: SpecializedMaterial2d>(app: &mut App, render_app: &mut App) {
     app.add_asset::<M>();
-    extract_component_plugin::<Handle<M>>(render_app);
-    render_asset_plugin::<M>(render_app);
+    extract_component_plugin::<Handle<M>>(app, render_app);
+    render_asset_plugin::<M>(app, render_app);
 
     render_app
         .add_render_command::<Transparent2d, DrawMaterial2d<M>>()

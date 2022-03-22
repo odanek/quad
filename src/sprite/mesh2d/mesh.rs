@@ -12,8 +12,8 @@ use crate::{
     app::{App, Stage},
     asset::{load_internal_asset, Handle, HandleUntyped},
     ecs::{
-        Commands, Component, Entity, FromWorld, Local, Query, Res, Resource, SystemParamItem, With,
-        World,
+        Commands, Component, Entity, FromWorld, IntoSystem, Local, Query, Res, Resource,
+        SystemParamItem, With, World,
     },
     reflect::TypeUuid,
     render::{
@@ -57,7 +57,7 @@ pub fn mesh_2d_render_plugin(app: &mut App, render_app: &mut App) {
     render_app
         .init_resource::<Mesh2dPipeline>()
         .init_resource::<SpecializedMeshPipelines<Mesh2dPipeline>>()
-        .add_system_to_stage(Stage::RenderExtract, &extract_mesh2d)
+        .add_system_to_stage(Stage::RenderExtract, extract_mesh2d.system(&mut app.world))
         .add_system_to_stage(Stage::RenderQueue, &queue_mesh2d_bind_group)
         .add_system_to_stage(Stage::RenderQueue, &queue_mesh2d_view_bind_groups);
 }

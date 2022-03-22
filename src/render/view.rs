@@ -11,7 +11,7 @@ use wgpu::{
 
 use crate::{
     app::{App, Stage},
-    ecs::{Commands, Component, Entity, Query, Res, ResMut, Resource},
+    ecs::{Commands, Component, Entity, IntoSystem, Query, Res, ResMut, Resource},
     transform::GlobalTransform,
     ty::{Mat4, Vec3},
 };
@@ -32,7 +32,7 @@ pub fn view_plugin(app: &mut App, render_app: &mut App) {
     visibility_plugin(app);
     render_app
         .init_resource::<ViewUniforms>()
-        .add_system_to_stage(Stage::RenderExtract, &extract_msaa)
+        .add_system_to_stage(Stage::RenderExtract, extract_msaa.system(&mut app.world))
         .add_system_to_stage(Stage::RenderPrepare, &prepare_view_uniforms)
         .add_system_to_stage(Stage::RenderPrepare, &prepare_view_targets); // TODO Ensure that runs after prepare_windows
 }

@@ -94,6 +94,12 @@ impl DerefMut for RenderQueue {
 #[derive(Resource)]
 pub struct RenderInstance(Instance);
 
+impl RenderInstance {
+    pub fn new(instance: Instance) -> Self {
+        Self(instance)
+    }
+}
+
 impl Deref for RenderInstance {
     type Target = Instance;
 

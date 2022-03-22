@@ -6,8 +6,8 @@ use crate::{
     app::{App, Stage},
     asset::{Asset, Handle},
     ecs::{
-        Commands, Component, Entity, FilterFetch, Local, Query, QueryItem, Res, ResMut, Resource,
-        StaticSystemParam, WorldQuery,
+        Commands, Component, Entity, FilterFetch, IntoSystem, Local, Query, QueryItem, Res, ResMut,
+        Resource, StaticSystemParam, WorldQuery,
     },
 };
 
@@ -124,11 +124,14 @@ fn prepare_uniform_components<C: Component>(
 /// Therefore it sets up the [`RenderStage::Extract`](crate::RenderStage::Extract) step
 /// for the specified [`ExtractComponent`].
 
-pub fn extract_component_plugin<C: ExtractComponent>(render_app: &mut App)
+pub fn extract_component_plugin<C: ExtractComponent>(app: &mut App, render_app: &mut App)
 where
     <C::Filter as WorldQuery>::Fetch: FilterFetch,
 {
-    render_app.add_system_to_stage(Stage::RenderExtract, &extract_components::<C>);
+    render_app.add_system_to_stage(
+        Stage::RenderExtract,
+        extract_components::<C>.system(&mut app.world),
+    );
 }
 
 impl<T: Asset> ExtractComponent for Handle<T> {

@@ -17,13 +17,13 @@ use std::ops::{Deref, DerefMut};
 use crate::{
     app::{App, Stage},
     asset::AssetServer,
-    ecs::{Resource, World},
+    ecs::{IntoSystem, Resource, World},
     render::{
         cameras::camera_plugin,
         mesh::mesh_plugin,
         render_graph::RenderGraph,
         render_resource::RenderPipelineCache,
-        renderer::render_system,
+        renderer::{render_system, RenderInstance},
         texture::image_plugin,
         view::{view_plugin, window::window_render_plugin},
     },
@@ -99,6 +99,7 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
     let asset_server = app.world.resource::<AssetServer>().clone();
 
     render_app
+        .insert_resource(RenderInstance::new(instance))
         .insert_resource(device)
         .insert_resource(queue)
         .insert_resource(adapter_info)
@@ -106,14 +107,19 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
         .insert_resource(asset_server)
         .init_resource::<RenderGraph>();
 
-    render_app.add_system_to_stage(Stage::RenderExtract, &RenderPipelineCache::extract_shaders);
+    // Has to use world from the main app
+    render_app.add_system_to_stage(
+        Stage::RenderExtract,
+        (RenderPipelineCache::extract_shaders).system(&mut app.world),
+    );
+
     render_app.add_system_to_stage(
         Stage::RenderRender,
         &RenderPipelineCache::process_pipeline_queue_system,
     );
 
     // TODO Must run after transform_propagate_system - where to add it?
-    window_render_plugin(render_app);
+    window_render_plugin(app, render_app);
     camera_plugin(app, render_app);
     view_plugin(app, render_app);
     mesh_plugin(app, render_app); // TODO DO I need this for 2D rendering?

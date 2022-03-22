@@ -7,7 +7,7 @@ use crate::{
     app::{App, Stage},
     asset::{Asset, AssetEvent, Assets, Handle},
     ecs::{
-        Commands, EventReader, Res, ResMut, Resource, StaticSystemParam, SystemParam,
+        Commands, EventReader, IntoSystem, Res, ResMut, Resource, StaticSystemParam, SystemParam,
         SystemParamItem,
     },
 };
@@ -43,12 +43,15 @@ pub trait RenderAsset: Asset {
     ) -> Result<Self::PreparedAsset, PrepareAssetError<Self::ExtractedAsset>>;
 }
 
-pub fn render_asset_plugin<A: RenderAsset>(render_app: &mut App) {
+pub fn render_asset_plugin<A: RenderAsset>(app: &mut App, render_app: &mut App) {
     render_app
         .init_resource::<ExtractedAssets<A>>()
         .init_resource::<RenderAssets<A>>()
         .init_resource::<PrepareNextFrameAssets<A>>()
-        .add_system_to_stage(Stage::RenderExtract, &extract_render_asset::<A>)
+        .add_system_to_stage(
+            Stage::RenderExtract,
+            extract_render_asset::<A>.system(&mut app.world),
+        )
         .add_system_to_stage(Stage::RenderPrepare, &prepare_assets::<A>);
 }
 

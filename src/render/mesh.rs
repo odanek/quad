@@ -10,5 +10,5 @@ use super::render_asset::render_asset_plugin;
 // TODO Does quad need meshes at all?
 pub fn mesh_plugin(app: &mut App, render_app: &mut App) {
     app.add_asset::<Mesh>();
-    render_asset_plugin::<Mesh>(render_app);
+    render_asset_plugin::<Mesh>(app, render_app);
 }

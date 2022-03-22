@@ -14,6 +14,7 @@ use crate::{
         SystemParam, World,
     },
     input::input_plugin,
+    pipeline::core_pipeline_plugin,
     render::{
         render_phase::{DrawFunctions, PhaseItem, RenderCommand, RenderCommandState},
         render_plugin, update_render_app,
@@ -66,6 +67,7 @@ impl App {
     // TODO Move to MainApp trait
     pub(crate) fn add_render_plugin(&mut self, render_app: &mut App) -> &mut Self {
         render_plugin(self, render_app);
+        core_pipeline_plugin(self, render_app);
         sprite_plugin(self, render_app);
         self
     }

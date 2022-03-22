@@ -13,7 +13,7 @@ use std::{collections::HashMap, ops::Range};
 
 use crate::{
     app::{App, Stage},
-    ecs::{Commands, Entity, Query, Res, ResMut, Resource, With},
+    ecs::{Commands, Entity, IntoSystem, Query, Res, ResMut, Resource, With},
     render::{
         cameras::{ActiveCamera, Camera2d, RenderTarget},
         color::Color,
@@ -95,8 +95,14 @@ pub fn core_pipeline_plugin(app: &mut App, render_app: &mut App) {
         .init_resource::<DrawFunctions<Opaque3d>>()
         .init_resource::<DrawFunctions<AlphaMask3d>>()
         .init_resource::<DrawFunctions<Transparent3d>>()
-        .add_system_to_stage(Stage::RenderExtract, &extract_clear_color)
-        .add_system_to_stage(Stage::RenderExtract, &extract_core_pipeline_camera_phases)
+        .add_system_to_stage(
+            Stage::RenderExtract,
+            extract_clear_color.system(&mut app.world),
+        )
+        .add_system_to_stage(
+            Stage::RenderExtract,
+            extract_core_pipeline_camera_phases.system(&mut app.world),
+        )
         .add_system_to_stage(Stage::RenderPrepare, &prepare_core_views_system)
         .add_system_to_stage(Stage::RenderPhaseSort, &sort_phase_system::<Transparent2d>)
         .add_system_to_stage(Stage::RenderPhaseSort, &batch_phase_system::<Transparent2d>)

@@ -6,7 +6,7 @@ use wgpu::TextureFormat;
 
 use crate::{
     app::{App, Stage},
-    ecs::{Res, ResMut, Resource},
+    ecs::{IntoSystem, Res, ResMut, Resource},
     render::{
         render_resource::TextureView,
         renderer::{RenderDevice, RenderInstance},
@@ -16,11 +16,11 @@ use crate::{
     windowing::{PresentMode, RawWindowHandleWrapper, WindowId, Windows},
 };
 
-pub fn window_render_plugin(render_app: &mut App) {
+pub fn window_render_plugin(app: &mut App, render_app: &mut App) {
     render_app
         .init_resource::<ExtractedWindows>()
         .init_resource::<WindowSurfaces>()
-        .add_system_to_stage(Stage::RenderExtract, &extract_windows)
+        .add_system_to_stage(Stage::RenderExtract, extract_windows.system(&mut app.world))
         .add_system_to_stage(Stage::RenderPrepare, &prepare_windows);
 }
 

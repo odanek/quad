@@ -7,8 +7,8 @@ use crate::{
     app::{App, Stage},
     asset::{AssetEvent, Assets, Handle},
     ecs::{
-        Added, Commands, Component, DetectChanges, Entity, EventReader, Query, QuerySet,
-        QueryState, Res, ResMut, Resource, With,
+        Added, Commands, Component, DetectChanges, Entity, EventReader, IntoSystem, Query,
+        QuerySet, QueryState, Res, ResMut, Resource, With,
     },
     render::{
         render_asset::RenderAssets,
@@ -212,7 +212,10 @@ pub fn camera_type_plugin<T: Component + Default>(app: &mut App, render_app: &mu
         // TODO Initialize the camera
         //.add_startup_system_to_stage(StartupStage::PostStartup, set_active_camera::<T>)
         .add_system_to_stage(Stage::PostUpdate, &set_active_camera::<T>);
-    render_app.add_system_to_stage(Stage::RenderExtract, &extract_cameras::<T>);
+    render_app.add_system_to_stage(
+        Stage::RenderExtract,
+        extract_cameras::<T>.system(&mut app.world),
+    );
 }
 
 /// The canonical source of the "active camera" of the given camera type `T`.

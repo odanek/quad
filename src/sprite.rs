@@ -22,6 +22,7 @@ pub use texture_atlas_builder::*;
 use crate::{
     app::{App, Stage},
     asset::{Assets, HandleUntyped},
+    ecs::IntoSystem,
     pipeline::Transparent2d,
     reflect::TypeUuid,
     render::render_resource::{Shader, SpecializedPipelines},
@@ -54,7 +55,10 @@ pub fn sprite_plugin(app: &mut App, render_app: &mut App) {
         .init_resource::<ExtractedSprites>()
         .init_resource::<SpriteAssetEvents>()
         .add_render_command::<Transparent2d, DrawSprite>()
-        .add_system_to_stage(Stage::RenderExtract, &render::extract_sprites)
-        .add_system_to_stage(Stage::RenderExtract, &render::extract_sprite_events)
+        .add_system_to_stage(Stage::RenderExtract, extract_sprites.system(&mut app.world))
+        .add_system_to_stage(
+            Stage::RenderExtract,
+            extract_sprite_events.system(&mut app.world),
+        )
         .add_system_to_stage(Stage::RenderQueue, &queue_sprites);
 }
