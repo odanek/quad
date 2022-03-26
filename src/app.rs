@@ -21,6 +21,7 @@ use crate::{
     },
     sprite::sprite_plugin,
     timing::{timing_plugin, Time},
+    transform::transform_plugin,
     windowing::{windowing_plugin, Window, Windows},
     Scene, SceneResult,
 };
@@ -61,6 +62,11 @@ impl App {
     pub fn add_asset_plugin(&mut self, settings: &AssetServerSettings) -> &mut Self {
         self.world.insert_resource(settings.clone());
         asset_plugin(self);
+        self
+    }
+
+    pub fn add_transform_plugin(&mut self) -> &mut Self {
+        transform_plugin(self);
         self
     }
 

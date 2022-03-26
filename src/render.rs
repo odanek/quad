@@ -118,7 +118,6 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
         &RenderPipelineCache::process_pipeline_queue_system,
     );
 
-    // TODO Must run after transform_propagate_system - where to add it?
     window_render_plugin(app, render_app);
     camera_plugin(app, render_app);
     view_plugin(app, render_app);

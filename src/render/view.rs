@@ -26,7 +26,6 @@ use super::{
     texture::{BevyDefault, Image, TextureCache},
 };
 
-// TODO This must be called after the window_render_plugin
 pub fn view_plugin(app: &mut App, render_app: &mut App) {
     app.init_resource::<Msaa>();
     visibility_plugin(app);
@@ -34,7 +33,7 @@ pub fn view_plugin(app: &mut App, render_app: &mut App) {
         .init_resource::<ViewUniforms>()
         .add_system_to_stage(Stage::RenderExtract, extract_msaa.system(&mut app.world))
         .add_system_to_stage(Stage::RenderPrepare, &prepare_view_uniforms)
-        .add_system_to_stage(Stage::RenderPrepare, &prepare_view_targets); // TODO Ensure that runs after prepare_windows
+        .add_system_to_stage(Stage::RenderPrepare, &prepare_view_targets); // Must run after prepare_windows
 }
 
 #[derive(Clone)]

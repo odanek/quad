@@ -62,11 +62,10 @@ impl VisibleEntities {
     }
 }
 
-// TODO Make sure the systems are run in correct order (see Bevy) - must run after transform_propagate_system
 pub fn visibility_plugin(app: &mut App) {
     app.add_system_to_stage(Stage::PostUpdate, &calculate_bounds)
-        .add_system_to_stage(Stage::PostUpdate, &update_frusta::<OrthographicProjection>)
-        .add_system_to_stage(Stage::PostUpdate, &check_visibility);
+        .add_system_to_stage(Stage::PostUpdate, &update_frusta::<OrthographicProjection>) // Must run after transform_propagate_system
+        .add_system_to_stage(Stage::PostUpdate, &check_visibility); // After calculate_bounds and update_frust
 }
 
 #[allow(clippy::type_complexity)]

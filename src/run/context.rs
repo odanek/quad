@@ -31,6 +31,7 @@ impl RunContext {
     }
 
     pub fn start_scene(&mut self) {
+        // TODO transform_propagate_system and maybe other should rung after start (and other phases?) before the update
         self.scene.start(&mut self.app.world);
     }
 

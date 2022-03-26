@@ -74,6 +74,7 @@ impl Quad {
         self.app.create_pools(&config.task_pool_options);
     }
 
+    // TODO Wrap all of this in the MainApp and RenderApp traits
     fn add_plugins(&mut self, config: &QuadConfig) {
         let app = &mut self.app;
         app.add_windowing_plugin();
@@ -85,6 +86,7 @@ impl Quad {
         app.add_timing_plugin();
         app.add_input_plugin();
         app.add_asset_plugin(&config.asset_server_settings);
+        app.add_transform_plugin();
         app.add_render_plugin(&mut self.render_app);
     }
 }
