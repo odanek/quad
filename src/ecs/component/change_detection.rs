@@ -133,6 +133,7 @@ impl<'w, T: Resource> Deref for ResMut<'w, T> {
 impl<'w, T: Resource> DerefMut for ResMut<'w, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
+        self.set_changed();
         self.value
     }
 }
