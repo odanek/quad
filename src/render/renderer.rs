@@ -1,13 +1,11 @@
 mod graph_runner;
 mod render_device;
 
+use derive_deref::{Deref, DerefMut};
 pub use graph_runner::*;
 pub use render_device::*;
 
-use std::{
-    ops::{Deref, DerefMut},
-    sync::Arc,
-};
+use std::sync::Arc;
 use wgpu::{AdapterInfo, CommandEncoder, Instance, Queue, RequestAdapterOptions};
 
 use crate::ecs::{Entity, ResMut, Resource, With, World};
@@ -68,30 +66,10 @@ pub fn render_system(world: &mut World) {
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, Clone, Deref, DerefMut)]
 pub struct RenderQueue(Arc<Queue>);
 
-impl Clone for RenderQueue {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
-
-impl Deref for RenderQueue {
-    type Target = Arc<Queue>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for RenderQueue {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-#[derive(Resource)]
+#[derive(Resource, Deref, DerefMut)]
 pub struct RenderInstance(Instance);
 
 impl RenderInstance {
@@ -100,36 +78,8 @@ impl RenderInstance {
     }
 }
 
-impl Deref for RenderInstance {
-    type Target = Instance;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for RenderInstance {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-#[derive(Resource)]
+#[derive(Resource, Clone, Deref)]
 pub struct RenderAdapterInfo(AdapterInfo);
-
-impl Clone for RenderAdapterInfo {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
-
-impl Deref for RenderAdapterInfo {
-    type Target = AdapterInfo;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 
 /// Initializes the renderer by retrieving and preparing the GPU instance, device and queue
 /// for the specified backend.

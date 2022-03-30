@@ -39,6 +39,14 @@ impl Windows {
         self.winit_to_window_id.insert(winit_id, id);
     }
 
+    pub fn scale_factor(&self, id: WindowId) -> f64 {
+        if let Some(window) = self.get(id) {
+            window.scale_factor()
+        } else {
+            1.0
+        }
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = &Window> {
         self.windows.values()
     }

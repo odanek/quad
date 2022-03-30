@@ -12,7 +12,7 @@ pub mod settings;
 pub mod texture;
 pub mod view;
 
-use std::ops::{Deref, DerefMut};
+use derive_deref::{Deref, DerefMut};
 
 use crate::{
     app::{App, Stage},
@@ -33,22 +33,8 @@ use crate::{
 use self::render_resource::{Shader, ShaderLoader};
 
 /// The Render App World. This is only available as a resource during the Extract step.
-#[derive(Default, Resource)]
+#[derive(Default, Resource, Deref, DerefMut)]
 pub struct RenderWorld(World);
-
-impl Deref for RenderWorld {
-    type Target = World;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for RenderWorld {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
 
 /// A Label for the rendering sub-app.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]

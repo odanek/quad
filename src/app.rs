@@ -20,6 +20,7 @@ use crate::{
         render_plugin, update_render_app,
     },
     sprite::sprite_plugin,
+    text::text_plugin,
     timing::{timing_plugin, Time},
     transform::transform_plugin,
     windowing::{windowing_plugin, Window, Windows},
@@ -75,6 +76,7 @@ impl App {
         render_plugin(self, render_app);
         core_pipeline_plugin(self, render_app);
         sprite_plugin(self, render_app);
+        text_plugin(self, render_app);
         self
     }
 

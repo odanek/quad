@@ -12,6 +12,7 @@ pub mod render;
 mod run;
 pub mod sprite;
 pub mod tasks;
+pub mod text;
 pub mod timing;
 pub mod transform;
 pub mod ty;

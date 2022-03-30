@@ -7,13 +7,12 @@ pub use clear_pass::*;
 pub use clear_pass_driver::*;
 pub use main_pass_2d::*;
 pub use main_pass_driver::*;
-use wgpu::{Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 
 use std::{collections::HashMap, ops::Range};
 
 use crate::{
     app::{App, Stage},
-    ecs::{Commands, Entity, IntoSystem, Query, Res, ResMut, Resource, With},
+    ecs::{Commands, Entity, IntoSystem, Res, ResMut, Resource},
     render::{
         cameras::{ActiveCamera, Camera2d, RenderTarget},
         color::Color,
@@ -23,9 +22,6 @@ use crate::{
             DrawFunctionId, DrawFunctions, EntityPhaseItem, PhaseItem, RenderPhase,
         },
         render_resource::CachedPipelineId,
-        renderer::RenderDevice,
-        texture::TextureCache,
-        view::{ExtractedView, Msaa, ViewDepthTexture},
         RenderWorld,
     },
     ty::FloatOrd,
@@ -92,9 +88,6 @@ pub fn core_pipeline_plugin(app: &mut App, render_app: &mut App) {
 
     render_app
         .init_resource::<DrawFunctions<Transparent2d>>()
-        .init_resource::<DrawFunctions<Opaque3d>>()
-        .init_resource::<DrawFunctions<AlphaMask3d>>()
-        .init_resource::<DrawFunctions<Transparent3d>>()
         .add_system_to_stage(
             Stage::RenderExtract,
             extract_clear_color.system(&mut app.world),
@@ -103,12 +96,8 @@ pub fn core_pipeline_plugin(app: &mut App, render_app: &mut App) {
             Stage::RenderExtract,
             extract_core_pipeline_camera_phases.system(&mut app.world),
         )
-        .add_system_to_stage(Stage::RenderPrepare, &prepare_core_views_system)
         .add_system_to_stage(Stage::RenderPhaseSort, &sort_phase_system::<Transparent2d>)
-        .add_system_to_stage(Stage::RenderPhaseSort, &batch_phase_system::<Transparent2d>)
-        .add_system_to_stage(Stage::RenderPhaseSort, &sort_phase_system::<Opaque3d>)
-        .add_system_to_stage(Stage::RenderPhaseSort, &sort_phase_system::<AlphaMask3d>)
-        .add_system_to_stage(Stage::RenderPhaseSort, &sort_phase_system::<Transparent3d>);
+        .add_system_to_stage(Stage::RenderPhaseSort, &batch_phase_system::<Transparent2d>);
 
     let clear_pass_node = ClearPassNode::new(&mut render_app.world);
     let pass_node_2d = MainPass2dNode::new(&mut render_app.world);
@@ -193,111 +182,6 @@ impl BatchedPhaseItem for Transparent2d {
     }
 }
 
-pub struct Opaque3d {
-    pub distance: f32,
-    pub pipeline: CachedPipelineId,
-    pub entity: Entity,
-    pub draw_function: DrawFunctionId,
-}
-
-impl PhaseItem for Opaque3d {
-    type SortKey = FloatOrd;
-
-    #[inline]
-    fn sort_key(&self) -> Self::SortKey {
-        FloatOrd(self.distance)
-    }
-
-    #[inline]
-    fn draw_function(&self) -> DrawFunctionId {
-        self.draw_function
-    }
-}
-
-impl EntityPhaseItem for Opaque3d {
-    #[inline]
-    fn entity(&self) -> Entity {
-        self.entity
-    }
-}
-
-impl CachedPipelinePhaseItem for Opaque3d {
-    #[inline]
-    fn cached_pipeline(&self) -> CachedPipelineId {
-        self.pipeline
-    }
-}
-
-pub struct AlphaMask3d {
-    pub distance: f32,
-    pub pipeline: CachedPipelineId,
-    pub entity: Entity,
-    pub draw_function: DrawFunctionId,
-}
-
-impl PhaseItem for AlphaMask3d {
-    type SortKey = FloatOrd;
-
-    #[inline]
-    fn sort_key(&self) -> Self::SortKey {
-        FloatOrd(self.distance)
-    }
-
-    #[inline]
-    fn draw_function(&self) -> DrawFunctionId {
-        self.draw_function
-    }
-}
-
-impl EntityPhaseItem for AlphaMask3d {
-    #[inline]
-    fn entity(&self) -> Entity {
-        self.entity
-    }
-}
-
-impl CachedPipelinePhaseItem for AlphaMask3d {
-    #[inline]
-    fn cached_pipeline(&self) -> CachedPipelineId {
-        self.pipeline
-    }
-}
-
-pub struct Transparent3d {
-    pub distance: f32,
-    pub pipeline: CachedPipelineId,
-    pub entity: Entity,
-    pub draw_function: DrawFunctionId,
-}
-
-impl PhaseItem for Transparent3d {
-    type SortKey = FloatOrd;
-
-    #[inline]
-    fn sort_key(&self) -> Self::SortKey {
-        FloatOrd(self.distance)
-    }
-
-    #[inline]
-    fn draw_function(&self) -> DrawFunctionId {
-        self.draw_function
-    }
-}
-
-impl EntityPhaseItem for Transparent3d {
-    #[inline]
-    fn entity(&self) -> Entity {
-        self.entity
-    }
-}
-
-impl CachedPipelinePhaseItem for Transparent3d {
-    #[inline]
-    fn cached_pipeline(&self) -> CachedPipelineId {
-        self.pipeline
-    }
-}
-
 pub fn extract_clear_color(
     clear_color: Res<ClearColor>,
     clear_colors: Res<RenderTargetClearColors>,
@@ -324,45 +208,5 @@ pub fn extract_core_pipeline_camera_phases(
         commands
             .get_or_spawn(entity)
             .insert(RenderPhase::<Transparent2d>::default());
-    }
-}
-
-#[allow(clippy::type_complexity)]
-pub fn prepare_core_views_system(
-    mut commands: Commands,
-    mut texture_cache: ResMut<TextureCache>,
-    msaa: Res<Msaa>,
-    render_device: Res<RenderDevice>,
-    views_3d: Query<
-        (Entity, &ExtractedView),
-        (
-            With<RenderPhase<Opaque3d>>,
-            With<RenderPhase<AlphaMask3d>>,
-            With<RenderPhase<Transparent3d>>,
-        ),
-    >,
-) {
-    for (entity, view) in views_3d.iter() {
-        let cached_texture = texture_cache.get(
-            &render_device,
-            TextureDescriptor {
-                label: Some("view_depth_texture"),
-                size: Extent3d {
-                    depth_or_array_layers: 1,
-                    width: view.width as u32,
-                    height: view.height as u32,
-                },
-                mip_level_count: 1,
-                sample_count: msaa.samples,
-                dimension: TextureDimension::D2,
-                format: TextureFormat::Depth32Float, /* PERF: vulkan docs recommend using 24
-                                                      * bit depth for better performance */
-                usage: TextureUsages::RENDER_ATTACHMENT,
-            },
-        );
-        commands.entity(entity).insert(ViewDepthTexture {
-            texture: cached_texture.texture,
-            view: cached_texture.default_view,
-        });
     }
 }
