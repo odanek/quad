@@ -22,7 +22,7 @@ pub use text2d::*;
 
 use crate::{
     app::{App, Stage},
-    ecs::{Entity, Resource},
+    ecs::{Entity, Resource, IntoSystem},
 };
 
 #[derive(Default, Resource, Deref, DerefMut)]
@@ -37,6 +37,6 @@ pub fn text_plugin(app: &mut App, render_app: &mut App) {
 
     render_app.add_system_to_stage(
         Stage::RenderExtract,
-        &extract_text2d_sprite, // Must come after extract_sprites
+        extract_text2d_sprite.system(&mut app.world), // Must come after extract_sprites
     );
 }
