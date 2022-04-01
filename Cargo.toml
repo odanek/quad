@@ -27,7 +27,7 @@ parking_lot = "0.12.0"
 num_cpus = "1.13.0"
 rand = "0.8.4"
 wgpu = "0.12.0"
-naga = { version = "0.8.0", features = ["wgsl-in", "wgsl-out"] }
+naga = { version = "0.8.0", features = ["wgsl-in"] }
 hex = "0.4.3"
 bytemuck = "1.7.3"
 crevice = "0.8.0" # TODO Replace with Encase?
@@ -38,3 +38,4 @@ bytemuck_derive = "1.0.1"
 ab_glyph = "0.2.15"
 glyph_brush_layout = "0.2.3"
 derive_deref = "1.1.1"
+rodio = { version = "0.15", default-features = false, features = ["vorbis"] }

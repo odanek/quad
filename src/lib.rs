@@ -4,6 +4,7 @@ mod macros;
 
 pub mod app;
 pub mod asset;
+pub mod audio;
 pub mod ecs;
 pub mod input;
 pub mod pipeline;

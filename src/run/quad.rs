@@ -3,6 +3,7 @@ use winit::event_loop::EventLoop;
 use crate::{
     app::{App, Stage, TaskPoolOptions},
     asset::{Asset, AssetServerSettings},
+    audio::AudioDevice,
     ecs::{Event, FromWorld, IntoSystem, Resource},
     windowing::{WindowBuilder, WindowId},
 };
@@ -19,6 +20,7 @@ pub struct QuadConfig {
 pub struct Quad {
     app: App,
     render_app: App,
+    audio_device: AudioDevice,
     event_loop: Option<EventLoop<()>>,
 }
 
@@ -27,6 +29,7 @@ impl Quad {
         let mut quad = Self {
             app: App::default(),
             render_app: App::default(),
+            audio_device: AudioDevice::default(),
             event_loop: Some(EventLoop::new()),
         };
         quad.add_pools(config);
@@ -86,6 +89,7 @@ impl Quad {
         app.add_timing_plugin();
         app.add_input_plugin();
         app.add_asset_plugin(&config.asset_server_settings);
+        app.add_audio_plugin(&self.audio_device);
         app.add_transform_plugin();
         app.add_render_plugin(&mut self.render_app);
     }

@@ -96,10 +96,10 @@ impl<ID: Hash + Eq> TextPipeline<ID> {
             return Ok(());
         }
 
-        let mut min_x: f32 = std::f32::MAX;
-        let mut min_y: f32 = std::f32::MAX;
-        let mut max_x: f32 = std::f32::MIN;
-        let mut max_y: f32 = std::f32::MIN;
+        let mut min_x = std::f32::MAX;
+        let mut min_y = std::f32::MAX;
+        let mut max_x = std::f32::MIN;
+        let mut max_y = std::f32::MIN;
 
         for sg in &section_glyphs {
             let scaled_font = scaled_fonts[sg.section_index];

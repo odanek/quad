@@ -1,3 +1,4 @@
 max_width = 100
-newline_style = "Native"
+newline_style = "Unix"
 edition = "2021"
+# group_imports = "StdExternalCrate"

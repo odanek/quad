@@ -22,7 +22,7 @@ pub use text2d::*;
 
 use crate::{
     app::{App, Stage},
-    ecs::{Entity, Resource, IntoSystem},
+    ecs::{Entity, IntoSystem, Resource},
 };
 
 #[derive(Default, Resource, Deref, DerefMut)]

@@ -9,6 +9,7 @@ use crate::{
         asset_plugin, update_asset_storage_system, Asset, AssetEvent, AssetLoader, AssetServer,
         AssetServerSettings, Assets,
     },
+    audio::{audio_plugin, AudioDevice},
     ecs::{
         Event, Events, FromWorld, IntoSystem, ReadOnlySystemParamFetch, Res, ResMut, Resource,
         SystemParam, World,
@@ -63,6 +64,12 @@ impl App {
     pub fn add_asset_plugin(&mut self, settings: &AssetServerSettings) -> &mut Self {
         self.world.insert_resource(settings.clone());
         asset_plugin(self);
+        self
+    }
+
+    // TODO Move to MainApp trait, should not be public
+    pub fn add_audio_plugin(&mut self, audio_device: &AudioDevice) -> &mut Self {
+        audio_plugin(self, audio_device);
         self
     }
 
