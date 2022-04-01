@@ -44,34 +44,10 @@ where
 {
     /// Play audio from a [`Handle`] to the audio source
     ///
-    /// ```
-    /// # use bevy_ecs::system::Res;
-    /// # use bevy_asset::AssetServer;
-    /// # use bevy_audio::Audio;
-    /// fn play_audio_system(asset_server: Res<AssetServer>, audio: Res<Audio>) {
-    ///     audio.play(asset_server.load("my_sound.ogg"));
-    /// }
-    /// ```
-    ///
     /// Returns a weak [`Handle`] to the [`AudioSink`]. If this handle isn't changed to a
     /// strong one, the sink will be detached and the sound will continue playing. Changing it
     /// to a strong handle allows for control on the playback through the [`AudioSink`] asset.
     ///
-    /// ```
-    /// # use bevy_ecs::system::Res;
-    /// # use bevy_asset::{AssetServer, Assets};
-    /// # use bevy_audio::{Audio, AudioSink};
-    /// fn play_audio_system(
-    ///     asset_server: Res<AssetServer>,
-    ///     audio: Res<Audio>,
-    ///     audio_sinks: Res<Assets<AudioSink>>,
-    /// ) {
-    ///     // This is a weak handle, and can't be used to control playback.
-    ///     let weak_handle = audio.play(asset_server.load("my_sound.ogg"));
-    ///     // This is now a strong handle, and can be used to control playback.
-    ///     let strong_handle = audio_sinks.get_handle(weak_handle);
-    /// }
-    /// ```
     pub fn play(&self, audio_source: Handle<Source>) -> Handle<AudioSink> {
         let id = HandleId::random::<AudioSink>();
         let config = AudioToPlay {

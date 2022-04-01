@@ -68,8 +68,9 @@ impl Quad {
     pub fn run(&mut self, scene: Box<dyn Scene>) {
         let app = std::mem::take(&mut self.app);
         let render_app = std::mem::take(&mut self.render_app);
+        let audio_device = std::mem::replace(&mut self.audio_device, AudioDevice::empty());
         let event_loop = self.event_loop.take().unwrap();
-        let context = RunContext::new(app, render_app, scene);
+        let context = RunContext::new(app, render_app, audio_device, scene);
         winit_runner(context, event_loop);
     }
 

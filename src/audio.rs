@@ -34,6 +34,15 @@ impl Default for AudioDevice {
     }
 }
 
+impl AudioDevice {
+    pub fn empty() -> Self {
+        Self {
+            _stream: None,
+            stream_handle: None,
+        }
+    }
+}
+
 pub fn audio_plugin(app: &mut App, audio_device: &AudioDevice) {
     app.add_asset::<AudioSource>()
         .add_asset::<AudioSink>()

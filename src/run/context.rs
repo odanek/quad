@@ -10,7 +10,7 @@ use crate::{
         CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, WindowBackendScaleFactorChanged,
         WindowCloseRequested, WindowFocused, WindowId, WindowMoved, WindowResized,
         WindowScaleFactorChanged, Windows,
-    },
+    }, audio::AudioDevice,
 };
 
 use super::{Scene, SceneResult};
@@ -18,14 +18,16 @@ use super::{Scene, SceneResult};
 pub struct RunContext {
     app: App,
     render_app: App,
+    _audio_device: AudioDevice,
     scene: Box<dyn Scene>,
 }
 
 impl RunContext {
-    pub fn new(app: App, render_app: App, scene: Box<dyn Scene>) -> Self {
+    pub fn new(app: App, render_app: App, audio_device: AudioDevice, scene: Box<dyn Scene>) -> Self {
         Self {
             app,
             render_app,
+            _audio_device: audio_device,
             scene,
         }
     }
