@@ -57,4 +57,6 @@ pub fn sprite_plugin(app: &mut App, render_app: &mut App) {
             extract_sprite_events.system(&mut app.world),
         )
         .add_system_to_stage(Stage::RenderQueue, &queue_sprites);
+
+    // TODO Are sprites using the sort phase and visibility plugin? Everything seems to be done in queue_sprites ignoring these.
 }
