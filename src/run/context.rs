@@ -1,5 +1,6 @@
 use crate::{
     app::{App, MainApp},
+    audio::AudioDevice,
     ecs::Events,
     input::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
@@ -10,7 +11,7 @@ use crate::{
         CursorEntered, CursorLeft, CursorMoved, ReceivedCharacter, WindowBackendScaleFactorChanged,
         WindowCloseRequested, WindowFocused, WindowId, WindowMoved, WindowResized,
         WindowScaleFactorChanged, Windows,
-    }, audio::AudioDevice,
+    },
 };
 
 use super::{Scene, SceneResult};
@@ -23,7 +24,12 @@ pub struct RunContext {
 }
 
 impl RunContext {
-    pub fn new(app: App, render_app: App, audio_device: AudioDevice, scene: Box<dyn Scene>) -> Self {
+    pub fn new(
+        app: App,
+        render_app: App,
+        audio_device: AudioDevice,
+        scene: Box<dyn Scene>,
+    ) -> Self {
         Self {
             app,
             render_app,
