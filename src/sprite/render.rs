@@ -150,18 +150,15 @@ impl SpecializedPipeline for SpritePipeline {
                 SPRITE_SHADER_HANDLE
             }
         };
-        let shader_defs = Vec::new();
 
         RenderPipelineDescriptor {
             vertex: VertexState {
                 shader: shader_handle().typed::<Shader>(),
                 entry_point: "vertex".into(),
-                shader_defs: shader_defs.clone(),
                 buffers: vec![vertex_layout],
             },
             fragment: Some(FragmentState {
                 shader: shader_handle().typed::<Shader>(),
-                shader_defs,
                 entry_point: "fragment".into(),
                 targets: vec![ColorTargetState {
                     format: TextureFormat::bevy_default(),

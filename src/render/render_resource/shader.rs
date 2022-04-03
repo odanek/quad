@@ -20,7 +20,7 @@ impl ShaderId {
 }
 #[derive(Debug, Clone)]
 pub struct Shader {
-    source: Source,
+    source: Cow<'static, str>,
 }
 
 impl TypeUuid for Shader {
@@ -30,30 +30,14 @@ impl TypeUuid for Shader {
 impl Shader {
     pub fn from_wgsl(source: impl Into<Cow<'static, str>>) -> Shader {
         Shader {
-            source: Source(source.into()),
+            source: source.into(),
         }
     }
 
-    pub fn process(&self) -> ProcessedShader {
-        ProcessedShader(self.source.0.clone())
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Source(Cow<'static, str>);
-
-#[derive(PartialEq, Eq, Debug)]
-pub struct ProcessedShader(Cow<'static, str>);
-
-impl ProcessedShader {
-    pub fn get_source(&self) -> &str {
-        &self.0
-    }
-
-    pub fn get_module_descriptor(&self) -> ShaderModuleDescriptor {
+    pub(crate) fn get_module_descriptor(&self) -> ShaderModuleDescriptor {
         ShaderModuleDescriptor {
             label: None,
-            source: { ShaderSource::Wgsl(self.0.clone()) },
+            source: { ShaderSource::Wgsl(self.source.clone()) },
         }
     }
 }

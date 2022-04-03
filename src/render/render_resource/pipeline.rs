@@ -91,7 +91,6 @@ pub struct RenderPipelineDescriptor {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VertexState {
     pub shader: Handle<Shader>,
-    pub shader_defs: Vec<String>,
     pub entry_point: Cow<'static, str>,
     pub buffers: Vec<VertexBufferLayout>,
 }
@@ -134,7 +133,6 @@ impl VertexBufferLayout {
 #[derive(Clone, Debug, PartialEq)]
 pub struct FragmentState {
     pub shader: Handle<Shader>,
-    pub shader_defs: Vec<String>,
     pub entry_point: Cow<'static, str>,
     pub targets: Vec<ColorTargetState>,
 }

@@ -280,20 +280,16 @@ impl SpecializedMeshPipeline for Mesh2dPipeline {
             Mesh::ATTRIBUTE_UV_0.at_shader_location(2),
         ];
 
-        let shader_defs = Vec::new();
-
         let vertex_buffer_layout = layout.get_layout(&vertex_attributes)?;
 
         Ok(RenderPipelineDescriptor {
             vertex: VertexState {
                 shader: MESH2D_SHADER_HANDLE.typed::<Shader>(),
                 entry_point: "vertex".into(),
-                shader_defs: shader_defs.clone(),
                 buffers: vec![vertex_buffer_layout],
             },
             fragment: Some(FragmentState {
                 shader: MESH2D_SHADER_HANDLE.typed::<Shader>(),
-                shader_defs,
                 entry_point: "fragment".into(),
                 targets: vec![ColorTargetState {
                     format: TextureFormat::bevy_default(),

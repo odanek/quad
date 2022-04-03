@@ -1,5 +1,5 @@
 use std::{
-    collections::{hash_map::Entry, HashMap, HashSet},
+    collections::{HashMap, HashSet},
     hash::Hash,
     ops::Deref,
     sync::Arc,
@@ -22,8 +22,7 @@ use super::{BindGroupLayout, BindGroupLayoutId, RenderPipeline, RenderPipelineDe
 #[derive(Default)]
 pub struct ShaderData {
     pipelines: HashSet<CachedPipelineId>,
-    processed_shaders: HashMap<Vec<String>, Arc<ShaderModule>>,
-    dependents: HashSet<Handle<Shader>>,
+    processed_shader: Option<Arc<ShaderModule>>,
 }
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
@@ -45,43 +44,31 @@ impl ShaderCache {
         render_device: &RenderDevice,
         pipeline: CachedPipelineId,
         handle: &Handle<Shader>,
-        shader_defs: &[String],
     ) -> Result<Arc<ShaderModule>, RenderPipelineError> {
         let shader = self
             .shaders
             .get(handle)
             .ok_or_else(|| RenderPipelineError::ShaderNotLoaded(handle.clone_weak()))?;
+
         let data = self.data.entry(handle.clone_weak()).or_default();
 
-        data.pipelines.insert(pipeline);
+        let module = data.processed_shader.get_or_insert_with(|| {
+            let module_descriptor = shader.get_module_descriptor();
+            Arc::new(render_device.create_shader_module(&module_descriptor))
+        });
 
-        // PERF: this shader_defs clone isn't great. use raw_entry_mut when it stabilizes
-        let module = match data.processed_shaders.entry(shader_defs.to_vec()) {
-            Entry::Occupied(entry) => entry.into_mut(),
-            Entry::Vacant(entry) => {
-                let processed = shader.process();
-                let module_descriptor = processed.get_module_descriptor();
-                entry.insert(Arc::new(
-                    render_device.create_shader_module(&module_descriptor),
-                ))
-            }
-        };
+        data.pipelines.insert(pipeline);
 
         Ok(module.clone())
     }
 
     fn clear(&mut self, handle: &Handle<Shader>) -> Vec<CachedPipelineId> {
-        let mut shaders_to_clear = vec![handle.clone_weak()];
-        let mut pipelines_to_queue = Vec::new();
-        while let Some(handle) = shaders_to_clear.pop() {
-            if let Some(data) = self.data.get_mut(&handle) {
-                data.processed_shaders.clear();
-                pipelines_to_queue.extend(data.pipelines.iter().cloned());
-                shaders_to_clear.extend(data.dependents.iter().map(|h| h.clone_weak()));
-            }
+        if let Some(data) = self.data.get_mut(handle) {
+            data.processed_shader = None;
+            data.pipelines.iter().cloned().collect()
+        } else {
+            Vec::new()
         }
-
-        pipelines_to_queue
     }
 
     fn set_shader(&mut self, handle: &Handle<Shader>, shader: Shader) -> Vec<CachedPipelineId> {
@@ -234,27 +221,11 @@ impl RenderPipelineCache {
             }
 
             let descriptor = &state.descriptor;
-            let vertex_module = match self.shader_cache.get(
-                &self.device,
-                id,
-                &descriptor.vertex.shader,
-                &descriptor.vertex.shader_defs,
-            ) {
-                Ok(module) => module,
-                Err(err) => {
-                    state.state = CachedPipelineState::Err(err);
-                    self.waiting_pipelines.insert(id);
-                    continue;
-                }
-            };
-
-            let fragment_data = if let Some(fragment) = &descriptor.fragment {
-                let fragment_module = match self.shader_cache.get(
-                    &self.device,
-                    id,
-                    &fragment.shader,
-                    &fragment.shader_defs,
-                ) {
+            let vertex_module =
+                match self
+                    .shader_cache
+                    .get(&self.device, id, &descriptor.vertex.shader)
+                {
                     Ok(module) => module,
                     Err(err) => {
                         state.state = CachedPipelineState::Err(err);
@@ -262,6 +233,17 @@ impl RenderPipelineCache {
                         continue;
                     }
                 };
+
+            let fragment_data = if let Some(fragment) = &descriptor.fragment {
+                let fragment_module =
+                    match self.shader_cache.get(&self.device, id, &fragment.shader) {
+                        Ok(module) => module,
+                        Err(err) => {
+                            state.state = CachedPipelineState::Err(err);
+                            self.waiting_pipelines.insert(id);
+                            continue;
+                        }
+                    };
                 Some((
                     fragment_module,
                     fragment.entry_point.deref(),

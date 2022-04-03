@@ -12,7 +12,6 @@ use crate::{
 
 use super::{CachedPipelineId, RenderPipelineCache, RenderPipelineDescriptor, VertexBufferLayout};
 
-// TODO: This shouldn't be needed because quad doesn't use shader preprocessor
 #[derive(Resource)]
 pub struct SpecializedPipelines<S: SpecializedPipeline> {
     cache: HashMap<S::Key, CachedPipelineId>,
@@ -90,10 +89,6 @@ impl<S: SpecializedMeshPipeline> SpecializedMeshPipelines<S> {
             .entry(layout.clone())
             .or_insert_with(Default::default);
 
-        // let map = self
-        //     .mesh_layout_cache
-        //     .get_or_insert_with(layout, Default::default);
-
         match map.entry(key.clone()) {
             Entry::Occupied(entry) => Ok(*entry.into_mut()),
             Entry::Vacant(entry) => {
@@ -115,19 +110,6 @@ impl<S: SpecializedMeshPipeline> SpecializedMeshPipelines<S> {
                     .vertex_layout_cache
                     .entry(descriptor.vertex.buffers[0].clone())
                     .or_insert_with(Default::default);
-
-                // let layout_map = match self
-                //     .vertex_layout_cache
-                //     .raw_entry_mut()
-                //     .from_key(&descriptor.vertex.buffers[0])
-                // {
-                //     RawEntryMut::Occupied(entry) => entry.into_mut(),
-                //     RawEntryMut::Vacant(entry) => {
-                //         entry
-                //             .insert(descriptor.vertex.buffers[0].clone(), Default::default())
-                //             .1
-                //     }
-                // };
 
                 Ok(*entry.insert(match layout_map.entry(key) {
                     Entry::Occupied(entry) => {
