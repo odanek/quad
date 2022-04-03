@@ -6,8 +6,6 @@ mod io;
 mod loader;
 mod path;
 
-pub(crate) use assets::load_internal_asset;
-
 pub use asset_server::{free_unused_assets_system, AssetServer};
 pub use assets::{AssetEvent, Assets};
 pub use handle::{Handle, HandleId, HandleUntyped};

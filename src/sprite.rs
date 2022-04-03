@@ -1,6 +1,5 @@
 mod bundle;
 mod dynamic_texture_atlas_builder;
-mod mesh2d;
 mod rect;
 mod render;
 #[allow(clippy::module_inception)]
@@ -12,7 +11,6 @@ pub mod collide_aabb;
 
 pub use bundle::*;
 pub use dynamic_texture_atlas_builder::*;
-pub use mesh2d::*;
 pub use rect::*;
 pub use render::*;
 pub use sprite::*;
@@ -44,8 +42,6 @@ pub fn sprite_plugin(app: &mut App, render_app: &mut App) {
     shaders.set_untracked(SPRITE_SHADER_HANDLE, sprite_shader);
     shaders.set_untracked(SPRITE_COLORED_SHADER_HANDLE, sprite_colored_shader);
     app.add_asset::<TextureAtlas>();
-    mesh_2d_render_plugin(app, render_app);
-    color_material_plugin(app, render_app);
 
     render_app
         .init_resource::<ImageBindGroups>()

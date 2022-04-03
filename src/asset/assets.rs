@@ -179,12 +179,3 @@ impl<T: Asset> Assets<T> {
         self.assets.is_empty()
     }
 }
-
-macro_rules! load_internal_asset {
-    ($app: ident, $handle: ident, $path_str: expr, $loader: expr) => {{
-        let mut assets = $app.world.resource_mut::<quad::asset::Assets<_>>();
-        assets.set_untracked($handle, ($loader)(include_str!($path_str)));
-    }};
-}
-
-pub(crate) use load_internal_asset;
