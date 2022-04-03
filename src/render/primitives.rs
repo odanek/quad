@@ -1,4 +1,4 @@
-use cgm::{InnerSpace, Matrix, Vector};
+use cgm::{InnerSpace, Matrix};
 
 use crate::{
     ecs::Component,
@@ -40,36 +40,6 @@ impl Aabb {
 
     pub fn max(&self) -> Vec3 {
         self.center + self.half_extents
-    }
-}
-
-impl From<Sphere> for Aabb {
-    fn from(sphere: Sphere) -> Self {
-        Self {
-            center: sphere.center,
-            half_extents: Vec3::from_value(sphere.radius),
-        }
-    }
-}
-
-#[derive(Debug, Default)]
-pub struct Sphere {
-    pub center: Vec3,
-    pub radius: f32,
-}
-
-impl Sphere {
-    pub fn intersects_obb(&self, aabb: &Aabb, local_to_world: &Mat4) -> bool {
-        let aabb_center_world = *local_to_world * aabb.center.extend(1.0);
-        let axes = [
-            local_to_world.x.truncate(),
-            local_to_world.y.truncate(),
-            local_to_world.z.truncate(),
-        ];
-        let v = aabb_center_world.truncate() - self.center;
-        let d = v.magnitude();
-        let relative_radius = aabb.relative_radius(&(v / d), &axes);
-        d < self.radius + relative_radius
     }
 }
 
@@ -115,15 +85,6 @@ impl Frustum {
         Self { planes }
     }
 
-    pub fn intersects_sphere(&self, sphere: &Sphere) -> bool {
-        for plane in &self.planes {
-            if plane.normal_d.dot(sphere.center.extend(1.0)) + sphere.radius <= 0.0 {
-                return false;
-            }
-        }
-        true
-    }
-
     pub fn intersects_obb(&self, aabb: &Aabb, model_to_world: &Mat4) -> bool {
         let aabb_center_world = *model_to_world * aabb.center.extend(1.0);
         let axes = [
@@ -134,25 +95,12 @@ impl Frustum {
 
         for plane in &self.planes {
             let p_normal = plane.normal_d.truncate();
+            // TODO Is the relative radius needed for 2D?
             let relative_radius = aabb.relative_radius(&p_normal, &axes);
             if plane.normal_d.dot(aabb_center_world) + relative_radius <= 0.0 {
                 return false;
             }
         }
         true
-    }
-}
-
-#[derive(Component, Debug, Default)]
-pub struct CubemapFrusta {
-    pub frusta: [Frustum; 6],
-}
-
-impl CubemapFrusta {
-    pub fn iter(&self) -> impl DoubleEndedIterator<Item = &Frustum> {
-        self.frusta.iter()
-    }
-    pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut Frustum> {
-        self.frusta.iter_mut()
     }
 }

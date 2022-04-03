@@ -5,11 +5,9 @@ pub use render_layers::*;
 
 use crate::{
     app::{App, Stage},
-    asset::{Assets, Handle},
-    ecs::{Commands, Component, Entity, Query, QuerySet, QueryState, Res, With, Without},
+    ecs::{Component, Entity, Query, QuerySet, QueryState, With},
     render::{
         cameras::{Camera, CameraProjection, OrthographicProjection},
-        mesh::Mesh,
         primitives::{Aabb, Frustum},
     },
     transform::GlobalTransform,
@@ -63,24 +61,8 @@ impl VisibleEntities {
 }
 
 pub fn visibility_plugin(app: &mut App) {
-    app.add_system_to_stage(Stage::PostUpdate, &calculate_bounds)
-        .add_system_to_stage(Stage::PostUpdate, &update_frusta::<OrthographicProjection>) // Must run after transform_propagate_system
+    app.add_system_to_stage(Stage::PostUpdate, &update_frusta::<OrthographicProjection>) // Must run after transform_propagate_system
         .add_system_to_stage(Stage::PostUpdate, &check_visibility); // After calculate_bounds and update_frust
-}
-
-#[allow(clippy::type_complexity)]
-pub fn calculate_bounds(
-    mut commands: Commands,
-    meshes: Res<Assets<Mesh>>,
-    without_aabb: Query<(Entity, &Handle<Mesh>), (Without<Aabb>, Without<NoFrustumCulling>)>,
-) {
-    for (entity, mesh_handle) in without_aabb.iter() {
-        if let Some(mesh) = meshes.get(mesh_handle) {
-            if let Some(aabb) = mesh.compute_aabb() {
-                commands.entity(entity).insert(aabb);
-            }
-        }
-    }
 }
 
 pub fn update_frusta<T: Component + CameraProjection + Send + Sync + 'static>(
@@ -108,8 +90,8 @@ pub fn check_visibility(
             &Visibility,
             &mut ComputedVisibility,
             Option<&RenderLayers>,
-            Option<&Aabb>,
-            Option<&NoFrustumCulling>,
+            Option<&Aabb>, // TODO Sprites don't have Aabb so they are not culled?
+            Option<&NoFrustumCulling>, // TODO Is this needed
             Option<&GlobalTransform>,
         )>,
     )>,

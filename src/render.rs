@@ -1,6 +1,5 @@
 pub mod cameras;
 pub mod color;
-pub mod mesh;
 pub mod primitives;
 pub mod render_asset;
 pub mod render_component;
@@ -20,7 +19,6 @@ use crate::{
     ecs::{IntoSystem, Resource, World},
     render::{
         cameras::camera_plugin,
-        mesh::mesh_plugin,
         render_graph::RenderGraph,
         render_resource::RenderPipelineCache,
         renderer::{render_system, RenderInstance},
@@ -107,7 +105,6 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
     window_render_plugin(app, render_app);
     camera_plugin(app, render_app);
     view_plugin(app, render_app);
-    mesh_plugin(app, render_app); // TODO DO I need this for 2D rendering?
     image_plugin(app, render_app);
 }
 
