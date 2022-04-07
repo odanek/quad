@@ -5,9 +5,9 @@ mod font_atlas_set;
 mod font_loader;
 mod glyph_brush;
 mod pipeline;
+mod render;
 #[allow(clippy::module_inception)]
 mod text;
-mod text2d;
 
 use derive_deref::{Deref, DerefMut};
 pub use error::*;
@@ -17,8 +17,8 @@ pub use font_atlas_set::*;
 pub use font_loader::*;
 pub use glyph_brush::*;
 pub use pipeline::*;
+pub use render::*;
 pub use text::*;
-pub use text2d::*;
 
 use crate::{
     app::{App, Stage},
@@ -33,10 +33,10 @@ pub fn text_plugin(app: &mut App, render_app: &mut App) {
         .add_asset::<FontAtlasSet>()
         .init_asset_loader::<FontLoader>()
         .insert_resource(DefaultTextPipeline::default())
-        .add_system_to_stage(Stage::PostUpdate, &text2d_system);
+        .add_system_to_stage(Stage::PostUpdate, &text_system);
 
     render_app.add_system_to_stage(
         Stage::RenderExtract,
-        extract_text2d_sprite.system(&mut app.world), // Must come after extract_sprites
+        extract_text_sprite.system(&mut app.world), // Must come after extract_sprites
     );
 }

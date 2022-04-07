@@ -410,6 +410,7 @@ pub fn queue_sprites(
             transparent_phase.items.reserve(extracted_sprites.len());
 
             // Sort sprites by z for correct transparency and then by handle to improve batching
+            // TODO Sorting ignores color which may break batching
             extracted_sprites.sort_unstable_by(|a, b| {
                 match a
                     .transform

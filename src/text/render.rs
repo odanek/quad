@@ -11,28 +11,28 @@ use crate::{
 };
 
 use super::{
-    DefaultTextPipeline, Font, FontAtlasSet, HorizontalAlign, Text, Text2dSize, TextError,
+    DefaultTextPipeline, Font, FontAtlasSet, HorizontalAlign, Text, TextError, TextSize,
     VerticalAlign,
 };
 
 /// The bundle of components needed to draw text in a 2D scene via a 2D `OrthographicCameraBundle`.
 /// [Example usage.](https://github.com/bevyengine/bevy/blob/latest/examples/2d/text2d.rs)
 #[derive(Bundle, Clone, Debug)]
-pub struct Text2dBundle {
+pub struct TextBundle {
     pub text: Text,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
-    pub text_2d_size: Text2dSize,
+    pub text_size: TextSize,
     pub visibility: Visibility,
 }
 
-impl Default for Text2dBundle {
+impl Default for TextBundle {
     fn default() -> Self {
         Self {
             text: Default::default(),
             transform: Default::default(),
             global_transform: Default::default(),
-            text_2d_size: Text2dSize {
+            text_size: TextSize {
                 size: Size::default(),
             },
             visibility: Default::default(),
@@ -40,12 +40,12 @@ impl Default for Text2dBundle {
     }
 }
 
-pub fn extract_text2d_sprite(
+pub fn extract_text_sprite(
     mut render_world: ResMut<RenderWorld>,
     texture_atlases: Res<Assets<TextureAtlas>>,
     text_pipeline: Res<DefaultTextPipeline>,
     windows: Res<Windows>,
-    text2d_query: Query<(Entity, &Visibility, &Text, &GlobalTransform, &Text2dSize)>,
+    text2d_query: Query<(Entity, &Visibility, &Text, &GlobalTransform, &TextSize)>,
 ) {
     let mut extracted_sprites = render_world.resource_mut::<ExtractedSprites>();
 
@@ -105,15 +105,15 @@ pub fn extract_text2d_sprite(
 }
 
 #[derive(Debug, Default)]
-pub struct QueuedText2d {
+pub struct QueuedText {
     entities: Vec<Entity>,
 }
 
 /// Updates the layout and size information whenever the text or style is changed.
 /// This information is computed by the `TextPipeline` on insertion, then stored.
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
-pub fn text2d_system(
-    mut queued_text: Local<QueuedText2d>,
+pub fn text_system(
+    mut queued_text: Local<QueuedText>,
     mut textures: ResMut<Assets<Image>>,
     fonts: Res<Assets<Font>>,
     windows: Res<Windows>,
@@ -121,8 +121,8 @@ pub fn text2d_system(
     mut font_atlas_set_storage: ResMut<Assets<FontAtlasSet>>,
     mut text_pipeline: ResMut<DefaultTextPipeline>,
     mut text_queries: QuerySet<(
-        QueryState<Entity, (With<Text2dSize>, Changed<Text>)>,
-        QueryState<(&Text, &mut Text2dSize), With<Text2dSize>>,
+        QueryState<Entity, (With<TextSize>, Changed<Text>)>,
+        QueryState<(&Text, &mut TextSize), With<TextSize>>,
     )>,
 ) {
     // Adds all entities where the text or the style has changed to the local queue

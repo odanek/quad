@@ -109,6 +109,6 @@ impl Default for TextStyle {
 }
 
 #[derive(Component, Default, Copy, Clone, Debug)]
-pub struct Text2dSize {
+pub struct TextSize {
     pub size: Size,
 }
