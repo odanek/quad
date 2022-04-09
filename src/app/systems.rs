@@ -2,14 +2,14 @@ use std::collections::HashMap;
 
 use crate::ecs::{System, World};
 
-use super::stage::StageLabel;
+use super::stage::{StageId, StageLabel};
 
 type BoxedSystem = Box<dyn System<In = (), Out = ()>>;
 
 #[derive(Default)]
-pub struct SequentialSystems(Vec<BoxedSystem>);
+pub struct StageSystems(Vec<BoxedSystem>);
 
-impl SequentialSystems {
+impl StageSystems {
     pub fn add<S>(&mut self, system: S)
     where
         S: System<In = (), Out = ()>,
@@ -34,7 +34,7 @@ impl SequentialSystems {
 
 #[derive(Default)]
 pub struct Systems {
-    systems: HashMap<u32, SequentialSystems>,
+    systems: HashMap<StageId, StageSystems>,
 }
 
 impl Systems {
@@ -46,7 +46,7 @@ impl Systems {
         self.systems.entry(stage.id()).or_default().add(system);
     }
 
-    pub fn get<L>(&mut self, stage: L) -> Option<&mut SequentialSystems>
+    pub fn get<L>(&mut self, stage: L) -> Option<&mut StageSystems>
     where
         L: StageLabel,
     {

@@ -1,7 +1,10 @@
 use std::hash::Hash;
 
+#[derive(Clone, Copy, Eq, PartialEq, Hash)]
+pub struct StageId(u32);
+
 pub trait StageLabel: Eq + PartialEq + Hash {
-    fn id(&self) -> u32;
+    fn id(&self) -> StageId;
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
@@ -14,8 +17,8 @@ pub enum MainStage {
 }
 
 impl StageLabel for MainStage {
-    fn id(&self) -> u32 {
-        *self as u32
+    fn id(&self) -> StageId {
+        StageId(*self as u32)
     }
 }
 
@@ -30,7 +33,7 @@ pub enum RenderStage {
 }
 
 impl StageLabel for RenderStage {
-    fn id(&self) -> u32 {
-        *self as u32
+    fn id(&self) -> StageId {
+        StageId(*self as u32)
     }
 }

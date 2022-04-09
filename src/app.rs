@@ -2,7 +2,7 @@ mod stage;
 mod systems;
 mod task_pool_options;
 
-pub use stage::{StageLabel, MainStage, RenderStage};
+pub use stage::{MainStage, RenderStage, StageLabel};
 pub use task_pool_options::TaskPoolOptions;
 
 use crate::{
