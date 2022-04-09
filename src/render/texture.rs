@@ -29,13 +29,12 @@ pub fn image_plugin(app: &mut App, render_app: &mut App) {
         .add_system_to_stage(RenderStage::Cleanup, &update_texture_cache_system);
 }
 
-// TODO Rename to QuadDefault?
-pub trait BevyDefault {
-    fn bevy_default() -> Self;
+pub trait QuadDefault {
+    fn quad_default() -> Self;
 }
 
-impl BevyDefault for wgpu::TextureFormat {
-    fn bevy_default() -> Self {
+impl QuadDefault for wgpu::TextureFormat {
+    fn quad_default() -> Self {
         if cfg!(target_os = "android") || cfg!(target_arch = "wasm32") {
             // Bgra8UnormSrgb texture missing on some Android devices
             wgpu::TextureFormat::Rgba8UnormSrgb

@@ -24,7 +24,6 @@ pub enum PresentMode {
     Fifo = 2, // NOTE: The explicit ordinal values mirror wgpu and the vulkan spec.
 }
 
-// TODO: Window ids, multiple window handling
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct WindowId(u32);
 

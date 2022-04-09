@@ -10,7 +10,7 @@ use crate::{
     ty::{Size, Vec2},
 };
 
-use super::{image_texture_conversion::image_to_texture, BevyDefault};
+use super::{image_texture_conversion::image_to_texture, QuadDefault};
 use thiserror::Error;
 use uuid::{uuid, Uuid};
 use wgpu::{
@@ -37,7 +37,7 @@ impl TypeUuid for Image {
 
 impl Default for Image {
     fn default() -> Self {
-        let format = wgpu::TextureFormat::bevy_default();
+        let format = wgpu::TextureFormat::quad_default();
         let data = vec![255; format.pixel_size() as usize];
         Image {
             data,

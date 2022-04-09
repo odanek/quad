@@ -10,7 +10,7 @@ use crate::{
     render::{
         render_resource::TextureView,
         renderer::{RenderDevice, RenderInstance},
-        texture::BevyDefault,
+        texture::QuadDefault,
         RenderWorld,
     },
     windowing::{PresentMode, RawWindowHandleWrapper, WindowId, Windows},
@@ -118,7 +118,7 @@ pub fn prepare_windows(
             });
 
         let swap_chain_descriptor = wgpu::SurfaceConfiguration {
-            format: TextureFormat::bevy_default(),
+            format: TextureFormat::quad_default(),
             width: window.physical_width,
             height: window.physical_height,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,

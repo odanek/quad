@@ -15,7 +15,7 @@ use super::BlobVec;
 pub struct Column {
     pub(crate) component_id: ComponentId,
     pub(crate) data: BlobVec,
-    pub(crate) ticks: Vec<UnsafeCell<ComponentTicks>>, // TODO: Is UnsafeCelll needed?
+    pub(crate) ticks: Vec<UnsafeCell<ComponentTicks>>,
 }
 
 impl Column {

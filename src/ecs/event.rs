@@ -194,7 +194,6 @@ impl<T: Event> Events<T> {
         }
     }
 
-    // TODO
     pub fn update_system(mut events: ResMut<Self>) {
         events.update();
     }

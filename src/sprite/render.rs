@@ -32,7 +32,7 @@ use crate::{
             VertexBufferLayout, VertexState,
         },
         renderer::{RenderDevice, RenderQueue},
-        texture::{BevyDefault, Image},
+        texture::{Image, QuadDefault},
         view::{Msaa, ViewUniform, ViewUniformOffset, ViewUniforms, Visibility},
         RenderWorld,
     },
@@ -161,7 +161,7 @@ impl SpecializedPipeline for SpritePipeline {
                 shader: shader_handle().typed::<Shader>(),
                 entry_point: "fragment".into(),
                 targets: vec![ColorTargetState {
-                    format: TextureFormat::bevy_default(),
+                    format: TextureFormat::quad_default(),
                     blend: Some(BlendState::ALPHA_BLENDING),
                     write_mask: ColorWrites::ALL,
                 }],

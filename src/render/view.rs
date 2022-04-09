@@ -23,7 +23,7 @@ use super::{
     render_asset::RenderAssets,
     render_resource::{DynamicUniformVec, Texture, TextureView},
     renderer::{RenderDevice, RenderQueue},
-    texture::{BevyDefault, Image, TextureCache},
+    texture::{Image, QuadDefault, TextureCache},
 };
 
 pub fn view_plugin(app: &mut App, render_app: &mut App) {
@@ -184,7 +184,7 @@ fn prepare_view_targets(
                             mip_level_count: 1,
                             sample_count: msaa.samples,
                             dimension: TextureDimension::D2,
-                            format: TextureFormat::bevy_default(),
+                            format: TextureFormat::quad_default(),
                             usage: TextureUsages::RENDER_ATTACHMENT,
                         },
                     );
