@@ -21,7 +21,7 @@ pub use render::*;
 pub use text::*;
 
 use crate::{
-    app::{App, Stage},
+    app::{App, MainStage, RenderStage},
     ecs::{Entity, IntoSystem, Resource},
 };
 
@@ -33,10 +33,10 @@ pub fn text_plugin(app: &mut App, render_app: &mut App) {
         .add_asset::<FontAtlasSet>()
         .init_asset_loader::<FontLoader>()
         .insert_resource(DefaultTextPipeline::default())
-        .add_system_to_stage(Stage::PostUpdate, &text_system);
+        .add_system_to_stage(MainStage::PostUpdate, &text_system);
 
     render_app.add_system_to_stage(
-        Stage::RenderExtract,
+        RenderStage::Extract,
         extract_text_sprite.system(&mut app.world), // Must come after extract_sprites
     );
 }

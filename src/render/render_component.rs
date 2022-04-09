@@ -3,7 +3,7 @@ use std::{marker::PhantomData, ops::Deref};
 use crevice::std140::AsStd140;
 
 use crate::{
-    app::{App, Stage},
+    app::{App, RenderStage},
     asset::{Asset, Handle},
     ecs::{
         Commands, Component, Entity, FilterFetch, IntoSystem, Local, Query, QueryItem, Res, ResMut,
@@ -55,7 +55,7 @@ pub trait ExtractComponent: Component {
 pub fn uniform_component_plugin<C: Component + AsStd140 + Clone>(render_app: &mut App) {
     render_app
         .insert_resource(ComponentUniforms::<C>::default())
-        .add_system_to_stage(Stage::RenderPrepare, &prepare_uniform_components::<C>);
+        .add_system_to_stage(RenderStage::Prepare, &prepare_uniform_components::<C>);
 }
 
 /// Stores all uniforms of the component type.
@@ -129,7 +129,7 @@ where
     <C::Filter as WorldQuery>::Fetch: FilterFetch,
 {
     render_app.add_system_to_stage(
-        Stage::RenderExtract,
+        RenderStage::Extract,
         extract_components::<C>.system(&mut app.world),
     );
 }

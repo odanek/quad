@@ -2,26 +2,9 @@ use std::collections::HashMap;
 
 use crate::ecs::{System, World};
 
+use super::stage::StageLabel;
+
 type BoxedSystem = Box<dyn System<In = (), Out = ()>>;
-
-// TODO: Fix mixing of Main app and Render app
-#[derive(PartialEq, Eq, Hash)]
-pub enum Stage {
-    // Main App
-    LoadAssets,
-    PreUpdate,
-    PostUpdate,
-    AssetEvents,
-    Flush,
-
-    // Render App
-    RenderExtract,
-    RenderPrepare,
-    RenderQueue,
-    RenderPhaseSort,
-    RenderRender,
-    RenderCleanup,
-}
 
 #[derive(Default)]
 pub struct SequentialSystems(Vec<BoxedSystem>);
@@ -51,23 +34,30 @@ impl SequentialSystems {
 
 #[derive(Default)]
 pub struct Systems {
-    systems: HashMap<Stage, SequentialSystems>,
+    systems: HashMap<u32, SequentialSystems>,
 }
 
 impl Systems {
-    pub fn add<S>(&mut self, stage: Stage, system: S)
+    pub fn add<L, S>(&mut self, stage: L, system: S)
     where
+        L: StageLabel,
         S: System<In = (), Out = ()>,
     {
-        self.systems.entry(stage).or_default().add(system);
+        self.systems.entry(stage.id()).or_default().add(system);
     }
 
-    pub fn get(&mut self, stage: Stage) -> Option<&mut SequentialSystems> {
-        self.systems.get_mut(&stage)
+    pub fn get<L>(&mut self, stage: L) -> Option<&mut SequentialSystems>
+    where
+        L: StageLabel,
+    {
+        self.systems.get_mut(&stage.id())
     }
 
-    pub fn run(&mut self, stage: Stage, world: &mut World) {
-        if let Some(systems) = self.systems.get_mut(&stage) {
+    pub fn run<L>(&mut self, stage: L, world: &mut World)
+    where
+        L: StageLabel,
+    {
+        if let Some(systems) = self.systems.get_mut(&stage.id()) {
             systems.run(world);
             systems.apply_buffers(world);
         }

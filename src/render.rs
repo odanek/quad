@@ -14,7 +14,7 @@ pub mod view;
 use derive_deref::{Deref, DerefMut};
 
 use crate::{
-    app::{App, Stage},
+    app::{App, RenderStage},
     asset::AssetServer,
     ecs::{IntoSystem, Resource, World},
     render::{
@@ -93,12 +93,12 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
 
     // Has to use world from the main app
     render_app.add_system_to_stage(
-        Stage::RenderExtract,
+        RenderStage::Extract,
         (RenderPipelineCache::extract_shaders).system(&mut app.world),
     );
 
     render_app.add_system_to_stage(
-        Stage::RenderRender,
+        RenderStage::Render,
         &RenderPipelineCache::process_pipeline_queue_system,
     );
 
@@ -128,29 +128,29 @@ pub fn update_render_app(app_world: &mut World, render_app: &mut App) {
     // prepare
     render_app
         .systems
-        .run(Stage::RenderPrepare, &mut render_app.world);
+        .run(RenderStage::Prepare, &mut render_app.world);
 
     // queue
     render_app
         .systems
-        .run(Stage::RenderQueue, &mut render_app.world);
+        .run(RenderStage::Queue, &mut render_app.world);
 
     // phase sort
     render_app
         .systems
-        .run(Stage::RenderPhaseSort, &mut render_app.world);
+        .run(RenderStage::PhaseSort, &mut render_app.world);
 
     // render
     render_app
         .systems
-        .run(Stage::RenderRender, &mut render_app.world);
+        .run(RenderStage::Render, &mut render_app.world);
 
     render_system(&mut render_app.world);
 
     // cleanup
     render_app
         .systems
-        .run(Stage::RenderCleanup, &mut render_app.world);
+        .run(RenderStage::Cleanup, &mut render_app.world);
 
     render_app.world.clear_entities();
 }
@@ -165,7 +165,7 @@ fn extract(app_world: &mut World, render_app: &mut App) {
 
     render_app
         .systems
-        .get(Stage::RenderExtract)
+        .get(RenderStage::Extract)
         .unwrap()
         .run(app_world);
 
@@ -176,7 +176,7 @@ fn extract(app_world: &mut World, render_app: &mut App) {
 
     render_app
         .systems
-        .get(Stage::RenderExtract)
+        .get(RenderStage::Extract)
         .unwrap()
         .apply_buffers(&mut render_app.world);
 }

@@ -24,7 +24,7 @@ pub struct OrthographicCameraBundle<M: Component> {
     pub marker: M,
 }
 
-impl OrthographicCameraBundle<Camera2d> {
+impl Default for OrthographicCameraBundle<Camera2d> {
     /// Create an orthographic projection camera to render 2D content.
     ///
     /// The projection creates a camera space where X points to the right of the screen,
@@ -42,7 +42,7 @@ impl OrthographicCameraBundle<Camera2d> {
     /// Its orthographic projection extends from `0.0` to `-1000.0` in camera view space,
     /// corresponding to `Z=+999.9` (closest to camera) to `Z=-0.1` (furthest away from
     /// camera) in world space.
-    pub fn new_2d() -> Self {
+    fn default() -> Self {
         // we want 0 to be "closest" and +far to be "farthest" in 2d, so we offset
         // the camera's translation by far and use a right handed coordinate system
         let far = 1000.0;

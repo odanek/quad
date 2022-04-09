@@ -1,7 +1,7 @@
 use cgm::SquareMatrix;
 
 use crate::{
-    app::{App, Stage},
+    app::{App, MainStage},
     ecs::{Component, Entity, Query, QuerySet, QueryState, With},
     render::{
         cameras::{Camera, CameraProjection, OrthographicProjection},
@@ -54,8 +54,11 @@ impl VisibleEntities {
 }
 
 pub fn visibility_plugin(app: &mut App) {
-    app.add_system_to_stage(Stage::PostUpdate, &update_frusta::<OrthographicProjection>) // Must run after transform_propagate_system
-        .add_system_to_stage(Stage::PostUpdate, &check_visibility); // After calculate_bounds and update_frust
+    app.add_system_to_stage(
+        MainStage::PostUpdate,
+        &update_frusta::<OrthographicProjection>,
+    ) // Must run after transform_propagate_system
+    .add_system_to_stage(MainStage::PostUpdate, &check_visibility); // After calculate_bounds and update_frust
 }
 
 pub fn update_frusta<T: Component + CameraProjection + Send + Sync + 'static>(

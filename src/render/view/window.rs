@@ -5,7 +5,7 @@ use std::{
 use wgpu::TextureFormat;
 
 use crate::{
-    app::{App, Stage},
+    app::{App, RenderStage},
     ecs::{IntoSystem, Res, ResMut, Resource},
     render::{
         render_resource::TextureView,
@@ -20,8 +20,8 @@ pub fn window_render_plugin(app: &mut App, render_app: &mut App) {
     render_app
         .init_resource::<ExtractedWindows>()
         .init_resource::<WindowSurfaces>()
-        .add_system_to_stage(Stage::RenderExtract, extract_windows.system(&mut app.world))
-        .add_system_to_stage(Stage::RenderPrepare, &prepare_windows);
+        .add_system_to_stage(RenderStage::Extract, extract_windows.system(&mut app.world))
+        .add_system_to_stage(RenderStage::Prepare, &prepare_windows);
 }
 
 pub struct ExtractedWindow {

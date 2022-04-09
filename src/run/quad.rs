@@ -1,7 +1,7 @@
 use winit::event_loop::EventLoop;
 
 use crate::{
-    app::{App, Stage, TaskPoolOptions},
+    app::{App, StageLabel, TaskPoolOptions},
     asset::{Asset, AssetServerSettings},
     audio::AudioDevice,
     ecs::{Event, FromWorld, IntoSystem, Resource},
@@ -47,8 +47,9 @@ impl Quad {
         self
     }
 
-    pub fn add_system_to_stage<S, Params>(&mut self, stage: Stage, system: S) -> &mut Self
+    pub fn add_system_to_stage<L, S, Params>(&mut self, stage: L, system: S) -> &mut Self
     where
+        L: StageLabel,
         S: IntoSystem<(), (), Params>,
     {
         self.app.add_system_to_stage(stage, system);

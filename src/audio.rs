@@ -10,7 +10,7 @@ pub use audio_output::*;
 pub use audio_source::*;
 use rodio::{OutputStream, OutputStreamHandle};
 
-use crate::app::{App, Stage};
+use crate::app::{App, MainStage};
 
 pub struct AudioDevice {
     _stream: Option<OutputStream>,
@@ -50,7 +50,10 @@ pub fn audio_plugin(app: &mut App, audio_device: &AudioDevice) {
             audio_device.stream_handle.clone(),
         ))
         .init_resource::<Audio<AudioSource>>()
-        .add_system_to_stage(Stage::PostUpdate, &play_queued_audio_system::<AudioSource>);
+        .add_system_to_stage(
+            MainStage::PostUpdate,
+            &play_queued_audio_system::<AudioSource>,
+        );
 
     app.init_asset_loader::<AudioLoader>();
 }

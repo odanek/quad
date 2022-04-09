@@ -15,7 +15,7 @@ pub use loader::{
 };
 
 use crate::{
-    app::{App, Stage},
+    app::{App, MainStage},
     ecs::Resource,
     tasks::IoTaskPool,
 };
@@ -39,5 +39,5 @@ pub fn asset_plugin(app: &mut App) {
     let source = Box::new(FileAssetIo::new(&settings.asset_folder));
     let asset_server = AssetServer::with_boxed_io(source, task_pool);
     app.insert_resource(asset_server);
-    app.add_system_to_stage(Stage::PreUpdate, &free_unused_assets_system);
+    app.add_system_to_stage(MainStage::PreUpdate, &free_unused_assets_system);
 }

@@ -12,7 +12,7 @@ pub use mouse::*;
 pub use touch::*;
 
 use crate::{
-    app::{App, Stage},
+    app::{App, MainStage},
     ecs::ResMut,
 };
 
@@ -26,7 +26,7 @@ pub fn input_plugin(app: &mut App) {
         .add_event::<MouseWheel>()
         .add_event::<MouseMotion>();
 
-    app.add_system_to_stage(Stage::Flush, &input_flush_system);
+    app.add_system_to_stage(MainStage::Flush, &input_flush_system);
 }
 
 fn input_flush_system(

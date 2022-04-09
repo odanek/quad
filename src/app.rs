@@ -1,7 +1,8 @@
+mod stage;
 mod systems;
 mod task_pool_options;
 
-pub use systems::Stage;
+pub use stage::{StageLabel, MainStage, RenderStage};
 pub use task_pool_options::TaskPoolOptions;
 
 use crate::{
@@ -112,8 +113,9 @@ impl App {
         self.world.resource_mut()
     }
 
-    pub fn add_system_to_stage<S, Params>(&mut self, stage: Stage, system: S) -> &mut Self
+    pub fn add_system_to_stage<L, S, Params>(&mut self, stage: L, system: S) -> &mut Self
     where
+        L: StageLabel,
         S: IntoSystem<(), (), Params>,
     {
         self.systems.add(stage, system.system(&mut self.world));
@@ -123,7 +125,7 @@ impl App {
     // TODO: AddEvent trait ?
     pub fn add_event<T: Event>(&mut self) -> &mut Self {
         self.init_resource::<Events<T>>().add_system_to_stage(
-            Stage::PreUpdate,
+            MainStage::PreUpdate,
             &Events::<T>::update_system, // TODO: Why is the & needed?
         );
 
@@ -141,8 +143,8 @@ impl App {
         };
 
         self.insert_resource(assets)
-            .add_system_to_stage(Stage::AssetEvents, &Assets::<T>::asset_event_system)
-            .add_system_to_stage(Stage::LoadAssets, &update_asset_storage_system::<T>)
+            .add_system_to_stage(MainStage::AssetEvents, &Assets::<T>::asset_event_system)
+            .add_system_to_stage(MainStage::LoadAssets, &update_asset_storage_system::<T>)
             .add_event::<AssetEvent<T>>();
 
         self
@@ -186,17 +188,17 @@ pub trait MainApp {
 impl MainApp for App {
     fn update_main_app(&mut self, render_app: &mut App, scene: &mut dyn Scene) -> SceneResult {
         self.world.resource_mut::<Time>().update();
-        self.systems.run(Stage::LoadAssets, &mut self.world);
-        self.systems.run(Stage::PreUpdate, &mut self.world);
+        self.systems.run(MainStage::LoadAssets, &mut self.world);
+        self.systems.run(MainStage::PreUpdate, &mut self.world);
 
         let result = scene.update(&mut self.world);
         if matches!(result, SceneResult::Quit) {
             return result;
         }
 
-        self.systems.run(Stage::PostUpdate, &mut self.world);
-        self.systems.run(Stage::AssetEvents, &mut self.world);
-        self.systems.run(Stage::Flush, &mut self.world);
+        self.systems.run(MainStage::PostUpdate, &mut self.world);
+        self.systems.run(MainStage::AssetEvents, &mut self.world);
+        self.systems.run(MainStage::Flush, &mut self.world);
         self.world.clear_trackers();
 
         update_render_app(&mut self.world, render_app);

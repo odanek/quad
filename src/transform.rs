@@ -10,9 +10,9 @@ pub use global_transform::GlobalTransform;
 pub use parent::Parent;
 pub use transform::Transform;
 
-use crate::app::{App, Stage};
+use crate::app::{App, MainStage};
 use transform_propagate_system::transform_propagate_system;
 
 pub fn transform_plugin(app: &mut App) {
-    app.add_system_to_stage(Stage::PostUpdate, &transform_propagate_system);
+    app.add_system_to_stage(MainStage::PostUpdate, &transform_propagate_system);
 }

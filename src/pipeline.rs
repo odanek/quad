@@ -11,7 +11,7 @@ pub use main_pass_driver::*;
 use std::{collections::HashMap, ops::Range};
 
 use crate::{
-    app::{App, Stage},
+    app::{App, RenderStage},
     ecs::{Commands, Entity, IntoSystem, Res, ResMut, Resource},
     render::{
         cameras::{ActiveCamera, Camera2d, RenderTarget},
@@ -89,15 +89,15 @@ pub fn core_pipeline_plugin(app: &mut App, render_app: &mut App) {
     render_app
         .init_resource::<DrawFunctions<Transparent2d>>()
         .add_system_to_stage(
-            Stage::RenderExtract,
+            RenderStage::Extract,
             extract_clear_color.system(&mut app.world),
         )
         .add_system_to_stage(
-            Stage::RenderExtract,
+            RenderStage::Extract,
             extract_core_pipeline_camera_phases.system(&mut app.world),
         )
-        .add_system_to_stage(Stage::RenderPhaseSort, &sort_phase_system::<Transparent2d>)
-        .add_system_to_stage(Stage::RenderPhaseSort, &batch_phase_system::<Transparent2d>);
+        .add_system_to_stage(RenderStage::PhaseSort, &sort_phase_system::<Transparent2d>)
+        .add_system_to_stage(RenderStage::PhaseSort, &batch_phase_system::<Transparent2d>);
 
     let clear_pass_node = ClearPassNode::new(&mut render_app.world);
     let pass_node_2d = MainPass2dNode::new(&mut render_app.world);
