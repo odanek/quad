@@ -19,4 +19,4 @@ pub mod transform;
 pub mod ty;
 pub mod windowing;
 
-pub use run::{Quad, QuadConfig, Scene, SceneResult, SceneSchedule};
+pub use run::{Quad, QuadConfig, Scene, SceneResult};

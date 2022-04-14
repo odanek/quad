@@ -1,7 +1,7 @@
 use crate::{
     app::{App, MainApp},
     audio::AudioDevice,
-    ecs::{Events, World},
+    ecs::Events,
     input::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
         MouseWheel, TouchInput, Touches,
@@ -15,68 +15,55 @@ use crate::{
     SceneResult,
 };
 
-use super::{Scene, ScenePhase, SceneSchedule};
-
-pub struct SceneContext {
-    _scene: Box<dyn Scene>,
-    schedule: SceneSchedule,
-}
-
-impl SceneContext {
-    fn new(mut scene: Box<dyn Scene>, world: &mut World) -> Self {
-        let schedule = scene.run(world);
-        Self {
-            _scene: scene,
-            schedule,
-        }
-    }
-}
+use super::Scene;
 
 pub struct RunContext {
     app: App,
     render_app: App,
     _audio_device: AudioDevice,
-    scene: SceneContext,
-    phase: ScenePhase,
+    scene: Vec<Box<dyn Scene>>,
 }
 
 impl RunContext {
     pub fn new(
-        mut app: App,
+        app: App,
         render_app: App,
         audio_device: AudioDevice,
         scene: Box<dyn Scene>,
     ) -> Self {
-        let scene_context = SceneContext::new(scene, &mut app.world);
         Self {
             app,
             render_app,
             _audio_device: audio_device,
-            scene: scene_context,
-            phase: ScenePhase::Start,
+            scene: vec![scene],
         }
     }
 
     pub fn update(&mut self) -> bool {
-        let phase = self.phase;
-        match phase {
-            ScenePhase::Start => {
-                self.phase = ScenePhase::Update;
-                if let Some(schedule) = &mut self.scene.schedule.start {
-                    self.app.update_main_app(&mut self.render_app, schedule);
-                }
-                false
-            }
-            ScenePhase::Update => {
-                self.phase = ScenePhase::Update;
-                if let Some(schedule) = &mut self.scene.schedule.update {
-                    let result = self.app.update_main_app(&mut self.render_app, schedule);
-                    matches!(result, SceneResult::Quit)
-                } else {
+        if let Some(scene) = self.scene.last_mut() {
+            let result = self
+                .app
+                .update_main_app(&mut self.render_app, scene.as_mut());
+
+            match result {
+                SceneResult::Ok => false,
+                SceneResult::Push(new_scene) => {
+                    self.scene.push(new_scene);
                     false
                 }
+                SceneResult::Pop => {
+                    self.scene.pop();
+                    false
+                }
+                SceneResult::Replace(new_scene) => {
+                    self.scene.pop();
+                    self.scene.push(new_scene);
+                    false
+                }
+                SceneResult::Quit => true
             }
-            // _ => true,
+        } else {
+            true
         }
     }
 

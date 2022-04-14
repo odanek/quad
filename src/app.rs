@@ -13,7 +13,7 @@ use crate::{
     audio::{audio_plugin, AudioDevice},
     ecs::{
         Event, Events, FromWorld, IntoSystem, ReadOnlySystemParamFetch, Res, ResMut, Resource,
-        Schedule, SystemParam, World,
+        SystemParam, World,
     },
     input::input_plugin,
     pipeline::core_pipeline_plugin,
@@ -26,6 +26,7 @@ use crate::{
     timing::{timing_plugin, Time},
     transform::transform_plugin,
     windowing::{windowing_plugin, Window, Windows},
+    Scene, SceneResult,
 };
 
 use self::systems::Systems;
@@ -181,24 +182,19 @@ impl App {
 }
 
 pub trait MainApp {
-    fn update_main_app<Out: 'static>(
-        &mut self,
-        render_app: &mut App,
-        schedule: &mut Schedule<(), Out>,
-    ) -> Out;
+    fn update_main_app(&mut self, render_app: &mut App, scene: &mut dyn Scene) -> SceneResult;
 }
 
 impl MainApp for App {
-    fn update_main_app<Out: 'static>(
-        &mut self,
-        render_app: &mut App,
-        schedule: &mut Schedule<(), Out>,
-    ) -> Out {
+    fn update_main_app(&mut self, render_app: &mut App, scene: &mut dyn Scene) -> SceneResult {
         self.world.resource_mut::<Time>().update();
         self.systems.run(MainStage::LoadAssets, &mut self.world);
         self.systems.run(MainStage::PreUpdate, &mut self.world);
 
-        let result = schedule.run(&mut self.world);
+        let result = scene.update(&mut self.world);
+        if matches!(result, SceneResult::Quit) {
+            return result;
+        }
 
         self.systems.run(MainStage::PostUpdate, &mut self.world);
         self.systems.run(MainStage::AssetEvents, &mut self.world);

@@ -4,4 +4,4 @@ mod runner;
 mod scene;
 
 pub use self::quad::{Quad, QuadConfig};
-pub use scene::{Scene, ScenePhase, SceneResult, SceneSchedule};
+pub use scene::{Scene, SceneResult};

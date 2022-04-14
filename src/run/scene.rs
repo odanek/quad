@@ -1,4 +1,4 @@
-use crate::ecs::{Schedule, World};
+use crate::ecs::World;
 
 pub enum SceneResult {
     Ok,
@@ -8,24 +8,6 @@ pub enum SceneResult {
     Replace(Box<dyn Scene>),
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum ScenePhase {
-    Start,
-    // Stop,
-    // Pause,
-    // Resume,
-    Update,
-}
-
-#[derive(Default)]
-pub struct SceneSchedule {
-    pub start: Option<Schedule>,
-    pub stop: Option<Schedule>,
-    pub pause: Option<Schedule>,
-    pub resume: Option<Schedule>,
-    pub update: Option<Schedule<(), SceneResult>>,
-}
-
 pub trait Scene {
-    fn run(&mut self, _world: &mut World) -> SceneSchedule;
+    fn update(&mut self, _world: &mut World) -> SceneResult;
 }
