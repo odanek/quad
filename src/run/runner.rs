@@ -1,7 +1,5 @@
 use winit::event::DeviceEvent;
 
-use crate::run::SceneResult;
-
 use super::context::RunContext;
 
 pub type AppEventLoop = winit::event_loop::EventLoop<()>;
@@ -9,8 +7,6 @@ pub type AppEventLoop = winit::event_loop::EventLoop<()>;
 pub fn winit_runner(mut context: RunContext, event_loop: AppEventLoop) {
     let mut active = true;
     let mut exit = false;
-
-    context.start_scene();
 
     event_loop.run(move |event, _, control_flow| {
         use winit::{
@@ -28,7 +24,7 @@ pub fn winit_runner(mut context: RunContext, event_loop: AppEventLoop) {
         match event {
             Event::MainEventsCleared => {
                 if active && !exit {
-                    exit = matches!(context.update_scene(), SceneResult::Quit);
+                    exit = context.update();
                 }
             }
             Event::WindowEvent {

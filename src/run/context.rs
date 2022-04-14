@@ -1,7 +1,7 @@
 use crate::{
     app::{App, MainApp},
     audio::AudioDevice,
-    ecs::Events,
+    ecs::{Events, World},
     input::{
         KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
         MouseWheel, TouchInput, Touches,
@@ -12,52 +12,72 @@ use crate::{
         WindowCloseRequested, WindowFocused, WindowId, WindowMoved, WindowResized,
         WindowScaleFactorChanged, Windows,
     },
+    SceneResult,
 };
 
-use super::{Scene, SceneResult};
+use super::{Scene, ScenePhase, SceneSchedule};
+
+pub struct SceneContext {
+    _scene: Box<dyn Scene>,
+    schedule: SceneSchedule,
+}
+
+impl SceneContext {
+    fn new(mut scene: Box<dyn Scene>, world: &mut World) -> Self {
+        let schedule = scene.run(world);
+        Self {
+            _scene: scene,
+            schedule,
+        }
+    }
+}
 
 pub struct RunContext {
     app: App,
     render_app: App,
     _audio_device: AudioDevice,
-    scene: Box<dyn Scene>,
+    scene: SceneContext,
+    phase: ScenePhase,
 }
 
 impl RunContext {
     pub fn new(
-        app: App,
+        mut app: App,
         render_app: App,
         audio_device: AudioDevice,
         scene: Box<dyn Scene>,
     ) -> Self {
+        let scene_context = SceneContext::new(scene, &mut app.world);
         Self {
             app,
             render_app,
             _audio_device: audio_device,
-            scene,
+            scene: scene_context,
+            phase: ScenePhase::Start,
         }
     }
 
-    pub fn start_scene(&mut self) {
-        // TODO transform_propagate_system and maybe other should run after start (and other phases?) before the update
-        self.scene.start(&mut self.app.world);
-    }
-
-    pub fn _stop_scene(&mut self) {
-        self.scene.stop(&mut self.app.world);
-    }
-
-    pub fn _pause_scene(&mut self) {
-        self.scene.pause(&mut self.app.world);
-    }
-
-    pub fn _resume_scene(&mut self) {
-        self.scene.resume(&mut self.app.world);
-    }
-
-    pub fn update_scene(&mut self) -> SceneResult {
-        self.app
-            .update_main_app(&mut self.render_app, self.scene.as_mut())
+    pub fn update(&mut self) -> bool {
+        let phase = self.phase;
+        match phase {
+            ScenePhase::Start => {
+                self.phase = ScenePhase::Update;
+                if let Some(schedule) = &mut self.scene.schedule.start {
+                    self.app.update_main_app(&mut self.render_app, schedule);
+                }
+                false
+            }
+            ScenePhase::Update => {
+                self.phase = ScenePhase::Update;
+                if let Some(schedule) = &mut self.scene.schedule.update {
+                    let result = self.app.update_main_app(&mut self.render_app, schedule);
+                    matches!(result, SceneResult::Quit)
+                } else {
+                    false
+                }
+            }
+            // _ => true,
+        }
     }
 
     pub fn get_window_id(&self, id: winit::window::WindowId) -> Option<WindowId> {

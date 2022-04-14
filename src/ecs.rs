@@ -19,7 +19,7 @@ pub use query::{
     filter::{Added, Changed, FilterFetch, Or, With, Without},
     state::QueryState,
 };
-pub use schedule::{OptionalSchedule, OptionalScheduleWithInput, Schedule, Scheduler};
+pub use schedule::{Schedule, Scheduler};
 pub use system::{
     command::Commands,
     local::Local,
