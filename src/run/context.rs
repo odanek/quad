@@ -60,7 +60,7 @@ impl RunContext {
                     self.scene.push(new_scene);
                     false
                 }
-                SceneResult::Quit => true
+                SceneResult::Quit => true,
             }
         } else {
             true

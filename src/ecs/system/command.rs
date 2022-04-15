@@ -93,6 +93,12 @@ impl<'w, 's> Commands<'w, 's> {
         }
     }
 
+    pub fn init_resource<T: Resource + Default>(&mut self) {
+        self.queue.push(InsertResource {
+            resource: T::default(),
+        })
+    }
+
     pub fn insert_resource<T: Resource>(&mut self, resource: T) {
         self.queue.push(InsertResource { resource })
     }
@@ -103,7 +109,7 @@ impl<'w, 's> Commands<'w, 's> {
         });
     }
 
-    pub fn add<C: Command>(&mut self, command: C) {
+    fn add<C: Command>(&mut self, command: C) {
         self.queue.push(command);
     }
 }
