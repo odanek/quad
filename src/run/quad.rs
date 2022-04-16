@@ -5,7 +5,7 @@ use crate::{
     asset::{Asset, AssetServerSettings},
     audio::AudioDevice,
     ecs::{Event, FromWorld, IntoSystem, Resource},
-    windowing::{WindowBuilder, WindowId},
+    windowing::{Window, WindowDescriptor, WindowId},
 };
 
 use super::{context::RunContext, runner::winit_runner, Scene};
@@ -14,7 +14,7 @@ use super::{context::RunContext, runner::winit_runner, Scene};
 pub struct QuadConfig {
     pub task_pool_options: TaskPoolOptions,
     pub asset_server_settings: AssetServerSettings,
-    pub main_window: WindowBuilder,
+    pub main_window: WindowDescriptor,
 }
 
 pub struct Quad {
@@ -25,15 +25,15 @@ pub struct Quad {
 }
 
 impl Quad {
-    pub fn new(config: &QuadConfig) -> Self {
+    pub fn new(config: QuadConfig) -> Self {
         let mut quad = Self {
             app: App::default(),
             render_app: App::default(),
             audio_device: AudioDevice::default(),
             event_loop: Some(EventLoop::new()),
         };
-        quad.add_pools(config);
-        quad.add_plugins(config);
+        quad.add_pools(&config);
+        quad.add_plugins(&config);
         quad
     }
 
@@ -83,9 +83,11 @@ impl Quad {
     fn add_plugins(&mut self, config: &QuadConfig) {
         let app = &mut self.app;
         app.add_windowing_plugin();
-        let main_window = config
-            .main_window
-            .build(WindowId::primary(), self.event_loop.as_ref().unwrap());
+        let main_window = Window::new(
+            WindowId::primary(),
+            &config.main_window,
+            self.event_loop.as_ref().unwrap(),
+        );
         app.add_window(main_window);
 
         app.add_timing_plugin();

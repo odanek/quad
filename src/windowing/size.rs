@@ -28,31 +28,31 @@ pub enum FullScreen {
 }
 
 #[derive(Copy, Clone, PartialEq)]
-pub enum Size {
+pub enum WindowSize {
     Physical(PhysicalSize),
     Logical(LogicalSize),
     FullScreen(FullScreen),
 }
 
-impl Default for Size {
+impl Default for WindowSize {
     fn default() -> Self {
         Self::FullScreen(FullScreen::Borderless)
     }
 }
 
-impl From<PhysicalSize> for Size {
+impl From<PhysicalSize> for WindowSize {
     fn from(size: PhysicalSize) -> Self {
         Self::Physical(size)
     }
 }
 
-impl From<LogicalSize> for Size {
+impl From<LogicalSize> for WindowSize {
     fn from(size: LogicalSize) -> Self {
         Self::Logical(size)
     }
 }
 
-impl From<FullScreen> for Size {
+impl From<FullScreen> for WindowSize {
     fn from(size: FullScreen) -> Self {
         Self::FullScreen(size)
     }

@@ -1,15 +1,13 @@
-mod builder;
 mod event;
 mod handle;
 mod size;
 mod window;
 mod windows;
 
-pub(crate) use builder::WindowBuilder;
 pub use event::*;
 pub use handle::RawWindowHandleWrapper;
-pub use size::{FullScreen, LogicalSize, PhysicalSize, Size};
-pub use window::{PresentMode, Window, WindowId};
+pub use size::{FullScreen, LogicalSize, PhysicalSize, WindowSize};
+pub use window::{PresentMode, Window, WindowDescriptor, WindowId};
 pub use windows::Windows;
 
 use crate::app::App;

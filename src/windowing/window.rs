@@ -2,7 +2,7 @@ use raw_window_handle::HasRawWindowHandle;
 
 use crate::ty::{Size, Vec2, Vec2i};
 
-use super::{handle::RawWindowHandleWrapper, WindowBuilder};
+use super::{handle::RawWindowHandleWrapper, WindowSize};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -39,6 +39,12 @@ impl WindowId {
     }
 }
 
+#[derive(Default)]
+pub struct WindowDescriptor {
+    pub title: String,
+    pub size: WindowSize,
+}
+
 pub struct Window {
     id: WindowId,
     present_mode: PresentMode,
@@ -54,7 +60,29 @@ pub struct Window {
 }
 
 impl Window {
-    pub(crate) fn new(id: WindowId, winit_window: winit::window::Window) -> Self {
+    pub(crate) fn new(
+        id: WindowId,
+        descriptor: &WindowDescriptor,
+        event_loop: &winit::event_loop::EventLoop<()>,
+    ) -> Self {
+        let mut builder = winit::window::WindowBuilder::new().with_title(descriptor.title.clone());
+
+        match descriptor.size {
+            WindowSize::Physical(size) => {
+                builder =
+                    builder.with_inner_size(winit::dpi::PhysicalSize::new(size.width, size.height));
+            }
+            WindowSize::Logical(size) => {
+                builder =
+                    builder.with_inner_size(winit::dpi::LogicalSize::new(size.width, size.height));
+            }
+            WindowSize::FullScreen(_) => {
+                builder =
+                    builder.with_fullscreen(Some(winit::window::Fullscreen::Borderless(None)));
+            }
+        }
+
+        let winit_window = builder.build(event_loop).expect("Unable to create window");
         let position = winit_window
             .outer_position()
             .ok()
@@ -163,10 +191,5 @@ impl Window {
 
     pub(crate) fn update_focused(&mut self, focused: bool) {
         self.focused = focused;
-    }
-
-    #[inline]
-    pub fn builder() -> WindowBuilder {
-        WindowBuilder::default()
     }
 }
