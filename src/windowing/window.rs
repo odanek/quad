@@ -1,6 +1,6 @@
 use raw_window_handle::HasRawWindowHandle;
 
-use crate::ty::{Vec2, Vec2i};
+use crate::ty::{Size, Vec2, Vec2i};
 
 use super::{handle::RawWindowHandleWrapper, WindowBuilder};
 
@@ -96,6 +96,14 @@ impl Window {
     }
 
     #[inline]
+    pub fn size(&self) -> Size {
+        Size {
+            width: self.width(),
+            height: self.height(),
+        }
+    }
+
+    #[inline]
     pub fn physical_width(&self) -> u32 {
         self.physical_width
     }
@@ -103,6 +111,14 @@ impl Window {
     #[inline]
     pub fn physical_height(&self) -> u32 {
         self.physical_height
+    }
+
+    #[inline]
+    pub fn physical_size(&self) -> Size<u32> {
+        Size {
+            width: self.physical_width,
+            height: self.physical_height,
+        }
     }
 
     #[inline]

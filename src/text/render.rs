@@ -17,27 +17,13 @@ use super::{
 
 /// The bundle of components needed to draw text in a 2D scene via a 2D `OrthographicCameraBundle`.
 /// [Example usage.](https://github.com/bevyengine/bevy/blob/latest/examples/2d/text2d.rs)
-#[derive(Bundle, Clone, Debug)]
+#[derive(Bundle, Clone, Debug, Default)]
 pub struct TextBundle {
     pub text: Text,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     pub text_size: TextSize,
     pub visibility: Visibility,
-}
-
-impl Default for TextBundle {
-    fn default() -> Self {
-        Self {
-            text: Default::default(),
-            transform: Default::default(),
-            global_transform: Default::default(),
-            text_size: TextSize {
-                size: Size::default(),
-            },
-            visibility: Default::default(),
-        }
-    }
 }
 
 pub fn extract_text_sprite(

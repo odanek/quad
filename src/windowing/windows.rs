@@ -28,6 +28,11 @@ impl Windows {
         self.get(WindowId::primary())
     }
 
+    pub fn primary(&self) -> &Window {
+        self.get(WindowId::primary())
+            .expect("Main window not found")
+    }
+
     pub fn get_mut(&mut self, id: WindowId) -> Option<&mut Window> {
         self.windows.get_mut(&id)
     }
