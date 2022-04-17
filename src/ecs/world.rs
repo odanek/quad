@@ -227,6 +227,16 @@ impl World {
             .unwrap_or(false)
     }
 
+    #[inline]
+    pub fn despawn_recursive(&mut self, entity: Entity) -> bool {
+        self.get_entity_mut(entity)
+            .map(|e| {
+                e.despawn_recursive();
+                true
+            })
+            .unwrap_or(false)
+    }
+
     pub fn despawn_all(&mut self) {
         // TODO: Track removed components?
         for archetype in self.archetypes.iter_mut() {

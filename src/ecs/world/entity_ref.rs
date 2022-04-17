@@ -277,6 +277,16 @@ impl<'w> EntityMut<'w> {
 
     pub fn despawn(mut self) {
         self.remove_from_parent();
+        if let Some(mut children) = self.get_mut::<Children>() {
+            for child in std::mem::take(&mut children.0) {
+                self.world.entity_mut(child).remove::<Parent>();
+            }
+        }
+        despawn_self(self.world, self.entity);
+    }
+
+    pub fn despawn_recursive(mut self) {
+        self.remove_from_parent();
         despawn_recursive(self.world, self.entity);
     }
 
@@ -419,7 +429,10 @@ fn despawn_recursive(world: &mut World, entity: Entity) {
             despawn_recursive(world, child);
         }
     }
+    despawn_self(world, entity);
+}
 
+fn despawn_self(world: &mut World, entity: Entity) {
     let location = world.entities.free(entity).unwrap();
 
     let archetype = &mut world.archetypes[location.archetype_id];
@@ -672,7 +685,7 @@ mod test {
         check_children(&world, parent_entity, Some(&[child1_entity, child2_entity]));
         check_children(&world, grandparent_entity, Some(&[parent_entity]));
 
-        world.entity_mut(parent_entity).despawn();
+        world.entity_mut(parent_entity).despawn_recursive();
         assert!(!world.has_entity(child1_entity));
         assert!(!world.has_entity(child2_entity));
         assert!(!world.has_entity(parent_entity));

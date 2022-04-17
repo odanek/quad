@@ -174,6 +174,12 @@ impl<'w, 's, 'a> EntityCommands<'w, 's, 'a> {
         })
     }
 
+    pub fn despawn_recursive(&mut self) {
+        self.commands.add(DespawnRecursive {
+            entity: self.entity,
+        })
+    }
+
     pub fn push_child(&mut self, child: Entity) -> &mut Self {
         let parent = self.id();
         self.commands().add(PushChild { child, parent });
@@ -268,6 +274,19 @@ pub struct Despawn {
 impl Command for Despawn {
     fn write(self: Box<Self>, world: &mut World) {
         if !world.despawn(self.entity) {
+            panic!("Failed to despawn non-existent entity {:?}", self.entity);
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct DespawnRecursive {
+    pub entity: Entity,
+}
+
+impl Command for DespawnRecursive {
+    fn write(self: Box<Self>, world: &mut World) {
+        if !world.despawn_recursive(self.entity) {
             panic!("Failed to despawn non-existent entity {:?}", self.entity);
         }
     }
