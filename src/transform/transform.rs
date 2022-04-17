@@ -2,22 +2,27 @@ use std::ops::Mul;
 
 use crate::{
     ecs::Component,
-    ty::{Mat3, Mat4, Quat, Vec3},
+    ty::{Mat3, Mat4, Rad, Vec3},
 };
-use cgm::{ElementWise, InnerSpace, One, Zero};
+use cgm::{ElementWise, Zero};
 
 use super::global_transform::GlobalTransform;
 
 #[derive(Debug, PartialEq, Clone, Copy, Component)]
 pub struct Transform {
     pub translation: Vec3,
-    pub rotation: Quat,
+    pub rotation: Rad,
     pub scale: Vec3,
 }
 
 pub const IDENTITY_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
 
 impl Transform {
+    #[inline]
+    pub fn from_xy(x: f32, y: f32) -> Self {
+        Self::from_translation(Vec3::new(x, y, 0.0))
+    }
+
     #[inline]
     pub fn from_xyz(x: f32, y: f32, z: f32) -> Self {
         Self::from_translation(Vec3::new(x, y, z))
@@ -27,19 +32,8 @@ impl Transform {
     pub const fn identity() -> Self {
         Transform {
             translation: Vec3::ZERO,
-            rotation: Quat::ONE,
+            rotation: Rad::new(0.0),
             scale: IDENTITY_SCALE,
-        }
-    }
-
-    #[inline]
-    pub fn from_matrix(matrix: Mat4) -> Self {
-        let (scale, rotation, translation) = matrix.to_scale_quaternion_translation();
-
-        Transform {
-            translation,
-            rotation,
-            scale,
         }
     }
 
@@ -52,7 +46,7 @@ impl Transform {
     }
 
     #[inline]
-    pub fn from_rotation(rotation: Quat) -> Self {
+    pub fn from_rotation(rotation: Rad) -> Self {
         Transform {
             rotation,
             ..Default::default()
@@ -68,89 +62,37 @@ impl Transform {
     }
 
     #[inline]
-    pub fn looking_at(mut self, target: Vec3, up: Vec3) -> Self {
-        self.look_at(target, up);
-        self
-    }
-
-    #[inline]
     pub fn compute_matrix(&self) -> Mat4 {
-        Mat4::from_scale_quaternion_translation(self.scale, self.rotation, self.translation)
+        // TODO Simplify
+        let rotation_matrix = Mat3::from_rotation_z(self.rotation);
+        Mat4::from_cols(
+            rotation_matrix.x.extend(0.0) * self.scale.x,
+            rotation_matrix.y.extend(0.0) * self.scale.y,
+            rotation_matrix.z.extend(0.0) * self.scale.z,
+            self.translation.extend(1.0),
+        )
     }
 
     #[inline]
-    pub fn local_x(&self) -> Vec3 {
-        self.rotation * Vec3::X
-    }
-
-    #[inline]
-    pub fn left(&self) -> Vec3 {
-        -self.local_x()
-    }
-
-    #[inline]
-    pub fn right(&self) -> Vec3 {
-        self.local_x()
-    }
-
-    #[inline]
-    pub fn local_y(&self) -> Vec3 {
-        self.rotation * Vec3::Y
-    }
-
-    #[inline]
-    pub fn up(&self) -> Vec3 {
-        self.local_y()
-    }
-
-    #[inline]
-    pub fn down(&self) -> Vec3 {
-        -self.local_y()
-    }
-
-    #[inline]
-    pub fn local_z(&self) -> Vec3 {
-        self.rotation * Vec3::Z
-    }
-
-    #[inline]
-    pub fn forward(&self) -> Vec3 {
-        -self.local_z()
+    pub fn rotate(&mut self, rotation: Rad) {
+        self.rotation += rotation;
     }
 
     #[inline]
     pub fn back(&self) -> Vec3 {
-        self.local_z()
-    }
-
-    #[inline]
-    pub fn rotate(&mut self, rotation: Quat) {
-        self.rotation = rotation * self.rotation;
+        Vec3::Z
     }
 
     #[inline]
     pub fn mul_transform(&self, transform: Transform) -> Self {
         let translation = self * transform.translation;
-        let rotation = self.rotation * transform.rotation;
+        let rotation = self.rotation + transform.rotation;
         let scale = self.scale.mul_element_wise(transform.scale);
         Transform {
             translation,
             rotation,
             scale,
         }
-    }
-
-    #[inline]
-    pub fn apply_non_uniform_scale(&mut self, scale: Vec3) {
-        self.scale.mul_assign_element_wise(scale);
-    }
-
-    #[inline]
-    pub fn look_at(&mut self, target: Vec3, up: Vec3) {
-        let forward = (self.translation - target).normalize();
-        let right = up.cross(forward).normalize();
-        let up = forward.cross(right);
-        self.rotation = Mat3::from_cols(right, up, forward).into();
     }
 }
 
@@ -194,6 +136,7 @@ impl Mul<Vec3> for &Transform {
 
     #[inline]
     fn mul(self, value: Vec3) -> Self::Output {
-        (self.rotation * value).mul_element_wise(self.scale) + self.translation
+        // TODO Simplify
+        Vec3::from_homogeneous(self.compute_matrix() * value.to_homogeneous())
     }
 }

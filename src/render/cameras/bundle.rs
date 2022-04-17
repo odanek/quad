@@ -52,6 +52,7 @@ impl Default for OrthographicCameraBundle<Camera2d> {
             ..Default::default()
         };
         let transform = Transform::from_xyz(0.0, 0.0, far - 0.1);
+        // TODO No need to call inverse here
         let view_projection = orthographic_projection.get_projection_matrix()
             * transform.compute_matrix().inverse().unwrap();
         let frustum = Frustum::from_view_projection(

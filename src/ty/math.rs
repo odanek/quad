@@ -8,6 +8,8 @@ pub type Mat2 = cgm::Mat2<f32>;
 pub type Mat3 = cgm::Mat3<f32>;
 pub type Mat4 = cgm::Mat4<f32>;
 pub type Quat = cgm::Quat<f32>;
+pub type Rad = cgm::Rad<f32>;
+pub type Deg = cgm::Deg<f32>;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Size<T: PartialEq = f32> {
