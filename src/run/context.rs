@@ -15,12 +15,13 @@ use crate::{
     SceneResult,
 };
 
-use super::Scene;
+use super::{Scene, SceneStage};
 
 pub struct RunContext {
     app: App,
     render_app: App,
     _audio_device: AudioDevice,
+    stage: SceneStage,
     scene: Vec<Box<dyn Scene>>,
 }
 
@@ -35,6 +36,7 @@ impl RunContext {
             app,
             render_app,
             _audio_device: audio_device,
+            stage: SceneStage::Start,
             scene: vec![scene],
         }
     }
@@ -43,21 +45,27 @@ impl RunContext {
         if let Some(scene) = self.scene.last_mut() {
             let result = self
                 .app
-                .update_main_app(&mut self.render_app, scene.as_mut());
+                .update_main_app(&mut self.render_app, scene.as_mut(), self.stage);
 
             match result {
-                SceneResult::Ok => false,
-                SceneResult::Push(new_scene) => {
-                    self.scene.push(new_scene);
+                SceneResult::Ok(stage) => {
+                    self.stage = stage;
                     false
                 }
-                SceneResult::Pop => {
-                    self.scene.pop();
+                SceneResult::Push(new_scene, stage) => {
+                    self.scene.push(new_scene);
+                    self.stage = stage;
                     false
                 }
-                SceneResult::Replace(new_scene) => {
+                SceneResult::Pop(stage) => {
+                    self.scene.pop();
+                    self.stage = stage;
+                    false
+                }
+                SceneResult::Replace(new_scene, stage) => {
                     self.scene.pop();
                     self.scene.push(new_scene);
+                    self.stage = stage;
                     false
                 }
                 SceneResult::Quit => true,

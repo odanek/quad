@@ -19,4 +19,5 @@ pub mod transform;
 pub mod ty;
 pub mod windowing;
 
-pub use run::{Quad, QuadConfig, Scene, SceneResult};
+// TODO Put this inside a module
+pub use run::{Quad, QuadConfig, Scene, SceneResult, SceneStage};

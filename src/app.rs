@@ -21,6 +21,7 @@ use crate::{
         render_phase::{DrawFunctions, PhaseItem, RenderCommand, RenderCommandState},
         render_plugin, update_render_app,
     },
+    run::SceneStage,
     sprite::sprite_plugin,
     text::text_plugin,
     timing::{timing_plugin, Time},
@@ -182,16 +183,26 @@ impl App {
 }
 
 pub trait MainApp {
-    fn update_main_app(&mut self, render_app: &mut App, scene: &mut dyn Scene) -> SceneResult;
+    fn update_main_app(
+        &mut self,
+        render_app: &mut App,
+        scene: &mut dyn Scene,
+        stage: SceneStage,
+    ) -> SceneResult;
 }
 
 impl MainApp for App {
-    fn update_main_app(&mut self, render_app: &mut App, scene: &mut dyn Scene) -> SceneResult {
+    fn update_main_app(
+        &mut self,
+        render_app: &mut App,
+        scene: &mut dyn Scene,
+        stage: SceneStage,
+    ) -> SceneResult {
         self.world.resource_mut::<Time>().update();
         self.systems.run(MainStage::LoadAssets, &mut self.world);
         self.systems.run(MainStage::PreUpdate, &mut self.world);
 
-        let result = scene.update(&mut self.world);
+        let result = scene.update(stage, &mut self.world);
         if matches!(result, SceneResult::Quit) {
             return result;
         }
