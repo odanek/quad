@@ -33,7 +33,7 @@ impl<'w, T: Component> SystemParam for RemovedComponents<'w, T> {
     type Fetch = RemovedComponentsState<T>;
 }
 
-impl<T: Component> SystemParamState for RemovedComponentsState<T> {
+unsafe impl<T: Component> SystemParamState for RemovedComponentsState<T> {
     fn new(world: &mut World, _system_meta: &mut SystemMeta) -> Self {
         Self {
             component_id: world.register_component::<T>(),

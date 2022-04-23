@@ -3,6 +3,8 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+use quad_macros::impl_param_set;
+
 use crate::{
     ecs::{component::Tick, World},
     macros::all_tuples,
@@ -10,7 +12,8 @@ use crate::{
 
 use super::function_system::SystemMeta;
 
-pub trait SystemParamState: Send + Sync + 'static {
+#[allow(clippy::missing_safety_doc)]
+pub unsafe trait SystemParamState: Send + Sync + 'static {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self;
 
     #[inline]
@@ -21,7 +24,7 @@ pub trait SystemParamState: Send + Sync + 'static {
 }
 
 pub trait SystemParamFetch<'w, 's>: SystemParamState {
-    type Item;
+    type Item: SystemParam<Fetch = Self>;
 
     unsafe fn get_param(
         state: &'s mut Self,
@@ -145,7 +148,7 @@ where
     }
 }
 
-impl<'w, 's, S: SystemParamState, P: SystemParam + 'static> SystemParamState
+unsafe impl<'w, 's, S: SystemParamState, P: SystemParam + 'static> SystemParamState
     for StaticSystemParamState<S, P>
 {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
@@ -160,6 +163,16 @@ impl<'w, 's, S: SystemParamState, P: SystemParam + 'static> SystemParamState
         self.0.apply(world)
     }
 }
+
+pub struct ParamSet<'w, 's, T: SystemParam> {
+    param_states: &'s mut T::Fetch,
+    world: &'w World,
+    system_meta: SystemMeta,
+    change_tick: Tick,
+}
+pub struct ParamSetState<T: for<'w, 's> SystemParamFetch<'w, 's>>(T);
+
+impl_param_set!();
 
 macro_rules! impl_system_param_tuple {
     ($($param: ident),*) => {
@@ -182,14 +195,13 @@ macro_rules! impl_system_param_tuple {
                 world: &'w World,
                 change_tick: Tick,
             ) -> Self::Item {
-
                 let ($($param,)*) = state;
                 ($($param::get_param($param, system_meta, world, change_tick),)*)
             }
         }
 
         #[allow(non_snake_case)]
-        impl<$($param: SystemParamState),*> SystemParamState for ($($param,)*) {
+        unsafe impl<$($param: SystemParamState),*> SystemParamState for ($($param,)*) {
             #[inline]
             fn new(_world: &mut World, _system_meta: &mut SystemMeta) -> Self {
                 (($($param::new(_world, _system_meta),)*))

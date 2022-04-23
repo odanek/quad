@@ -233,7 +233,7 @@ where
 {
 }
 
-impl<Q: WorldQuery + 'static, F: WorldQuery + 'static> SystemParamState for QueryState<Q, F>
+unsafe impl<Q: WorldQuery + 'static, F: WorldQuery + 'static> SystemParamState for QueryState<Q, F>
 where
     F::Fetch: FilterFetch,
 {
@@ -276,126 +276,5 @@ where
             state,
             SystemTicks::new(system_meta.last_change_tick, change_tick),
         )
-    }
-}
-
-pub struct QuerySet<'w, 's, T> {
-    query_states: &'s T,
-    world: &'w World,
-    system_ticks: SystemTicks,
-}
-pub struct QuerySetState<T>(T);
-
-impl<
-        'w,
-        's,
-        Q0: WorldQuery + 'static,
-        Q1: WorldQuery + 'static,
-        F0: WorldQuery + 'static,
-        F1: WorldQuery + 'static,
-    > SystemParam for QuerySet<'w, 's, (QueryState<Q0, F0>, QueryState<Q1, F1>)>
-where
-    F0::Fetch: FilterFetch,
-    F1::Fetch: FilterFetch,
-{
-    type Fetch = QuerySetState<(QueryState<Q0, F0>, QueryState<Q1, F1>)>;
-}
-
-unsafe impl<
-        Q0: WorldQuery + 'static,
-        Q1: WorldQuery + 'static,
-        F0: WorldQuery + 'static,
-        F1: WorldQuery + 'static,
-    > ReadOnlySystemParamFetch for QuerySetState<(QueryState<Q0, F0>, QueryState<Q1, F1>)>
-where
-    Q0::Fetch: ReadOnlyFetch,
-    Q1::Fetch: ReadOnlyFetch,
-    F0::Fetch: FilterFetch,
-    F1::Fetch: FilterFetch,
-{
-}
-
-impl<
-        Q0: WorldQuery + 'static,
-        Q1: WorldQuery + 'static,
-        F0: WorldQuery + 'static,
-        F1: WorldQuery + 'static,
-    > SystemParamState for QuerySetState<(QueryState<Q0, F0>, QueryState<Q1, F1>)>
-where
-    F0::Fetch: FilterFetch,
-    F1::Fetch: FilterFetch,
-{
-    fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
-        let q0 = QueryState::<Q0, F0>::new(world);
-        if !system_meta
-            .component_access
-            .is_compatible(&q0.component_access)
-        {
-            panic!("Query parameters in system {} access components in a way that conflicts with Rust mutability rules.", system_meta.name);
-        }
-
-        let q1 = QueryState::<Q1, F1>::new(world);
-        if !system_meta
-            .component_access
-            .is_compatible(&q1.component_access)
-        {
-            panic!("Query parameters in system {} access components in a way that conflicts with Rust mutability rules.", system_meta.name);
-        }
-
-        system_meta
-            .component_access
-            .add(q0.component_access.clone());
-        system_meta
-            .component_access
-            .add(q1.component_access.clone());
-        QuerySetState((q0, q1))
-    }
-
-    #[inline]
-    fn update(&mut self, world: &World, _system_meta: &mut SystemMeta) {
-        self.0 .0.update_archetypes(world);
-        self.0 .1.update_archetypes(world);
-    }
-}
-
-impl<
-        'w,
-        's,
-        Q0: WorldQuery + 'static,
-        Q1: WorldQuery + 'static,
-        F0: WorldQuery + 'static,
-        F1: WorldQuery + 'static,
-    > SystemParamFetch<'w, 's> for QuerySetState<(QueryState<Q0, F0>, QueryState<Q1, F1>)>
-where
-    F0::Fetch: FilterFetch,
-    F1::Fetch: FilterFetch,
-{
-    type Item = QuerySet<'w, 's, (QueryState<Q0, F0>, QueryState<Q1, F1>)>;
-
-    #[inline]
-    unsafe fn get_param(
-        state: &'s mut Self,
-        system_meta: &SystemMeta,
-        world: &'w World,
-        change_tick: Tick,
-    ) -> Self::Item {
-        QuerySet {
-            query_states: &state.0,
-            world,
-            system_ticks: SystemTicks::new(system_meta.last_change_tick, change_tick),
-        }
-    }
-}
-impl<'w, 's, Q0: WorldQuery, Q1: WorldQuery, F0: WorldQuery, F1: WorldQuery>
-    QuerySet<'w, 's, (QueryState<Q0, F0>, QueryState<Q1, F1>)>
-where
-    F0::Fetch: FilterFetch,
-    F1::Fetch: FilterFetch,
-{
-    pub fn q0(&mut self) -> Query<'_, '_, Q0, F0> {
-        unsafe { Query::new(self.world, &self.query_states.0, self.system_ticks) }
-    }
-    pub fn q1(&mut self) -> Query<'_, '_, Q1, F1> {
-        unsafe { Query::new(self.world, &self.query_states.1, self.system_ticks) }
     }
 }

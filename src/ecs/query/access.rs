@@ -4,7 +4,7 @@ pub trait AccessIndex: Copy {
     fn index(&self) -> usize;
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Access<T: AccessIndex> {
     reads: HashSet<usize>,
     writes: HashSet<usize>,
@@ -48,9 +48,14 @@ impl<T: AccessIndex> Access<T> {
         self.reads.extend(other.reads.iter());
         self.writes.extend(other.writes.iter());
     }
+
+    pub fn clear(&mut self) {
+        self.reads.clear();
+        self.writes.clear();
+    }
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct FilteredAccess<T: AccessIndex> {
     access: Access<T>,
     with: HashSet<usize>,
@@ -119,6 +124,7 @@ fn intersects(left: &HashSet<usize>, right: &HashSet<usize>) -> bool {
     left.intersection(right).next() != None
 }
 
+#[derive(Clone, Debug)]
 pub struct FilteredAccessSet<T: AccessIndex> {
     combined_access: Access<T>,
     filtered_accesses: Vec<FilteredAccess<T>>,
@@ -144,6 +150,18 @@ impl<T: AccessIndex> FilteredAccessSet<T> {
     pub fn add(&mut self, filtered_access: FilteredAccess<T>) {
         self.combined_access.extend(&filtered_access.access);
         self.filtered_accesses.push(filtered_access);
+    }
+
+    pub fn extend(&mut self, filtered_access_set: FilteredAccessSet<T>) {
+        self.combined_access
+            .extend(&filtered_access_set.combined_access);
+        self.filtered_accesses
+            .extend(filtered_access_set.filtered_accesses);
+    }
+
+    pub fn clear(&mut self) {
+        self.combined_access.clear();
+        self.filtered_accesses.clear();
     }
 }
 

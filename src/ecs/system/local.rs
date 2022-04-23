@@ -46,7 +46,7 @@ impl<'a, T: LocalResource + FromWorld> SystemParam for Local<'a, T> {
     type Fetch = LocalState<T>;
 }
 
-impl<T: LocalResource + FromWorld> SystemParamState for LocalState<T> {
+unsafe impl<T: LocalResource + FromWorld> SystemParamState for LocalState<T> {
     fn new(world: &mut World, _system_meta: &mut SystemMeta) -> Self {
         Self(T::from_world(world))
     }

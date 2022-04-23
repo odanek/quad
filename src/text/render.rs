@@ -2,7 +2,7 @@ use cgm::Zero;
 
 use crate::{
     asset::Assets,
-    ecs::{Bundle, Changed, Entity, Local, Query, QuerySet, QueryState, Res, ResMut, With},
+    ecs::{Bundle, Changed, Entity, Local, ParamSet, Query, Res, ResMut, With},
     render::{texture::Image, view::Visibility, RenderWorld},
     sprite::{ExtractedSprite, ExtractedSprites, TextureAtlas},
     transform::{GlobalTransform, Transform},
@@ -106,13 +106,13 @@ pub fn text_system(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut font_atlas_set_storage: ResMut<Assets<FontAtlasSet>>,
     mut text_pipeline: ResMut<DefaultTextPipeline>,
-    mut text_queries: QuerySet<(
-        QueryState<Entity, (With<TextSize>, Changed<Text>)>,
-        QueryState<(&Text, &mut TextSize), With<TextSize>>,
+    mut text_queries: ParamSet<(
+        Query<Entity, (With<TextSize>, Changed<Text>)>,
+        Query<(&Text, &mut TextSize), With<TextSize>>,
     )>,
 ) {
     // Adds all entities where the text or the style has changed to the local queue
-    for entity in text_queries.q0().iter_mut() {
+    for entity in text_queries.p0().iter_mut() {
         queued_text.entities.push(entity);
     }
 
@@ -124,7 +124,7 @@ pub fn text_system(
 
     // Computes all text in the local queue
     let mut new_queue = Vec::new();
-    let mut query = text_queries.q1();
+    let mut query = text_queries.p1();
     for entity in queued_text.entities.drain(..) {
         if let Ok((text, mut calculated_size)) = query.get_mut(entity) {
             match text_pipeline.queue_text(

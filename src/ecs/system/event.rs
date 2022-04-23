@@ -20,7 +20,7 @@ impl<'w, 's, T: Event> SystemParam for EventReader<'w, 's, T> {
     type Fetch = EventReaderState<T>;
 }
 
-impl<T: Event> SystemParamState for EventReaderState<T> {
+unsafe impl<T: Event> SystemParamState for EventReaderState<T> {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         let resource_id = world.register_resource::<Events<T>>();
         let access = &mut system_meta.resource_access;
@@ -75,7 +75,7 @@ impl<'w, T: Event> SystemParam for EventWriter<'w, T> {
     type Fetch = EventWriterState<T>;
 }
 
-impl<T: Event> SystemParamState for EventWriterState<T> {
+unsafe impl<T: Event> SystemParamState for EventWriterState<T> {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         let resource_id = world.register_resource::<Events<T>>();
         let access = &mut system_meta.resource_access;

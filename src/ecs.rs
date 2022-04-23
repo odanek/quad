@@ -23,10 +23,11 @@ pub use schedule::{Schedule, Scheduler};
 pub use system::{
     command::Commands,
     local::Local,
-    query::{Query, QuerySet},
+    query::Query,
     removed_components::RemovedComponents,
     system_param::{
-        ReadOnlySystemParamFetch, StaticSystemParam, SystemParam, SystemParamItem, SystemState,
+        ParamSet, ReadOnlySystemParamFetch, StaticSystemParam, SystemParam, SystemParamItem,
+        SystemState,
     },
     IntoSystem, System,
 };

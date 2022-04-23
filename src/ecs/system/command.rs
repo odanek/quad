@@ -465,7 +465,7 @@ impl<'w, 's> SystemParam for Commands<'w, 's> {
     type Fetch = CommandQueue;
 }
 
-impl SystemParamState for CommandQueue {
+unsafe impl SystemParamState for CommandQueue {
     fn new(_world: &mut World, _system_meta: &mut SystemMeta) -> Self {
         Default::default()
     }

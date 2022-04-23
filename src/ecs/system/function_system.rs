@@ -14,6 +14,7 @@ use super::{
     IntoSystem, System,
 };
 
+#[derive(Clone)]
 pub struct SystemMeta {
     pub(crate) name: String,
     pub(crate) resource_access: Access<ResourceId>,

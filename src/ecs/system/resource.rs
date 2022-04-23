@@ -21,7 +21,7 @@ impl<'w, T: Resource> SystemParam for Res<'w, T> {
     type Fetch = ResState<T>;
 }
 
-impl<T: Resource> SystemParamState for ResState<T> {
+unsafe impl<T: Resource> SystemParamState for ResState<T> {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         let resource_id = world.register_resource::<T>();
         let access = &mut system_meta.resource_access;
@@ -74,7 +74,7 @@ impl<'a, T: Resource> SystemParam for Option<Res<'a, T>> {
     type Fetch = OptionResState<T>;
 }
 
-impl<T: Resource> SystemParamState for OptionResState<T> {
+unsafe impl<T: Resource> SystemParamState for OptionResState<T> {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         Self(ResState::new(world, system_meta))
     }
@@ -105,7 +105,7 @@ impl<'a, T: Resource> SystemParam for ResMut<'a, T> {
     type Fetch = ResMutState<T>;
 }
 
-impl<T: Resource> SystemParamState for ResMutState<T> {
+unsafe impl<T: Resource> SystemParamState for ResMutState<T> {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         let resource_id = world.register_resource::<T>();
         let access = &mut system_meta.resource_access;
@@ -162,7 +162,7 @@ impl<'a, T: Resource> SystemParam for Option<ResMut<'a, T>> {
     type Fetch = OptionResMutState<T>;
 }
 
-impl<T: Resource> SystemParamState for OptionResMutState<T> {
+unsafe impl<T: Resource> SystemParamState for OptionResMutState<T> {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         Self(ResMutState::new(world, system_meta))
     }
