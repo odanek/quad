@@ -160,6 +160,11 @@ impl Window {
             .unwrap_or(self.backend_scale_factor)
     }
 
+    #[inline]
+    pub fn cursor_position(&self) -> Option<Vec2> {
+        self.cursor_position
+    }
+
     pub(crate) fn winit_id(&self) -> winit::window::WindowId {
         self.winit_window.id()
     }

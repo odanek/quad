@@ -8,6 +8,12 @@ use crate::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TouchId(u64);
 
+impl TouchId {
+    pub(crate) fn new(id: u64) -> Self {
+        Self(id)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Event)]
 pub struct TouchInput {
     pub phase: TouchPhase,

@@ -11,9 +11,11 @@ pub trait StageLabel: Eq + PartialEq + Hash {
 pub enum MainStage {
     LoadAssets = 0,
     PreUpdate = 1,
-    PostUpdate = 2,
-    AssetEvents = 3,
-    Flush = 4,
+    PreTransformUpdate = 2,
+    TransformUpdate = 3,
+    PostTransformUpdate = 4,
+    AssetEvents = 5,
+    Flush = 6,
 }
 
 impl StageLabel for MainStage {

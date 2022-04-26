@@ -6,7 +6,7 @@ use crate::{
     render::{texture::Image, view::Visibility, RenderWorld},
     sprite::{ExtractedSprite, ExtractedSprites, TextureAtlas},
     transform::{GlobalTransform, Transform},
-    ty::{Size, Vec3},
+    ty::{Size, Vec2, Vec3},
     windowing::{WindowId, Windows},
 };
 
@@ -133,7 +133,7 @@ pub fn text_system(
                 &text.sections,
                 scale_factor,
                 text.alignment,
-                Size::new(f32::MAX, f32::MAX),
+                Vec2::new(f32::MAX, f32::MAX),
                 &mut *font_atlas_set_storage,
                 &mut *texture_atlases,
                 &mut *textures,
@@ -151,8 +151,8 @@ pub fn text_system(
                         "Failed to get glyphs from the pipeline that have just been computed",
                     );
                     calculated_size.size = Size {
-                        width: scale_value(text_layout_info.size.width, 1. / scale_factor),
-                        height: scale_value(text_layout_info.size.height, 1. / scale_factor),
+                        width: scale_value(text_layout_info.size.x, 1. / scale_factor),
+                        height: scale_value(text_layout_info.size.y, 1. / scale_factor),
                     };
                 }
             }

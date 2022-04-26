@@ -39,3 +39,4 @@ ab_glyph = "0.2.15"
 glyph_brush_layout = "0.2.3"
 derive_deref = "1.1.1"
 rodio = { version = "0.15", default-features = false, features = ["vorbis"] }
+stretch = "0.3.2"

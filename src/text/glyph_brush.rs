@@ -7,7 +7,7 @@ use crate::{
     asset::{Assets, Handle},
     render::texture::Image,
     sprite::TextureAtlas,
-    ty::{Size, Vec2},
+    ty::Vec2,
 };
 
 use super::{Font, FontAtlasSet, GlyphAtlasInfo, TextAlignment, TextError};
@@ -32,11 +32,11 @@ impl GlyphBrush {
     pub fn compute_glyphs<S: ToSectionText>(
         &self,
         sections: &[S],
-        bounds: Size,
+        bounds: Vec2,
         text_alignment: TextAlignment,
     ) -> Result<Vec<SectionGlyph>, TextError> {
         let geom = SectionGeometry {
-            bounds: (bounds.width, bounds.height),
+            bounds: (bounds.x, bounds.y),
             ..Default::default()
         };
         let section_glyphs = Layout::default()

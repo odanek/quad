@@ -211,7 +211,7 @@ pub fn camera_type_plugin<T: Component + Default>(app: &mut App, render_app: &mu
     app.init_resource::<ActiveCamera<T>>()
         // TODO Initialize the camera
         //.add_startup_system_to_stage(StartupStage::PostStartup, set_active_camera::<T>)
-        .add_system_to_stage(MainStage::PostUpdate, &set_active_camera::<T>);
+        .add_system_to_stage(MainStage::PostTransformUpdate, &set_active_camera::<T>);
     render_app.add_system_to_stage(
         RenderStage::Extract,
         extract_cameras::<T>.system(&mut app.world),

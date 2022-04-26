@@ -51,7 +51,7 @@ pub fn audio_plugin(app: &mut App, audio_device: &AudioDevice) {
         ))
         .init_resource::<Audio<AudioSource>>()
         .add_system_to_stage(
-            MainStage::PostUpdate,
+            MainStage::PostTransformUpdate,
             &play_queued_audio_system::<AudioSource>,
         );
 

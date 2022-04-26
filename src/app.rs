@@ -26,6 +26,7 @@ use crate::{
     text::text_plugin,
     timing::{timing_plugin, Time},
     transform::transform_plugin,
+    ui::ui_plugin,
     windowing::{windowing_plugin, Window, Windows},
     Scene, SceneResult,
 };
@@ -86,6 +87,7 @@ impl App {
         core_pipeline_plugin(self, render_app);
         sprite_plugin(self, render_app);
         text_plugin(self, render_app);
+        ui_plugin(self, render_app);
         self
     }
 
@@ -207,7 +209,12 @@ impl MainApp for App {
             return result;
         }
 
-        self.systems.run(MainStage::PostUpdate, &mut self.world);
+        self.systems
+            .run(MainStage::PreTransformUpdate, &mut self.world);
+        self.systems
+            .run(MainStage::TransformUpdate, &mut self.world);
+        self.systems
+            .run(MainStage::PostTransformUpdate, &mut self.world);
         self.systems.run(MainStage::AssetEvents, &mut self.world);
         self.systems.run(MainStage::Flush, &mut self.world);
         self.world.clear_trackers();

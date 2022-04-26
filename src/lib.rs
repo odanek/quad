@@ -17,6 +17,7 @@ pub mod text;
 pub mod timing;
 pub mod transform;
 pub mod ty;
+pub mod ui;
 pub mod windowing;
 
 // TODO Put this inside a module

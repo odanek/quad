@@ -48,5 +48,5 @@ impl From<Transform> for TransformBundle {
 }
 
 pub fn transform_plugin(app: &mut App) {
-    app.add_system_to_stage(MainStage::PostUpdate, &transform_propagate_system);
+    app.add_system_to_stage(MainStage::TransformUpdate, &transform_propagate_system);
 }
