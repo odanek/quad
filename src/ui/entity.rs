@@ -63,7 +63,7 @@ pub struct ImageBundle {
 
 /// A UI node that is text
 #[derive(Bundle, Clone, Debug)]
-pub struct TextBundle {
+pub struct UiTextBundle {
     /// Describes the size of the node
     pub node: Node,
     /// Describes the style including flexbox settings
@@ -82,9 +82,9 @@ pub struct TextBundle {
     pub visibility: Visibility,
 }
 
-impl Default for TextBundle {
+impl Default for UiTextBundle {
     fn default() -> Self {
-        TextBundle {
+        Self {
             focus_policy: FocusPolicy::Pass,
             text: Default::default(),
             node: Default::default(),

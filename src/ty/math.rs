@@ -130,6 +130,7 @@ where
     }
 }
 
+// TODO Replace with sprite::Rect
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Rect<T: PartialEq> {
     pub left: T,

@@ -180,6 +180,24 @@ impl<'w, 's, 'a> EntityCommands<'w, 's, 'a> {
         })
     }
 
+    pub fn with_children(&mut self, spawn_children: impl FnOnce(&mut ChildBuilder)) -> &mut Self {
+        let parent = self.id();
+        let push_children = {
+            let mut builder = ChildBuilder {
+                commands: self.commands(),
+                push_children: PushChildren {
+                    children: Vec::with_capacity(8),
+                    parent,
+                },
+            };
+            spawn_children(&mut builder);
+            builder.push_children
+        };
+
+        self.commands().add(push_children);
+        self
+    }
+
     pub fn push_child(&mut self, child: Entity) -> &mut Self {
         let parent = self.id();
         self.commands().add(PushChild { child, parent });
@@ -232,6 +250,34 @@ impl<'w, 's, 'a> EntityCommands<'w, 's, 'a> {
 
     pub fn remove_from_parent(&mut self, child: Entity) -> &mut Self {
         self.commands().add(RemoveFromParent { child });
+        self
+    }
+}
+
+pub struct ChildBuilder<'w, 's, 'a> {
+    commands: &'a mut Commands<'w, 's>,
+    push_children: PushChildren,
+}
+
+impl<'w, 's, 'a> ChildBuilder<'w, 's, 'a> {
+    pub fn spawn_bundle(&mut self, bundle: impl Bundle) -> EntityCommands<'w, 's, '_> {
+        let e = self.commands.spawn_bundle(bundle);
+        self.push_children.children.push(e.id());
+        e
+    }
+
+    pub fn spawn(&mut self) -> EntityCommands<'w, 's, '_> {
+        let e = self.commands.spawn();
+        self.push_children.children.push(e.id());
+        e
+    }
+
+    pub fn parent_entity(&self) -> Entity {
+        self.push_children.parent
+    }
+
+    pub fn add_command<C: Command + 'static>(&mut self, command: C) -> &mut Self {
+        self.commands.add(command);
         self
     }
 }
@@ -491,7 +537,10 @@ impl<'w, 's> SystemParamFetch<'w, 's> for CommandQueue {
 
 #[cfg(test)]
 mod test {
+    use crate::transform::{Children, Parent};
+
     use super::*;
+    use quad::ecs::Component;
 
     struct SpawnCommand;
 
@@ -500,6 +549,9 @@ mod test {
             world.spawn();
         }
     }
+
+    #[derive(Component)]
+    struct C(u32);
 
     #[test]
     fn test_command_queue_inner() {
@@ -515,5 +567,34 @@ mod test {
 
         queue.apply(&mut world);
         assert_eq!(world.entities().len(), 2);
+    }
+
+    #[test]
+    fn build_children() {
+        let mut world = World::default();
+        let mut queue = CommandQueue::default();
+        let mut commands = Commands::new(&mut queue, &world);
+
+        let mut children = Vec::new();
+        let parent = commands.spawn().insert(C(1)).id();
+        commands.entity(parent).with_children(|parent| {
+            children.push(parent.spawn().insert(C(2)).id());
+            children.push(parent.spawn().insert(C(3)).id());
+            children.push(parent.spawn().insert(C(4)).id());
+        });
+
+        queue.apply(&mut world);
+        assert_eq!(
+            world.entity(parent).get::<Children>().unwrap().0.as_slice(),
+            children.as_slice(),
+        );
+        assert_eq!(
+            *world.entity(children[0]).get::<Parent>().unwrap(),
+            Parent(parent)
+        );
+        assert_eq!(
+            *world.entity(children[1]).get::<Parent>().unwrap(),
+            Parent(parent)
+        );
     }
 }
