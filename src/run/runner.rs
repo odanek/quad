@@ -1,4 +1,7 @@
-use winit::event::DeviceEvent;
+use winit::{
+    event::{DeviceEvent, Event, WindowEvent},
+    event_loop::ControlFlow,
+};
 
 use super::context::RunContext;
 
@@ -9,11 +12,6 @@ pub fn winit_runner(mut context: RunContext, event_loop: AppEventLoop) {
     let mut exit = false;
 
     event_loop.run(move |event, _, control_flow| {
-        use winit::{
-            event::{Event, WindowEvent},
-            event_loop::ControlFlow,
-        };
-
         if exit {
             *control_flow = ControlFlow::Exit;
             return;

@@ -13,7 +13,7 @@ quad_macros = { path = "macros", version = "0.0.1" }
 cgm = { path = "../cgm" }
 anyhow = "1.0.52"
 thiserror = "1.0.30"
-winit = "0.26.0"
+winit = "0.26.1"
 raw-window-handle = "0.4.2"
 log = "0.4.14"
 image = "0.23.14"

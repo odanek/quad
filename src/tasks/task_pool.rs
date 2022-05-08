@@ -1,12 +1,10 @@
 use std::{
     future::Future,
-    mem,
-    pin::Pin,
     sync::Arc,
     thread::{self, JoinHandle},
 };
 
-use futures_lite::{future, pin};
+use futures_lite::future;
 
 use super::Task;
 
@@ -75,10 +73,6 @@ pub struct TaskPool {
 }
 
 impl TaskPool {
-    thread_local! {
-        static LOCAL_EXECUTOR: async_executor::LocalExecutor<'static> = async_executor::LocalExecutor::new();
-    }
-
     pub fn new() -> Self {
         TaskPoolBuilder::new().build()
     }
@@ -134,93 +128,16 @@ impl TaskPool {
         self.inner.threads.len()
     }
 
-    pub fn scope<'scope, F, T>(&self, f: F) -> Vec<T>
-    where
-        F: FnOnce(&mut Scope<'scope, T>) + 'scope + Send,
-        T: Send + 'static,
-    {
-        TaskPool::LOCAL_EXECUTOR.with(|local_executor| {
-            let executor: &async_executor::Executor = &*self.executor;
-            let executor: &'scope async_executor::Executor = unsafe { mem::transmute(executor) };
-            let local_executor: &'scope async_executor::LocalExecutor =
-                unsafe { mem::transmute(local_executor) };
-            let mut scope = Scope {
-                executor,
-                local_executor,
-                spawned: Vec::new(),
-            };
-
-            f(&mut scope);
-
-            if scope.spawned.is_empty() {
-                Vec::default()
-            } else if scope.spawned.len() == 1 {
-                vec![future::block_on(&mut scope.spawned[0])]
-            } else {
-                let fut = async move {
-                    let mut results = Vec::with_capacity(scope.spawned.len());
-                    for task in scope.spawned {
-                        results.push(task.await);
-                    }
-
-                    results
-                };
-
-                pin!(fut);
-
-                let fut: Pin<&mut (dyn Future<Output = Vec<T>>)> = fut;
-                let fut: Pin<&'static mut (dyn Future<Output = Vec<T>> + 'static)> =
-                    unsafe { mem::transmute(fut) };
-
-                let mut spawned = local_executor.spawn(fut);
-                loop {
-                    if let Some(result) = future::block_on(future::poll_once(&mut spawned)) {
-                        break result;
-                    };
-
-                    self.executor.try_tick();
-                    local_executor.try_tick();
-                }
-            }
-        })
-    }
-
     pub fn spawn<T>(&self, future: impl Future<Output = T> + Send + 'static) -> Task<T>
     where
         T: Send + 'static,
     {
         Task::new(self.executor.spawn(future))
     }
-
-    pub fn spawn_local<T>(&self, future: impl Future<Output = T> + 'static) -> Task<T>
-    where
-        T: 'static,
-    {
-        Task::new(TaskPool::LOCAL_EXECUTOR.with(|executor| executor.spawn(future)))
-    }
 }
 
 impl Default for TaskPool {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-#[derive(Debug)]
-pub struct Scope<'scope, T> {
-    executor: &'scope async_executor::Executor<'scope>,
-    local_executor: &'scope async_executor::LocalExecutor<'scope>,
-    spawned: Vec<async_executor::Task<T>>,
-}
-
-impl<'scope, T: Send + 'scope> Scope<'scope, T> {
-    pub fn spawn<Fut: Future<Output = T> + 'scope + Send>(&mut self, f: Fut) {
-        let task = self.executor.spawn(f);
-        self.spawned.push(task);
-    }
-
-    pub fn spawn_local<Fut: Future<Output = T> + 'scope>(&mut self, f: Fut) {
-        let task = self.local_executor.spawn(f);
-        self.spawned.push(task);
     }
 }
