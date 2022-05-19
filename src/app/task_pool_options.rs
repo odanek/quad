@@ -1,6 +1,8 @@
+use std::thread::available_parallelism;
+
 use crate::{
     ecs::World,
-    tasks::{logical_core_count, IoTaskPool, TaskPoolBuilder},
+    tasks::{IoTaskPool, TaskPoolBuilder},
 };
 
 #[derive(Clone)]
@@ -62,8 +64,10 @@ impl TaskPoolOptions {
     }
 
     pub fn create_pools(&self, world: &mut World) {
-        let total_threads =
-            logical_core_count().clamp(self.min_total_threads, self.max_total_threads);
+        let total_threads = available_parallelism()
+            .unwrap()
+            .get()
+            .clamp(self.min_total_threads, self.max_total_threads);
         log::trace!("Assigning {} cores to task pools", total_threads);
 
         let remaining_threads = total_threads;

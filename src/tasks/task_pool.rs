@@ -1,7 +1,7 @@
 use std::{
     future::Future,
     sync::Arc,
-    thread::{self, JoinHandle},
+    thread::{self, available_parallelism, JoinHandle},
 };
 
 use futures_lite::future;
@@ -86,7 +86,7 @@ impl TaskPool {
 
         let executor = Arc::new(async_executor::Executor::new());
 
-        let num_threads = num_threads.unwrap_or_else(num_cpus::get);
+        let num_threads = num_threads.unwrap_or_else(|| available_parallelism().unwrap().get());
 
         let threads = (0..num_threads)
             .map(|i| {
