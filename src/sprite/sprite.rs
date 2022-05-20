@@ -1,5 +1,7 @@
 use crate::{ecs::Component, render::color::Color, ty::Vec2};
 
+use super::Rect;
+
 #[derive(Component, Debug, Default, Clone)]
 #[repr(C)]
 pub struct Sprite {
@@ -11,5 +13,7 @@ pub struct Sprite {
     pub flip_y: bool,
     /// An optional custom size for the sprite that will be used when rendering, instead of the size
     /// of the sprite's image
-    pub custom_size: Option<Vec2>,
+    pub custom_size: Option<Vec2>,    
+    /// Optional rect
+    pub rect: Option<Rect>,
 }

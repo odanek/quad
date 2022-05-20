@@ -30,6 +30,8 @@ use crate::{
 
 use self::render_resource::{Shader, ShaderLoader};
 
+pub use wgpu::AddressMode;
+
 /// The Render App World. This is only available as a resource during the Extract step.
 #[derive(Default, Resource, Deref, DerefMut)]
 pub struct RenderWorld(World);
