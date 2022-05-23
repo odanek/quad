@@ -53,7 +53,6 @@ pub fn audio_plugin(app: &mut App, audio_device: &AudioDevice) {
         .add_system_to_stage(
             MainStage::PostTransformUpdate,
             &play_queued_audio_system::<AudioSource>,
-        );
-
-    app.init_asset_loader::<AudioLoader>();
+        )
+        .init_asset_loader::<AudioLoader>();
 }

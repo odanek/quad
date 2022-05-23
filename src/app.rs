@@ -152,6 +152,16 @@ impl App {
         self
     }
 
+    pub fn init_asset_loader<T: AssetLoader + FromWorld>(&mut self) -> &mut Self {
+        let result = T::from_world(&mut self.world);
+        self.add_asset_loader(result)
+    }
+
+    pub fn add_asset_loader<T: AssetLoader>(&mut self, loader: T) -> &mut Self {
+        self.world.resource_mut::<AssetServer>().add_loader(loader);
+        self
+    }
+
     // TODO AddRenderCommand trait?
     pub(crate) fn add_render_command<P: PhaseItem, C: RenderCommand<P> + Send + Sync + 'static>(
         &mut self,
@@ -162,16 +172,6 @@ impl App {
         let draw_function = RenderCommandState::<P, C>::new(&mut self.world);
         let draw_functions = self.world.resource::<DrawFunctions<P>>();
         draw_functions.write().add_with::<C, _>(draw_function);
-        self
-    }
-
-    pub fn init_asset_loader<T: AssetLoader + FromWorld>(&mut self) -> &mut Self {
-        let result = T::from_world(&mut self.world);
-        self.add_asset_loader(result)
-    }
-
-    fn add_asset_loader<T: AssetLoader>(&mut self, loader: T) -> &mut Self {
-        self.world.resource_mut::<AssetServer>().add_loader(loader);
         self
     }
 

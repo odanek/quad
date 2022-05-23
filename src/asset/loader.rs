@@ -24,7 +24,7 @@ pub trait AssetLoader: Send + Sync + 'static {
         &'a self,
         bytes: &'a [u8],
         load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<(), anyhow::Error>>;
+    ) -> BoxedFuture<'a, anyhow::Result<()>>;
     fn extensions(&self) -> &[&str];
 }
 

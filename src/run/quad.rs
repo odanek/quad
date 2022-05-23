@@ -3,7 +3,7 @@ use winit::event_loop::EventLoop;
 
 use crate::{
     app::{App, StageLabel, TaskPoolOptions},
-    asset::{Asset, AssetServerSettings},
+    asset::{Asset, AssetLoader, AssetServerSettings},
     audio::AudioDevice,
     ecs::{Event, FromWorld, IntoSystem, Resource},
     logging::init_logging,
@@ -67,6 +67,16 @@ impl Quad {
 
     pub fn add_asset<T: Asset>(&mut self) -> &mut Self {
         self.app.add_asset::<T>();
+        self
+    }
+
+    pub fn init_asset_loader<T: AssetLoader + FromWorld>(&mut self) -> &mut Self {
+        self.app.init_asset_loader::<T>();
+        self
+    }
+
+    pub fn add_asset_loader<T: AssetLoader>(&mut self, loader: T) -> &mut Self {
+        self.app.add_asset_loader(loader);
         self
     }
 
