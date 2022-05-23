@@ -6,7 +6,8 @@ use crate::{
     asset::{Asset, AssetServerSettings},
     audio::AudioDevice,
     ecs::{Event, FromWorld, IntoSystem, Resource},
-    windowing::{Window, WindowDescriptor, WindowId}, logging::init_logging,
+    logging::init_logging,
+    windowing::{Window, WindowDescriptor, WindowId},
 };
 
 use super::{context::RunContext, runner::winit_runner, Scene};

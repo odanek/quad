@@ -21,7 +21,7 @@ use crate::{
         render_phase::{DrawFunctions, PhaseItem, RenderCommand, RenderCommandState},
         render_plugin, update_render_app,
     },
-    run::{SceneStage, Scene, SceneResult},
+    run::{Scene, SceneResult, SceneStage},
     sprite::sprite_plugin,
     text::text_plugin,
     timing::{timing_plugin, Time},

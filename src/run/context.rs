@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-use super::{Scene, SceneStage, SceneResult};
+use super::{Scene, SceneResult, SceneStage};
 
 pub struct RunContext {
     app: App,
