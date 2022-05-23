@@ -7,10 +7,11 @@ pub mod asset;
 pub mod audio;
 pub mod ecs;
 pub mod input;
+pub mod logging;
 pub mod pipeline;
 pub mod reflect;
 pub mod render;
-mod run;
+pub mod run;
 pub mod sprite;
 pub mod tasks;
 pub mod text;
@@ -19,6 +20,3 @@ pub mod transform;
 pub mod ty;
 pub mod ui;
 pub mod windowing;
-
-// TODO Put this inside a module
-pub use run::{Quad, QuadConfig, Scene, SceneResult, SceneStage};

@@ -27,6 +27,7 @@ where
         }
     }
 
+    // TODO Remove
     pub fn run_with(&mut self, input: In, world: &mut World) -> Out {
         let result = unsafe { self.system.run(input, world) };
         self.system.apply_buffers(world);
@@ -38,6 +39,7 @@ impl<Out> Schedule<(), Out>
 where
     Out: 'static,
 {
+    // TODO Remove
     pub fn run(&mut self, world: &mut World) -> Out {
         let result = unsafe { self.system.run((), world) };
         self.system.apply_buffers(world);

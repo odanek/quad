@@ -1,3 +1,4 @@
+use log::LevelFilter;
 use winit::event_loop::EventLoop;
 
 use crate::{
@@ -5,7 +6,7 @@ use crate::{
     asset::{Asset, AssetServerSettings},
     audio::AudioDevice,
     ecs::{Event, FromWorld, IntoSystem, Resource},
-    windowing::{Window, WindowDescriptor, WindowId},
+    windowing::{Window, WindowDescriptor, WindowId}, logging::init_logging,
 };
 
 use super::{context::RunContext, runner::winit_runner, Scene};
@@ -15,6 +16,7 @@ pub struct QuadConfig {
     pub task_pool_options: TaskPoolOptions,
     pub asset_server_settings: AssetServerSettings,
     pub main_window: WindowDescriptor,
+    pub log_level: Option<LevelFilter>,
 }
 
 pub struct Quad {
@@ -26,6 +28,7 @@ pub struct Quad {
 
 impl Quad {
     pub fn new(config: QuadConfig) -> Self {
+        init_logging(config.log_level);
         let mut quad = Self {
             app: App::default(),
             render_app: App::default(),

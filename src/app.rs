@@ -21,14 +21,13 @@ use crate::{
         render_phase::{DrawFunctions, PhaseItem, RenderCommand, RenderCommandState},
         render_plugin, update_render_app,
     },
-    run::SceneStage,
+    run::{SceneStage, Scene, SceneResult},
     sprite::sprite_plugin,
     text::text_plugin,
     timing::{timing_plugin, Time},
     transform::transform_plugin,
     ui::ui_plugin,
     windowing::{windowing_plugin, Window, Windows},
-    Scene, SceneResult,
 };
 
 use self::systems::Systems;

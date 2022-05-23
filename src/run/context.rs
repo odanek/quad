@@ -12,10 +12,9 @@ use crate::{
         WindowCloseRequested, WindowFocused, WindowId, WindowMoved, WindowResized,
         WindowScaleFactorChanged, Windows,
     },
-    SceneResult,
 };
 
-use super::{Scene, SceneStage};
+use super::{Scene, SceneStage, SceneResult};
 
 pub struct RunContext {
     app: App,
