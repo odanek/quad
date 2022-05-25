@@ -1,11 +1,10 @@
 use anyhow::Result;
 use crossbeam_channel::{Receiver, Sender};
 use downcast_rs::{impl_downcast, Downcast};
-use std::{collections::HashMap, path::Path};
+use std::{any::TypeId, collections::HashMap, path::Path};
 
 use crate::{
     ecs::{Res, ResMut},
-    reflect::{TypeUuid, TypeUuidDynamic},
     tasks::TaskPool,
     ty::BoxedFuture,
 };
@@ -28,14 +27,40 @@ pub trait AssetLoader: Send + Sync + 'static {
     fn extensions(&self) -> &[&str];
 }
 
-pub trait Asset: TypeUuid + AssetDynamic {}
+pub trait Asset: AssetDynamic {
+    fn static_asset_type_id() -> TypeId;
+}
 
-pub trait AssetDynamic: Downcast + TypeUuidDynamic + Send + Sync + 'static {}
+// TODO Can the Downcast be replaced with Any?
+pub trait AssetDynamic: Downcast + Send + Sync + 'static {
+    fn asset_type_id(&self) -> TypeId;
+    fn asset_type_name(&self) -> &'static str;
+}
 impl_downcast!(AssetDynamic);
 
-impl<T> Asset for T where T: TypeUuid + AssetDynamic + TypeUuidDynamic {}
+// TODO Should this be a blanket impl?
+impl<T> Asset for T
+where
+    T: AssetDynamic,
+{
+    #[inline]
+    fn static_asset_type_id() -> TypeId {
+        TypeId::of::<T>()
+    }
+}
 
-impl<T> AssetDynamic for T where T: Send + Sync + 'static + TypeUuidDynamic {}
+impl<T> AssetDynamic for T
+where
+    T: Send + Sync + 'static,
+{
+    fn asset_type_id(&self) -> TypeId {
+        TypeId::of::<T>()
+    }
+
+    fn asset_type_name(&self) -> &'static str {
+        std::any::type_name::<Self>()
+    }
+}
 
 pub struct LoadedAsset<T: Asset> {
     pub(crate) value: Option<T>,
@@ -143,7 +168,7 @@ impl<'a> LoadContext<'a> {
             asset_metas.push(AssetMeta {
                 dependencies: asset.dependencies.clone(),
                 label: label.clone(),
-                type_uuid: asset.value.as_ref().unwrap().type_uuid(),
+                type_uuid: asset.value.as_ref().unwrap().asset_type_id(),
             });
         }
         asset_metas

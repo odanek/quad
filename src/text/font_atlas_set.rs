@@ -1,11 +1,9 @@
 use std::collections::HashMap;
 
 use ab_glyph::{GlyphId, OutlinedGlyph, Point};
-use uuid::{uuid, Uuid};
 
 use crate::{
     asset::{Assets, Handle},
-    reflect::TypeUuid,
     render::texture::Image,
     sprite::TextureAtlas,
     ty::{FloatOrd, Vec2},
@@ -17,10 +15,6 @@ type FontSizeKey = FloatOrd;
 
 pub struct FontAtlasSet {
     font_atlases: HashMap<FontSizeKey, Vec<FontAtlas>>,
-}
-
-impl TypeUuid for FontAtlasSet {
-    const TYPE_UUID: Uuid = uuid!("73ba778b-b6b5-4f45-982d-d21b6b86ace2");
 }
 
 #[derive(Debug, Clone)]

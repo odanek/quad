@@ -1,5 +1,5 @@
 use crate::{
-    asset::Handle,
+    asset::{Handle, HandleId},
     ecs::Bundle,
     render::{
         texture::{Image, DEFAULT_IMAGE_HANDLE},
@@ -26,7 +26,7 @@ impl Default for SpriteBundle {
             sprite: Default::default(),
             transform: Default::default(),
             global_transform: Default::default(),
-            texture: DEFAULT_IMAGE_HANDLE.typed(),
+            texture: Handle::weak(HandleId::new::<Image>(DEFAULT_IMAGE_HANDLE)),
             visibility: Default::default(),
         }
     }

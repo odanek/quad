@@ -1,11 +1,10 @@
 use std::borrow::Cow;
 
-use uuid::{uuid, Uuid};
+use uuid::Uuid;
 use wgpu::{ShaderModuleDescriptor, ShaderSource};
 
 use crate::{
     asset::{AssetLoader, LoadContext, LoadedAsset},
-    reflect::TypeUuid,
     ty::BoxedFuture,
 };
 
@@ -21,10 +20,6 @@ impl ShaderId {
 #[derive(Debug, Clone)]
 pub struct Shader {
     source: Cow<'static, str>,
-}
-
-impl TypeUuid for Shader {
-    const TYPE_UUID: Uuid = uuid!("d95bc916-6c55-4de3-9622-37e7b6969fda");
 }
 
 impl Shader {

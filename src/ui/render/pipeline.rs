@@ -7,6 +7,7 @@ use wgpu::{
 };
 
 use crate::{
+    asset::{Handle, HandleId},
     ecs::{FromWorld, Resource, World},
     render::{
         render_resource::{
@@ -18,6 +19,8 @@ use crate::{
         view::ViewUniform,
     },
 };
+
+use super::UI_SHADER_HANDLE;
 
 #[derive(Resource)]
 pub struct UiPipeline {
@@ -93,12 +96,12 @@ impl SpecializedPipeline for UiPipeline {
 
         RenderPipelineDescriptor {
             vertex: VertexState {
-                shader: super::UI_SHADER_HANDLE.typed::<Shader>(),
+                shader: Handle::weak(HandleId::new::<Shader>(UI_SHADER_HANDLE)),
                 entry_point: "vertex".into(),
                 buffers: vec![vertex_layout],
             },
             fragment: Some(FragmentState {
-                shader: super::UI_SHADER_HANDLE.typed::<Shader>(),
+                shader: Handle::weak(HandleId::new::<Shader>(UI_SHADER_HANDLE)),
                 entry_point: "fragment".into(),
                 targets: vec![ColorTargetState {
                     format: TextureFormat::quad_default(),

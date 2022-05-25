@@ -1,9 +1,8 @@
 use std::{
+    any::TypeId,
     collections::{HashMap, HashSet},
     path::PathBuf,
 };
-
-use uuid::Uuid;
 
 use super::path::{AssetPath, LabelId};
 
@@ -16,14 +15,14 @@ pub struct SourceMeta {
 pub struct AssetMeta {
     pub label: Option<String>,
     pub dependencies: Vec<AssetPath<'static>>,
-    pub type_uuid: Uuid,
+    pub type_uuid: TypeId,
 }
 
 #[derive(Clone, Debug)]
 pub struct SourceInfo {
     pub meta: Option<SourceMeta>,
     pub path: PathBuf,
-    pub asset_types: HashMap<LabelId, Uuid>,
+    pub asset_types: HashMap<LabelId, TypeId>,
     pub load_state: LoadState,
     pub committed_assets: HashSet<LabelId>,
     pub version: usize,
@@ -36,7 +35,7 @@ impl SourceInfo {
         })
     }
 
-    pub fn get_asset_type(&self, label_id: LabelId) -> Option<Uuid> {
+    pub fn get_asset_type(&self, label_id: LabelId) -> Option<TypeId> {
         self.asset_types.get(&label_id).cloned()
     }
 }

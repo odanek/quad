@@ -6,7 +6,7 @@ pub(crate) mod image_texture_conversion;
 
 use crate::{
     app::{App, RenderStage},
-    asset::Assets,
+    asset::{Assets, HandleId},
 };
 
 pub use self::image::*;
@@ -19,9 +19,10 @@ use super::render_asset::render_asset_plugin;
 pub fn image_plugin(app: &mut App, render_app: &mut App) {
     app.init_asset_loader::<ImageTextureLoader>();
     app.add_asset::<Image>();
-    app.world
-        .resource_mut::<Assets<Image>>()
-        .set_untracked(DEFAULT_IMAGE_HANDLE, Image::default());
+    app.world.resource_mut::<Assets<Image>>().set_untracked(
+        HandleId::new::<Image>(DEFAULT_IMAGE_HANDLE),
+        Image::default(),
+    );
 
     render_asset_plugin::<Image>(app, render_app);
     render_app

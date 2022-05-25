@@ -1,10 +1,8 @@
 use anyhow::Result;
 use std::{io::Cursor, sync::Arc};
-use uuid::{uuid, Uuid};
 
 use crate::{
     asset::{AssetLoader, LoadContext, LoadedAsset},
-    reflect::TypeUuid,
     ty::BoxedFuture,
 };
 
@@ -13,10 +11,6 @@ use crate::{
 pub struct AudioSource {
     /// Raw data of the audio source
     pub bytes: Arc<[u8]>,
-}
-
-impl TypeUuid for AudioSource {
-    const TYPE_UUID: Uuid = uuid!("7a14806a-672b-443b-8d16-4f18afefa463");
 }
 
 impl AsRef<[u8]> for AudioSource {

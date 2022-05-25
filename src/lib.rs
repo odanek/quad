@@ -9,7 +9,6 @@ pub mod ecs;
 pub mod input;
 pub mod logging;
 pub mod pipeline;
-pub mod reflect;
 pub mod render;
 pub mod run;
 pub mod sprite;

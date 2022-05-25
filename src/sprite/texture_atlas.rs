@@ -1,11 +1,8 @@
 use std::collections::HashMap;
 
-use uuid::{uuid, Uuid};
-
 use crate::{
     asset::Handle,
     ecs::Component,
-    reflect::TypeUuid,
     render::{color::Color, texture::Image},
     ty::Vec2,
 };
@@ -24,10 +21,6 @@ pub struct TextureAtlas {
     /// The specific areas of the atlas where each texture can be found
     pub textures: Vec<Rect>,
     pub texture_handles: Option<HashMap<Handle<Image>, usize>>,
-}
-
-impl TypeUuid for TextureAtlas {
-    const TYPE_UUID: Uuid = uuid!("7233c597-ccfa-411f-bd59-9af349432ada");
 }
 
 #[derive(Component, Debug, Clone)]

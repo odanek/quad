@@ -1,16 +1,11 @@
 use ab_glyph::{FontArc, FontVec, InvalidFont, OutlinedGlyph};
-use uuid::{uuid, Uuid};
 use wgpu::{Extent3d, TextureDimension, TextureFormat};
 
-use crate::{reflect::TypeUuid, render::texture::Image};
+use crate::render::texture::Image;
 
 #[derive(Debug)]
 pub struct Font {
     pub font: FontArc,
-}
-
-impl TypeUuid for Font {
-    const TYPE_UUID: Uuid = uuid!("97059ac6-c9ba-4da9-95b6-bed82c3ce198");
 }
 
 impl Font {

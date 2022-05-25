@@ -1,7 +1,5 @@
 use crate::{
-    asset::HandleUntyped,
     ecs::{Res, SystemParamItem},
-    reflect::TypeUuid,
     render::{
         render_asset::{PrepareAssetError, RenderAsset},
         render_resource::{Sampler, Texture, TextureView},
@@ -12,7 +10,6 @@ use crate::{
 
 use super::{image_texture_conversion::image_to_texture, QuadDefault};
 use thiserror::Error;
-use uuid::{uuid, Uuid};
 use wgpu::{
     Extent3d, ImageCopyTexture, ImageDataLayout, Origin3d, TextureDimension, TextureFormat,
     TextureViewDescriptor,
@@ -20,8 +17,7 @@ use wgpu::{
 
 pub const TEXTURE_ASSET_INDEX: u64 = 0;
 pub const SAMPLER_ASSET_INDEX: u64 = 1;
-pub const DEFAULT_IMAGE_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Image::TYPE_UUID, 13148262314052771789);
+pub const DEFAULT_IMAGE_HANDLE: u64 = 13148262314052771789; // TODO Create HandleUntyped once TypeId::of is const
 
 #[derive(Debug, Clone)]
 pub struct Image {
@@ -29,10 +25,6 @@ pub struct Image {
     // TODO: this nesting makes accessing Image metadata verbose. Either flatten out descriptor or add accessors
     pub texture_descriptor: wgpu::TextureDescriptor<'static>,
     pub sampler_descriptor: wgpu::SamplerDescriptor<'static>,
-}
-
-impl TypeUuid for Image {
-    const TYPE_UUID: Uuid = uuid!("6ea26da6-6cf8-4ea2-9986-1d7bf6c17d6f");
 }
 
 impl Default for Image {

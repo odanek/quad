@@ -2,12 +2,12 @@ use anyhow::Result;
 use crossbeam_channel::TryRecvError;
 use parking_lot::{Mutex, RwLock};
 use std::{
+    any::TypeId,
     collections::{hash_map::Entry, HashMap},
     path::Path,
     sync::Arc,
 };
 use thiserror::Error;
-use uuid::Uuid;
 
 use crate::{
     ecs::{Res, ResMut, Resource},
@@ -62,7 +62,7 @@ pub struct AssetServerInternal {
     pub(crate) asset_io: Box<dyn AssetIo>,
     pub(crate) asset_ref_counter: AssetRefCounter,
     pub(crate) asset_sources: Arc<RwLock<HashMap<SourcePathId, SourceInfo>>>,
-    pub(crate) asset_lifecycles: Arc<RwLock<HashMap<Uuid, Box<dyn AssetLifecycle>>>>,
+    pub(crate) asset_lifecycles: Arc<RwLock<HashMap<TypeId, Box<dyn AssetLifecycle>>>>,
     loaders: RwLock<Vec<Arc<dyn AssetLoader>>>,
     extension_to_loader_index: RwLock<HashMap<String, usize>>,
     handle_to_path: Arc<RwLock<HashMap<HandleId, AssetPath<'static>>>>,
@@ -105,7 +105,7 @@ impl AssetServer {
 
     pub(crate) fn register_asset_type<T: Asset>(&self) -> Assets<T> {
         self.server.asset_lifecycles.write().insert(
-            T::TYPE_UUID,
+            T::static_asset_type_id(),
             Box::new(AssetLifecycleChannel::<T>::default()),
         );
         Assets::new(self.server.asset_ref_counter.channel.sender.clone())
@@ -340,7 +340,7 @@ impl AssetServer {
         // load asset dependencies and prepare asset type hashmap
         for (label, loaded_asset) in load_context.labeled_assets.iter_mut() {
             let label_id = LabelId::from(label.as_ref().map(|label| label.as_str()));
-            let type_uuid = loaded_asset.value.as_ref().unwrap().type_uuid();
+            let type_uuid = loaded_asset.value.as_ref().unwrap().asset_type_id();
             source_info.asset_types.insert(label_id, type_uuid);
             for dependency in loaded_asset.dependencies.iter() {
                 self.load_untracked(dependency.clone(), false);
@@ -472,7 +472,7 @@ impl AssetServer {
                 .value
                 .take()
                 .expect("Asset should exist at this point.");
-            if let Some(asset_lifecycle) = asset_lifecycles.get(&asset_value.type_uuid()) {
+            if let Some(asset_lifecycle) = asset_lifecycles.get(&asset_value.asset_type_id()) {
                 let asset_path =
                     AssetPath::new_ref(load_context.path, label.as_ref().map(|l| l.as_str()));
                 asset_lifecycle.create_asset(asset_path.into(), asset_value, load_context.version);
@@ -481,8 +481,8 @@ impl AssetServer {
                     "Failed to find AssetLifecycle for label '{:?}', which has an asset type {} (UUID {:?}). \
                         Are you sure this asset type has been added to your app builder?",
                     label,
-                    asset_value.type_name(),
-                    asset_value.type_uuid(),
+                    asset_value.asset_type_name(),
+                    asset_value.asset_type_id(),
                 );
             }
         }
@@ -492,7 +492,7 @@ impl AssetServer {
     // triggered unless the `Assets` collection is actually updated.
     pub(crate) fn update_asset_storage<T: Asset>(&self, mut assets: ResMut<Assets<T>>) {
         let asset_lifecycles = self.server.asset_lifecycles.read();
-        let asset_lifecycle = asset_lifecycles.get(&T::TYPE_UUID).unwrap();
+        let asset_lifecycle = asset_lifecycles.get(&T::static_asset_type_id()).unwrap();
         let mut asset_sources_guard = None;
         let channel = asset_lifecycle
             .downcast_ref::<AssetLifecycleChannel<T>>()

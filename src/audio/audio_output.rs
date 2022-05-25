@@ -1,11 +1,9 @@
 use rodio::{OutputStreamHandle, Sink, Source};
 use std::marker::PhantomData;
-use uuid::{uuid, Uuid};
 
 use crate::{
     asset::{Asset, Assets},
     ecs::{Res, ResMut, Resource},
-    reflect::TypeUuid,
 };
 
 use super::{Audio, AudioSource, Decodable};
@@ -92,10 +90,6 @@ pub struct AudioSink {
     // This field is an Option in order to allow us to have a safe drop that will detach the sink.
     // It will never be None during its life
     sink: Option<Sink>,
-}
-
-impl TypeUuid for AudioSink {
-    const TYPE_UUID: Uuid = uuid!("8BEE570C-57C2-4FC0-8CFB-983A22F7D981");
 }
 
 impl Drop for AudioSink {

@@ -1,4 +1,5 @@
 use std::{
+    any::TypeId,
     cmp::Ordering,
     fmt::Debug,
     hash::{Hash, Hasher},
@@ -6,7 +7,6 @@ use std::{
 };
 
 use crossbeam_channel::{Receiver, Sender};
-use uuid::Uuid;
 
 use crate::ecs::Component;
 
@@ -19,7 +19,7 @@ use super::{
 /// A unique, stable asset id
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub enum HandleId {
-    Id(Uuid, u64),
+    Id(TypeId, u64),
     AssetPathId(AssetPathId),
 }
 
@@ -39,17 +39,18 @@ impl HandleId {
     #[inline]
     pub fn random<T: Asset>() -> Self {
         // TODO Why random????
-        HandleId::Id(T::TYPE_UUID, rand::random())
+        HandleId::Id(T::static_asset_type_id(), rand::random())
     }
 
     #[inline]
     pub fn default<T: Asset>() -> Self {
-        HandleId::Id(T::TYPE_UUID, 0)
+        HandleId::Id(T::static_asset_type_id(), 0)
     }
 
     #[inline]
-    pub const fn new(type_uuid: Uuid, id: u64) -> Self {
-        HandleId::Id(type_uuid, id)
+    pub fn new<T: Asset>(id: u64) -> Self {
+        // TODO Make const once TypeId::of is const
+        HandleId::Id(T::static_asset_type_id(), id)
     }
 }
 
@@ -231,13 +232,6 @@ pub struct HandleUntyped {
 }
 
 impl HandleUntyped {
-    pub const fn weak_from_u64(uuid: Uuid, id: u64) -> Self {
-        Self {
-            id: HandleId::new(uuid, id),
-            handle_type: HandleType::Weak,
-        }
-    }
-
     pub(crate) fn strong(id: HandleId, ref_change_sender: Sender<RefChange>) -> Self {
         ref_change_sender.send(RefChange::Increment(id)).unwrap();
         Self {
@@ -267,7 +261,7 @@ impl HandleUntyped {
 
     pub fn typed<T: Asset>(mut self) -> Handle<T> {
         if let HandleId::Id(type_uuid, _) = self.id {
-            if T::TYPE_UUID != type_uuid {
+            if T::static_asset_type_id() != type_uuid {
                 panic!("Attempted to convert handle to invalid type.");
             }
         }

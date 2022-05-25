@@ -3,7 +3,6 @@ use std::{cmp::Ordering, collections::HashMap};
 use bytemuck_derive::{Pod, Zeroable};
 use cgm::{ElementWise, Zero};
 use crevice::std140::AsStd140;
-use uuid::Uuid;
 use wgpu::{
     BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
     BindingResource, BindingType, BlendState, BufferBindingType, BufferSize, BufferUsages,
@@ -143,22 +142,20 @@ impl SpecializedPipeline for SpritePipeline {
             VertexBufferLayout::from_vertex_formats(VertexStepMode::Vertex, formats);
 
         let colored = key.contains(SpritePipelineKey::COLORED);
-        let shader_handle = || {
-            if colored {
-                SPRITE_COLORED_SHADER_HANDLE
-            } else {
-                SPRITE_SHADER_HANDLE
-            }
-        };
+        let shader_handle = HandleId::new::<Shader>(if colored {
+            SPRITE_COLORED_SHADER_HANDLE
+        } else {
+            SPRITE_SHADER_HANDLE
+        });
 
         RenderPipelineDescriptor {
             vertex: VertexState {
-                shader: shader_handle().typed::<Shader>(),
+                shader: Handle::weak(shader_handle),
                 entry_point: "vertex".into(),
                 buffers: vec![vertex_layout],
             },
             fragment: Some(FragmentState {
-                shader: shader_handle().typed::<Shader>(),
+                shader: Handle::weak(shader_handle),
                 entry_point: "fragment".into(),
                 targets: vec![ColorTargetState {
                     format: TextureFormat::quad_default(),
@@ -425,7 +422,7 @@ pub fn queue_sprites(
 
             // Impossible starting values that will be replaced on the first iteration
             let mut current_batch = SpriteBatch {
-                image_handle_id: HandleId::Id(Uuid::nil(), u64::MAX),
+                image_handle_id: HandleId::default::<Image>(),
                 colored: false,
             };
             let mut current_batch_entity = Entity::new(u32::MAX);

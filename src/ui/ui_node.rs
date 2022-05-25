@@ -1,7 +1,7 @@
 use std::ops::{Add, AddAssign};
 
 use crate::{
-    asset::Handle,
+    asset::{Handle, HandleId},
     ecs::Component,
     render::{
         color::Color,
@@ -359,7 +359,7 @@ pub struct UiImage(pub Handle<Image>);
 
 impl Default for UiImage {
     fn default() -> Self {
-        Self(DEFAULT_IMAGE_HANDLE.typed())
+        Self(Handle::weak(HandleId::new::<Image>(DEFAULT_IMAGE_HANDLE)))
     }
 }
 

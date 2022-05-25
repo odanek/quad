@@ -13,10 +13,9 @@ use wgpu::{BindGroupDescriptor, BindGroupEntry, BindingResource, BufferUsages};
 
 use crate::{
     app::{App, RenderStage},
-    asset::{AssetEvent, Assets, Handle, HandleUntyped},
+    asset::{AssetEvent, Assets, Handle, HandleId},
     ecs::{Commands, Component, Entity, IntoSystem, Query, Res, ResMut, Resource},
     pipeline::node::MAIN_PASS_DRIVER,
-    reflect::TypeUuid,
     render::{
         color::Color,
         render_asset::RenderAssets,
@@ -53,12 +52,14 @@ pub mod draw_ui_graph {
     }
 }
 
-pub const UI_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 13012847047162779583);
+pub const UI_SHADER_HANDLE: u64 = 13012847047162779583; // TODO Create HandleUntyped once TypeId::of is const
 
 pub fn build_ui_render(app: &mut App, render_app: &mut App) {
     let mut assets = app.world.resource_mut::<Assets<_>>();
-    assets.set_untracked(UI_SHADER_HANDLE, Shader::from_wgsl(include_str!("ui.wgsl")));
+    assets.set_untracked(
+        HandleId::new::<Shader>(UI_SHADER_HANDLE),
+        Shader::from_wgsl(include_str!("ui.wgsl")),
+    );
 
     render_app
         .init_resource::<UiPipeline>()
@@ -111,7 +112,7 @@ pub struct ExtractedUiNode {
     pub transform: Mat4,
     pub color: Color,
     pub rect: Rect,
-    pub image: Handle<Image>,
+    pub image_handle_id: HandleId,
     pub atlas_size: Option<Vec2>,
     pub clip: Option<Rect>,
 }
@@ -140,9 +141,9 @@ pub fn extract_uinodes(
         if !visibility.is_visible {
             continue;
         }
-        let image = image.0.clone_weak();
+        let image_handle_id = image.0.id;
         // Skip loading images
-        if !images.contains(image.clone_weak()) {
+        if !images.contains(image_handle_id) {
             continue;
         }
         extracted_uinodes.uinodes.push(ExtractedUiNode {
@@ -152,7 +153,7 @@ pub fn extract_uinodes(
                 min: Vec2::ZERO,
                 max: uinode.size,
             },
-            image,
+            image_handle_id,
             atlas_size: None,
             clip: clip.map(|clip| clip.clip),
         });
@@ -195,7 +196,7 @@ pub fn extract_text_uinodes(
                 let atlas = texture_atlases
                     .get(text_glyph.atlas_info.texture_atlas.clone_weak())
                     .unwrap();
-                let texture = atlas.texture.clone_weak();
+                let image_handle_id = atlas.texture.id;
                 let index = text_glyph.atlas_info.glyph_index as usize;
                 let rect = atlas.textures[index];
                 let atlas_size = Some(atlas.size);
@@ -216,7 +217,7 @@ pub fn extract_text_uinodes(
                     transform,
                     color,
                     rect,
-                    image: texture,
+                    image_handle_id,
                     atlas_size,
                     clip: clip.map(|clip| clip.clip),
                 });
@@ -280,19 +281,19 @@ pub fn prepare_uinodes(
 
     let mut start = 0;
     let mut end = 0;
-    let mut current_batch_handle = Default::default();
+    let mut current_batch_handle = HandleId::default::<Image>();
     let mut last_z = 0.0;
     for extracted_uinode in &extracted_uinodes.uinodes {
-        if current_batch_handle != extracted_uinode.image {
+        if current_batch_handle != extracted_uinode.image_handle_id {
             if start != end {
                 commands.spawn_bundle((UiBatch {
                     range: start..end,
-                    image: current_batch_handle,
+                    image: Handle::weak(current_batch_handle),
                     z: last_z,
                 },));
                 start = end;
             }
-            current_batch_handle = extracted_uinode.image.clone_weak();
+            current_batch_handle = extracted_uinode.image_handle_id;
         }
 
         let uinode_rect = extracted_uinode.rect;
@@ -381,7 +382,7 @@ pub fn prepare_uinodes(
     if start != end {
         commands.spawn_bundle((UiBatch {
             range: start..end,
-            image: current_batch_handle,
+            image: Handle::weak(current_batch_handle),
             z: last_z,
         },));
     }
