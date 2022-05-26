@@ -1,12 +1,15 @@
 use std::{
     ops::{Bound, Deref, RangeBounds},
-    sync::Arc,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
 };
 
-use uuid::Uuid;
+static BUFFER_ID: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct BufferId(Uuid);
+pub struct BufferId(u64);
 
 #[derive(Clone, Debug)]
 pub struct Buffer {
@@ -42,7 +45,7 @@ impl Buffer {
 impl From<wgpu::Buffer> for Buffer {
     fn from(value: wgpu::Buffer) -> Self {
         Buffer {
-            id: BufferId(Uuid::new_v4()),
+            id: BufferId(BUFFER_ID.fetch_add(1, Ordering::Relaxed)),
             value: Arc::new(value),
         }
     }

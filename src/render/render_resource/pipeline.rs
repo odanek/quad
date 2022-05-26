@@ -1,5 +1,11 @@
-use std::{borrow::Cow, ops::Deref, sync::Arc};
-use uuid::Uuid;
+use std::{
+    borrow::Cow,
+    ops::Deref,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
+};
 use wgpu::{
     BufferAddress, ColorTargetState, DepthStencilState, MultisampleState, PrimitiveState,
     VertexAttribute, VertexFormat, VertexStepMode,
@@ -9,8 +15,10 @@ use crate::asset::Handle;
 
 use super::{BindGroupLayout, Shader};
 
+static PIPELINE_ID: AtomicU64 = AtomicU64::new(0);
+
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct RenderPipelineId(Uuid);
+pub struct RenderPipelineId(u64);
 
 #[derive(Clone, Debug)]
 pub struct RenderPipeline {
@@ -28,7 +36,7 @@ impl RenderPipeline {
 impl From<wgpu::RenderPipeline> for RenderPipeline {
     fn from(value: wgpu::RenderPipeline) -> Self {
         RenderPipeline {
-            id: RenderPipelineId(Uuid::new_v4()),
+            id: RenderPipelineId(PIPELINE_ID.fetch_add(1, Ordering::Relaxed)),
             value: Arc::new(value),
         }
     }
@@ -44,7 +52,7 @@ impl Deref for RenderPipeline {
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct ComputePipelineId(Uuid);
+pub struct ComputePipelineId(u64);
 
 #[derive(Clone, Debug)]
 pub struct ComputePipeline {
@@ -62,7 +70,7 @@ impl ComputePipeline {
 impl From<wgpu::ComputePipeline> for ComputePipeline {
     fn from(value: wgpu::ComputePipeline) -> Self {
         ComputePipeline {
-            id: ComputePipelineId(Uuid::new_v4()),
+            id: ComputePipelineId(PIPELINE_ID.fetch_add(1, Ordering::Relaxed)),
             value: Arc::new(value),
         }
     }

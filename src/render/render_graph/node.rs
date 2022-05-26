@@ -1,7 +1,10 @@
 use downcast_rs::{impl_downcast, Downcast};
-use std::{borrow::Cow, fmt::Debug};
+use std::{
+    borrow::Cow,
+    fmt::Debug,
+    sync::atomic::{AtomicU64, Ordering},
+};
 use thiserror::Error;
-use uuid::Uuid;
 
 use crate::{ecs::World, render::renderer::RenderContext};
 
@@ -10,21 +13,19 @@ use super::{
     SlotInfo, SlotInfos,
 };
 
+static NODE_ID: AtomicU64 = AtomicU64::new(0);
+
 /// A [`Node`] identifier.
 /// It automatically generates its own random uuid.
 ///
 /// This id is used to reference the node internally (edges, etc).
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct NodeId(Uuid);
+pub struct NodeId(u64);
 
 impl NodeId {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        NodeId(Uuid::new_v4())
-    }
-
-    pub fn uuid(&self) -> &Uuid {
-        &self.0
+        NodeId(NODE_ID.fetch_add(1, Ordering::Relaxed))
     }
 }
 

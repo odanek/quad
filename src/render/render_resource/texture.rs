@@ -1,9 +1,17 @@
-use std::{ops::Deref, sync::Arc};
+use std::{
+    ops::Deref,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
+};
 
-use uuid::Uuid;
+static TEXTURE_ID: AtomicU64 = AtomicU64::new(0);
+static TEXTURE_VIEW_ID: AtomicU64 = AtomicU64::new(0);
+static SAMPLER_ID: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct TextureId(Uuid);
+pub struct TextureId(u64);
 
 #[derive(Clone, Debug)]
 pub struct Texture {
@@ -25,7 +33,7 @@ impl Texture {
 impl From<wgpu::Texture> for Texture {
     fn from(value: wgpu::Texture) -> Self {
         Texture {
-            id: TextureId(Uuid::new_v4()),
+            id: TextureId(TEXTURE_ID.fetch_add(1, Ordering::Relaxed)),
             value: Arc::new(value),
         }
     }
@@ -41,7 +49,7 @@ impl Deref for Texture {
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct TextureViewId(Uuid);
+pub struct TextureViewId(u64);
 
 #[derive(Clone, Debug)]
 pub enum TextureViewValue {
@@ -76,7 +84,7 @@ impl TextureView {
 impl From<wgpu::TextureView> for TextureView {
     fn from(value: wgpu::TextureView) -> Self {
         TextureView {
-            id: TextureViewId(Uuid::new_v4()),
+            id: TextureViewId(TEXTURE_VIEW_ID.fetch_add(1, Ordering::Relaxed)),
             value: TextureViewValue::TextureView(Arc::new(value)),
         }
     }
@@ -88,7 +96,7 @@ impl From<wgpu::SurfaceTexture> for TextureView {
         let view = Arc::new(texture.texture.create_view(&Default::default()));
 
         TextureView {
-            id: TextureViewId(Uuid::new_v4()),
+            id: TextureViewId(TEXTURE_VIEW_ID.fetch_add(1, Ordering::Relaxed)),
             value: TextureViewValue::SurfaceTexture { texture, view },
         }
     }
@@ -107,7 +115,7 @@ impl Deref for TextureView {
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct SamplerId(Uuid);
+pub struct SamplerId(u64);
 
 #[derive(Clone, Debug)]
 pub struct Sampler {
@@ -125,7 +133,7 @@ impl Sampler {
 impl From<wgpu::Sampler> for Sampler {
     fn from(value: wgpu::Sampler) -> Self {
         Sampler {
-            id: SamplerId(Uuid::new_v4()),
+            id: SamplerId(SAMPLER_ID.fetch_add(1, Ordering::Relaxed)),
             value: Arc::new(value),
         }
     }

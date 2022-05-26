@@ -1,6 +1,8 @@
-use std::borrow::Cow;
+use std::{
+    borrow::Cow,
+    sync::atomic::{AtomicU64, Ordering},
+};
 
-use uuid::Uuid;
 use wgpu::{ShaderModuleDescriptor, ShaderSource};
 
 use crate::{
@@ -8,13 +10,15 @@ use crate::{
     ty::BoxedFuture,
 };
 
+static SHADER_ID: AtomicU64 = AtomicU64::new(0);
+
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct ShaderId(Uuid);
+pub struct ShaderId(u64);
 
 impl ShaderId {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        ShaderId(Uuid::new_v4())
+        ShaderId(SHADER_ID.fetch_add(1, Ordering::Relaxed))
     }
 }
 #[derive(Debug, Clone)]

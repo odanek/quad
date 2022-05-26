@@ -1,9 +1,15 @@
-use std::{ops::Deref, sync::Arc};
+use std::{
+    ops::Deref,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
+};
 
-use uuid::Uuid;
+static BIND_GROUP_ID: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct BindGroupId(Uuid);
+pub struct BindGroupId(u64);
 
 #[derive(Clone, Debug)]
 pub struct BindGroup {
@@ -21,7 +27,7 @@ impl BindGroup {
 impl From<wgpu::BindGroup> for BindGroup {
     fn from(value: wgpu::BindGroup) -> Self {
         BindGroup {
-            id: BindGroupId(Uuid::new_v4()),
+            id: BindGroupId(BIND_GROUP_ID.fetch_add(1, Ordering::Relaxed)),
             value: Arc::new(value),
         }
     }
