@@ -4,6 +4,7 @@ use std::{
     fmt::Debug,
     hash::{Hash, Hasher},
     marker::PhantomData,
+    sync::atomic::AtomicU64,
 };
 
 use crossbeam_channel::{Receiver, Sender};
@@ -15,6 +16,9 @@ use super::{
     loader::Asset,
     path::{AssetPath, AssetPathId},
 };
+
+// Start at higher number to leave space for fixed ids (see usages of HandleId::with_id)
+static HANDLE_ID: AtomicU64 = AtomicU64::new(100);
 
 /// A unique, stable asset id
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Ord, PartialOrd)]
@@ -37,18 +41,21 @@ impl<'a> From<AssetPath<'a>> for HandleId {
 
 impl HandleId {
     #[inline]
-    pub fn random<T: Asset>() -> Self {
-        // TODO Why random????
-        HandleId::Id(T::static_asset_type_id(), rand::random())
+    pub fn new<T: Asset>() -> Self {
+        HandleId::Id(
+            T::static_asset_type_id(),
+            HANDLE_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+        )
     }
 
     #[inline]
     pub fn default<T: Asset>() -> Self {
+        // TODO Make const once TypeId::of is const
         HandleId::Id(T::static_asset_type_id(), 0)
     }
 
     #[inline]
-    pub fn new<T: Asset>(id: u64) -> Self {
+    pub fn with_id<T: Asset>(id: u64) -> Self {
         // TODO Make const once TypeId::of is const
         HandleId::Id(T::static_asset_type_id(), id)
     }

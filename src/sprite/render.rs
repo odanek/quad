@@ -142,7 +142,7 @@ impl SpecializedPipeline for SpritePipeline {
             VertexBufferLayout::from_vertex_formats(VertexStepMode::Vertex, formats);
 
         let colored = key.contains(SpritePipelineKey::COLORED);
-        let shader_handle = HandleId::new::<Shader>(if colored {
+        let shader_handle = HandleId::with_id::<Shader>(if colored {
             SPRITE_COLORED_SHADER_HANDLE
         } else {
             SPRITE_SHADER_HANDLE

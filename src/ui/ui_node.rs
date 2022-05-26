@@ -359,7 +359,9 @@ pub struct UiImage(pub Handle<Image>);
 
 impl Default for UiImage {
     fn default() -> Self {
-        Self(Handle::weak(HandleId::new::<Image>(DEFAULT_IMAGE_HANDLE)))
+        Self(Handle::weak(HandleId::with_id::<Image>(
+            DEFAULT_IMAGE_HANDLE,
+        )))
     }
 }
 

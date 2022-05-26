@@ -29,17 +29,20 @@ use crate::{
 pub struct SpritePlugin;
 
 // TODO Store these as a resource? Use some non random id?
-pub const SPRITE_SHADER_HANDLE: u64 = 2763343953151597127; // TODO Create HandleUntyped once TypeId::of is const
-pub const SPRITE_COLORED_SHADER_HANDLE: u64 = 2263383953151507126; // TODO Create HandleUntyped once TypeId::of is const
+pub const SPRITE_SHADER_HANDLE: u64 = 2; // TODO Create HandleUntyped once TypeId::of is const
+pub const SPRITE_COLORED_SHADER_HANDLE: u64 = 3; // TODO Create HandleUntyped once TypeId::of is const
 
 pub fn sprite_plugin(app: &mut App, render_app: &mut App) {
     let mut shaders = app.world.resource_mut::<Assets<Shader>>();
     let sprite_shader = Shader::from_wgsl(include_str!("sprite/render/sprite.wgsl"));
     let sprite_colored_shader =
         Shader::from_wgsl(include_str!("sprite/render/sprite_colored.wgsl"));
-    shaders.set_untracked(HandleId::new::<Shader>(SPRITE_SHADER_HANDLE), sprite_shader);
     shaders.set_untracked(
-        HandleId::new::<Shader>(SPRITE_COLORED_SHADER_HANDLE),
+        HandleId::with_id::<Shader>(SPRITE_SHADER_HANDLE),
+        sprite_shader,
+    );
+    shaders.set_untracked(
+        HandleId::with_id::<Shader>(SPRITE_COLORED_SHADER_HANDLE),
         sprite_colored_shader,
     );
     app.add_asset::<TextureAtlas>();

@@ -62,7 +62,7 @@ impl<T: Asset> Assets<T> {
     }
 
     pub fn add(&mut self, asset: T) -> Handle<T> {
-        let id = HandleId::random::<T>();
+        let id = HandleId::new::<T>();
         self.assets.insert(id, asset);
         self.events.send(AssetEvent::Created {
             handle: Handle::weak(id),

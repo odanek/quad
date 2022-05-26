@@ -49,7 +49,7 @@ where
     /// to a strong handle allows for control on the playback through the [`AudioSink`] asset.
     ///
     pub fn play(&self, audio_source: Handle<Source>) -> Handle<AudioSink> {
-        let id = HandleId::random::<AudioSink>();
+        let id = HandleId::new::<AudioSink>();
         let config = AudioToPlay {
             repeat: false,
             sink_handle: id,
@@ -63,7 +63,7 @@ where
     ///
     /// See [`Self::play`] on how to control playback.
     pub fn play_in_loop(&self, audio_source: Handle<Source>) -> Handle<AudioSink> {
-        let id = HandleId::random::<AudioSink>();
+        let id = HandleId::new::<AudioSink>();
         let config = AudioToPlay {
             repeat: true,
             sink_handle: id,

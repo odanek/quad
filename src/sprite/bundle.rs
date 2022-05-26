@@ -26,7 +26,7 @@ impl Default for SpriteBundle {
             sprite: Default::default(),
             transform: Default::default(),
             global_transform: Default::default(),
-            texture: Handle::weak(HandleId::new::<Image>(DEFAULT_IMAGE_HANDLE)),
+            texture: Handle::weak(HandleId::with_id::<Image>(DEFAULT_IMAGE_HANDLE)),
             visibility: Default::default(),
         }
     }

@@ -52,12 +52,12 @@ pub mod draw_ui_graph {
     }
 }
 
-pub const UI_SHADER_HANDLE: u64 = 13012847047162779583; // TODO Create HandleUntyped once TypeId::of is const
+pub const UI_SHADER_HANDLE: u64 = 4; // TODO Create HandleUntyped once TypeId::of is const
 
 pub fn build_ui_render(app: &mut App, render_app: &mut App) {
     let mut assets = app.world.resource_mut::<Assets<_>>();
     assets.set_untracked(
-        HandleId::new::<Shader>(UI_SHADER_HANDLE),
+        HandleId::with_id::<Shader>(UI_SHADER_HANDLE),
         Shader::from_wgsl(include_str!("ui.wgsl")),
     );
 

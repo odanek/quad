@@ -17,7 +17,7 @@ use wgpu::{
 
 pub const TEXTURE_ASSET_INDEX: u64 = 0;
 pub const SAMPLER_ASSET_INDEX: u64 = 1;
-pub const DEFAULT_IMAGE_HANDLE: u64 = 13148262314052771789; // TODO Create HandleUntyped once TypeId::of is const
+pub const DEFAULT_IMAGE_HANDLE: u64 = 1; // TODO Create HandleUntyped once TypeId::of is const
 
 #[derive(Debug, Clone)]
 pub struct Image {

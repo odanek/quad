@@ -20,7 +20,7 @@ pub fn image_plugin(app: &mut App, render_app: &mut App) {
     app.init_asset_loader::<ImageTextureLoader>();
     app.add_asset::<Image>();
     app.world.resource_mut::<Assets<Image>>().set_untracked(
-        HandleId::new::<Image>(DEFAULT_IMAGE_HANDLE),
+        HandleId::with_id::<Image>(DEFAULT_IMAGE_HANDLE),
         Image::default(),
     );
 

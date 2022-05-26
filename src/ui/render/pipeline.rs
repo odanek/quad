@@ -96,12 +96,12 @@ impl SpecializedPipeline for UiPipeline {
 
         RenderPipelineDescriptor {
             vertex: VertexState {
-                shader: Handle::weak(HandleId::new::<Shader>(UI_SHADER_HANDLE)),
+                shader: Handle::weak(HandleId::with_id::<Shader>(UI_SHADER_HANDLE)),
                 entry_point: "vertex".into(),
                 buffers: vec![vertex_layout],
             },
             fragment: Some(FragmentState {
-                shader: Handle::weak(HandleId::new::<Shader>(UI_SHADER_HANDLE)),
+                shader: Handle::weak(HandleId::with_id::<Shader>(UI_SHADER_HANDLE)),
                 entry_point: "fragment".into(),
                 targets: vec![ColorTargetState {
                     format: TextureFormat::quad_default(),
