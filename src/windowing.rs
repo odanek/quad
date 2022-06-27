@@ -13,17 +13,16 @@ pub use windows::Windows;
 use crate::app::App;
 
 pub fn windowing_plugin(app: &mut App) {
-    app.init_resource::<Windows>();
-
-    app.add_event::<WindowCreated>();
-    app.add_event::<ReceivedCharacter>();
-    app.add_event::<WindowCloseRequested>();
-    app.add_event::<WindowResized>();
-    app.add_event::<WindowMoved>();
-    app.add_event::<CursorMoved>();
-    app.add_event::<CursorEntered>();
-    app.add_event::<CursorLeft>();
-    app.add_event::<WindowFocused>();
-    app.add_event::<WindowBackendScaleFactorChanged>();
-    app.add_event::<WindowScaleFactorChanged>();
+    app.init_resource::<Windows>()
+        .add_event::<WindowCreated>()
+        .add_event::<ReceivedCharacter>()
+        .add_event::<WindowCloseRequested>()
+        .add_event::<WindowResized>()
+        .add_event::<WindowMoved>()
+        .add_event::<CursorMoved>()
+        .add_event::<CursorEntered>()
+        .add_event::<CursorLeft>()
+        .add_event::<WindowFocused>()
+        .add_event::<WindowBackendScaleFactorChanged>()
+        .add_event::<WindowScaleFactorChanged>();
 }

@@ -16,7 +16,6 @@ use super::{
 static NODE_ID: AtomicU64 = AtomicU64::new(0);
 
 /// A [`Node`] identifier.
-/// It automatically generates its own random uuid.
 ///
 /// This id is used to reference the node internally (edges, etc).
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
