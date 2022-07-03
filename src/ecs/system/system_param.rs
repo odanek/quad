@@ -119,7 +119,7 @@ impl<'w, 's, P: SystemParam> StaticSystemParam<'w, 's, P> {
 
 pub struct StaticSystemParamState<S, P>(S, PhantomData<fn() -> P>);
 
-unsafe impl<'w, 's, S: ReadOnlySystemParamFetch, P> ReadOnlySystemParamFetch
+unsafe impl<S: ReadOnlySystemParamFetch, P> ReadOnlySystemParamFetch
     for StaticSystemParamState<S, P>
 {
 }
@@ -148,7 +148,7 @@ where
     }
 }
 
-unsafe impl<'w, 's, S: SystemParamState, P: SystemParam + 'static> SystemParamState
+unsafe impl<S: SystemParamState, P: SystemParam + 'static> SystemParamState
     for StaticSystemParamState<S, P>
 {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {

@@ -170,7 +170,7 @@ macro_rules! impl_query_filter_tuple {
     ($(($filter: ident, $state: ident)),*) => {
         #[allow(unused_variables)]
         #[allow(non_snake_case)]
-        impl<'a, $($filter: FilterFetch),*> FilterFetch for ($($filter,)*) {
+        impl<$($filter: FilterFetch),*> FilterFetch for ($($filter,)*) {
             #[inline]
             unsafe fn archetype_filter_fetch(&mut self, archetype_index: usize) -> bool {
                 let ($($filter,)*) = self;

@@ -103,11 +103,11 @@ impl SpecializedPipeline for UiPipeline {
             fragment: Some(FragmentState {
                 shader: Handle::weak(HandleId::with_id::<Shader>(UI_SHADER_HANDLE)),
                 entry_point: "fragment".into(),
-                targets: vec![ColorTargetState {
+                targets: vec![Some(ColorTargetState {
                     format: TextureFormat::quad_default(),
                     blend: Some(BlendState::ALPHA_BLENDING),
                     write_mask: ColorWrites::ALL,
-                }],
+                })],
             }),
             layout: Some(vec![self.view_layout.clone(), self.image_layout.clone()]),
             primitive: PrimitiveState {

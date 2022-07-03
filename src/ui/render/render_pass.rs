@@ -72,16 +72,17 @@ impl Node for UiPassNode {
             .query
             .get_manual(world, view_entity)
             .expect("view entity should exist");
+        let color_attachment = RenderPassColorAttachment {
+            view: &target.view,
+            resolve_target: None,
+            ops: Operations {
+                load: LoadOp::Load,
+                store: true,
+            },
+        };
         let pass_descriptor = RenderPassDescriptor {
             label: Some("ui_pass"),
-            color_attachments: &[RenderPassColorAttachment {
-                view: &target.view,
-                resolve_target: None,
-                ops: Operations {
-                    load: LoadOp::Load,
-                    store: true,
-                },
-            }],
+            color_attachments: &[Some(color_attachment)],
             depth_stencil_attachment: None,
         };
 

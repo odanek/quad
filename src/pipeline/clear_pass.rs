@@ -70,12 +70,13 @@ impl Node for ClearPassNode {
                     color = target_color;
                 }
             }
+            let color_attachment = target.get_color_attachment(Operations {
+                load: LoadOp::Clear((*color).into()),
+                store: true,
+            });
             let pass_descriptor = RenderPassDescriptor {
                 label: Some("clear_pass"),
-                color_attachments: &[target.get_color_attachment(Operations {
-                    load: LoadOp::Clear((*color).into()),
-                    store: true,
-                })],
+                color_attachments: &[Some(color_attachment)],
                 depth_stencil_attachment: depth.map(|depth| RenderPassDepthStencilAttachment {
                     view: &depth.view,
                     depth_ops: Some(Operations {
@@ -105,23 +106,24 @@ impl Node for ClearPassNode {
             if cleared_targets.contains(&target) {
                 continue;
             }
+            let color_attachment = RenderPassColorAttachment {
+                view: target
+                    .get_texture_view(windows.as_ref(), images.as_ref())
+                    .unwrap(),
+                resolve_target: None,
+                ops: Operations {
+                    load: LoadOp::Clear(
+                        (*render_target_clear_colors
+                            .get(&target)
+                            .unwrap_or(&clear_color.0))
+                        .into(),
+                    ),
+                    store: true,
+                },
+            };
             let pass_descriptor = RenderPassDescriptor {
                 label: Some("clear_pass"),
-                color_attachments: &[RenderPassColorAttachment {
-                    view: target
-                        .get_texture_view(windows.as_ref(), images.as_ref())
-                        .unwrap(),
-                    resolve_target: None,
-                    ops: Operations {
-                        load: LoadOp::Clear(
-                            (*render_target_clear_colors
-                                .get(&target)
-                                .unwrap_or(&clear_color.0))
-                            .into(),
-                        ),
-                        store: true,
-                    },
-                }],
+                color_attachments: &[Some(color_attachment)],
                 depth_stencil_attachment: None,
             };
 

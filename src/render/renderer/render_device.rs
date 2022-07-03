@@ -1,4 +1,3 @@
-use futures_lite::future;
 use std::sync::Arc;
 use wgpu::{util::DeviceExt, RenderPipelineDescriptor as RawRenderPipelineDescriptor};
 
@@ -32,13 +31,8 @@ impl RenderDevice {
     }
 
     #[inline]
-    pub fn create_shader_module(&self, desc: &wgpu::ShaderModuleDescriptor) -> wgpu::ShaderModule {
+    pub fn create_shader_module(&self, desc: wgpu::ShaderModuleDescriptor) -> wgpu::ShaderModule {
         self.device.create_shader_module(desc)
-    }
-
-    #[inline]
-    pub fn poll(&self, maintain: wgpu::Maintain) {
-        self.device.poll(maintain)
     }
 
     #[inline]
@@ -120,14 +114,6 @@ impl RenderDevice {
 
     pub fn wgpu_device(&self) -> &wgpu::Device {
         &self.device
-    }
-
-    pub fn map_buffer(&self, buffer: &wgpu::BufferSlice, map_mode: wgpu::MapMode) {
-        let data = buffer.map_async(map_mode);
-        self.poll(wgpu::Maintain::Wait);
-        if future::block_on(data).is_err() {
-            panic!("Failed to map buffer to host.");
-        }
     }
 
     pub fn align_copy_bytes_per_row(row_bytes: usize) -> usize {

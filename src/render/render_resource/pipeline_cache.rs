@@ -54,7 +54,7 @@ impl ShaderCache {
 
         let module = data.processed_shader.get_or_insert_with(|| {
             let module_descriptor = shader.get_module_descriptor();
-            Arc::new(render_device.create_shader_module(&module_descriptor))
+            Arc::new(render_device.create_shader_module(module_descriptor))
         });
 
         data.pipelines.insert(pipeline);

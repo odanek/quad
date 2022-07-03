@@ -157,11 +157,11 @@ impl SpecializedPipeline for SpritePipeline {
             fragment: Some(FragmentState {
                 shader: Handle::weak(shader_handle),
                 entry_point: "fragment".into(),
-                targets: vec![ColorTargetState {
+                targets: vec![Some(ColorTargetState {
                     format: TextureFormat::quad_default(),
                     blend: Some(BlendState::ALPHA_BLENDING),
                     write_mask: ColorWrites::ALL,
-                }],
+                })],
             }),
             layout: Some(vec![self.view_layout.clone(), self.material_layout.clone()]),
             primitive: PrimitiveState {

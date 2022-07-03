@@ -48,12 +48,13 @@ impl Node for MainPass2dNode {
             .get_manual(world, view_entity)
             .expect("view entity should exist");
 
+        let color_attachment = target.get_color_attachment(Operations {
+            load: LoadOp::Load,
+            store: true,
+        });
         let pass_descriptor = RenderPassDescriptor {
             label: Some("main_pass_2d"),
-            color_attachments: &[target.get_color_attachment(Operations {
-                load: LoadOp::Load,
-                store: true,
-            })],
+            color_attachments: &[Some(color_attachment)],
             depth_stencil_attachment: None,
         };
 

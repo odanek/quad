@@ -142,5 +142,5 @@ impl VertexBufferLayout {
 pub struct FragmentState {
     pub shader: Handle<Shader>,
     pub entry_point: Cow<'static, str>,
-    pub targets: Vec<ColorTargetState>,
+    pub targets: Vec<Option<ColorTargetState>>,
 }
