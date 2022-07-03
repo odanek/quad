@@ -10,9 +10,7 @@ pub struct WgpuSettings {
     pub backends: Backends,
     pub power_preference: PowerPreference,
     pub features: WgpuFeatures,
-    pub disabled_features: Option<WgpuFeatures>,
     pub limits: WgpuLimits,
-    pub constrained_limits: Option<WgpuLimits>,
 }
 
 impl Default for WgpuSettings {
@@ -22,9 +20,7 @@ impl Default for WgpuSettings {
             backends: Backends::PRIMARY,
             power_preference: PowerPreference::HighPerformance,
             features: wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES,
-            disabled_features: None,
             limits: wgpu::Limits::default(),
-            constrained_limits: None,
         }
     }
 }
