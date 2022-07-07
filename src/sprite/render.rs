@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashMap};
 
-use bytemuck_derive::{Pod, Zeroable};
+use bytemuck::{Pod, Zeroable};
 use cgm::{ElementWise, Zero};
 use crevice::std140::AsStd140;
 use wgpu::{

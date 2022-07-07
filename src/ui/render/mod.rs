@@ -2,7 +2,7 @@ mod camera;
 mod pipeline;
 mod render_pass;
 
-use bytemuck_derive::{Pod, Zeroable};
+use bytemuck::{Pod, Zeroable};
 pub use camera::*;
 use cgm::{ElementWise, Zero};
 pub use pipeline::*;
