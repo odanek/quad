@@ -27,6 +27,10 @@ use crate::{
     ty::FloatOrd,
 };
 
+pub mod prelude {
+    pub use crate::pipeline::ClearColor;
+}
+
 /// When used as a resource, sets the color that is used to clear the screen between frames.
 ///
 /// This color appears as the "background" color for simple apps, when

@@ -8,6 +8,10 @@ pub use timer::Timer;
 
 use crate::app::App;
 
+pub mod prelude {
+    pub use crate::timing::{Stopwatch, Time, Timer};
+}
+
 pub fn timing_plugin(app: &mut App) {
     app.init_resource::<Time>();
 }

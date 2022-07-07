@@ -1,5 +1,6 @@
 mod flex;
 mod focus;
+mod geometry;
 mod render;
 mod ui_node;
 
@@ -9,6 +10,7 @@ pub mod widget;
 
 pub use flex::*;
 pub use focus::*;
+pub use geometry::*;
 pub use render::*;
 pub use ui_node::*;
 
@@ -20,6 +22,13 @@ use crate::{
 };
 
 use self::entity::{CameraUi, UiCameraBundle};
+
+pub mod prelude {
+    pub use crate::ui::{
+        entity::{NodeBundle, UiTextBundle},
+        AlignItems, FlexDirection, JustifyContent, PositionType, Style, UiRect, Val,
+    };
+}
 
 pub fn ui_plugin(app: &mut App, render_app: &mut App) {
     app.world.spawn().insert_bundle(UiCameraBundle::default()); // TODO Allow to customize the camera

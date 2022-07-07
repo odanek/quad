@@ -16,6 +16,10 @@ use crate::{
 };
 use transform_propagate_system::transform_propagate_system;
 
+pub mod prelude {
+    pub use crate::transform::{Children, GlobalTransform, Parent, Transform, TransformBundle};
+}
+
 #[derive(Bundle, Clone, Copy, Debug, Default)]
 pub struct TransformBundle {
     pub local: Transform,

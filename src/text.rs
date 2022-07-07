@@ -25,6 +25,10 @@ use crate::{
     ecs::{Entity, IntoSystem, Resource},
 };
 
+pub mod prelude {
+    pub use crate::text::{Font, Text, TextSection, TextStyle};
+}
+
 #[derive(Default, Resource, Deref, DerefMut)]
 pub struct DefaultTextPipeline(TextPipeline<Entity>);
 

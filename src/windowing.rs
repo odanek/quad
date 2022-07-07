@@ -12,6 +12,10 @@ pub use windows::Windows;
 
 use crate::app::App;
 
+pub mod prelude {
+    pub use crate::windowing::{LogicalSize, PhysicalSize, Window, WindowDescriptor, Windows};
+}
+
 pub fn windowing_plugin(app: &mut App) {
     app.init_resource::<Windows>()
         .add_event::<WindowCreated>()

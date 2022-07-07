@@ -16,6 +16,13 @@ use crate::{
     ecs::ResMut,
 };
 
+pub mod prelude {
+    pub use crate::input::{
+        GamepadInput, KeyCode, KeyInput, KeyboardInput, MouseButton, MouseInput, Touch, TouchInput,
+        TouchPhase,
+    };
+}
+
 pub fn input_plugin(app: &mut App) {
     app.init_resource::<KeyboardInput>()
         .init_resource::<MouseInput>()

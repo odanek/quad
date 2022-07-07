@@ -12,6 +12,10 @@ use rodio::{OutputStream, OutputStreamHandle};
 
 use crate::app::{App, MainStage};
 
+pub mod prelude {
+    pub use crate::audio::{Audio, AudioOutput, AudioSource, Decodable};
+}
+
 pub struct AudioDevice {
     _stream: Option<OutputStream>,
     stream_handle: Option<OutputStreamHandle>,

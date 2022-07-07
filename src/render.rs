@@ -32,6 +32,12 @@ use self::render_resource::{Shader, ShaderLoader};
 
 pub use wgpu::AddressMode;
 
+pub mod prelude {
+    pub use crate::render::{
+        cameras::Camera2d, color::Color, texture::Image, view::Visibility, AddressMode,
+    };
+}
+
 /// The Render App World. This is only available as a resource during the Extract step.
 #[derive(Default, Resource, Deref, DerefMut)]
 pub struct RenderWorld(World);

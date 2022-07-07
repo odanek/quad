@@ -130,40 +130,6 @@ where
     }
 }
 
-// TODO Replace with sprite::Rect
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub struct Rect<T: PartialEq> {
-    pub left: T,
-    pub right: T,
-    pub top: T,
-    pub bottom: T,
-}
-
-impl<T: PartialEq> Rect<T> {
-    pub fn all(value: T) -> Self
-    where
-        T: Clone,
-    {
-        Rect {
-            left: value.clone(),
-            right: value.clone(),
-            top: value.clone(),
-            bottom: value,
-        }
-    }
-}
-
-impl<T: Default + PartialEq> Default for Rect<T> {
-    fn default() -> Self {
-        Self {
-            left: Default::default(),
-            right: Default::default(),
-            top: Default::default(),
-            bottom: Default::default(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

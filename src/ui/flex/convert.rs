@@ -1,14 +1,14 @@
 use crate::{
-    ty::{Rect, Size},
+    ty::Size,
     ui::{
         AlignContent, AlignItems, AlignSelf, Direction, Display, FlexDirection, FlexWrap,
-        JustifyContent, PositionType, Style, Val,
+        JustifyContent, PositionType, Style, UiRect, Val,
     },
 };
 
 pub fn from_rect(
     scale_factor: f64,
-    rect: Rect<Val>,
+    rect: UiRect<Val>,
 ) -> stretch::geometry::Rect<stretch::style::Dimension> {
     stretch::geometry::Rect {
         start: from_val(scale_factor, rect.left),

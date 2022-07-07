@@ -5,3 +5,5 @@ mod usages;
 pub use task::Task;
 pub use task_pool::{TaskPool, TaskPoolBuilder};
 pub use usages::IoTaskPool;
+
+pub mod prelude {}

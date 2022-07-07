@@ -20,6 +20,10 @@ use crate::{
     tasks::IoTaskPool,
 };
 
+pub mod prelude {
+    pub use crate::asset::{AssetEvent, AssetServer, Assets, Handle, HandleUntyped};
+}
+
 #[derive(Clone, Resource)]
 pub struct AssetServerSettings {
     pub asset_folder: String,

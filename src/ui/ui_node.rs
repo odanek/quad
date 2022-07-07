@@ -7,8 +7,11 @@ use crate::{
         color::Color,
         texture::{Image, DEFAULT_IMAGE_HANDLE},
     },
-    ty::{Rect, Size, Vec2},
+    sprite::Rect,
+    ty::{Size, Vec2},
 };
+
+use super::UiRect;
 
 /// Describes the size of a UI node
 #[derive(Component, Debug, Clone, Default)]
@@ -87,13 +90,13 @@ pub struct Style {
     /// How items align according to the main axis
     pub justify_content: JustifyContent,
     /// The position of the node as descrided by its Rect
-    pub position: Rect<Val>,
+    pub position: UiRect<Val>,
     /// The margin of the node
-    pub margin: Rect<Val>,
+    pub margin: UiRect<Val>,
     /// The padding of the node
-    pub padding: Rect<Val>,
+    pub padding: UiRect<Val>,
     /// The border of the node
-    pub border: Rect<Val>,
+    pub border: UiRect<Val>,
     /// Defines how much a flexbox item should grow if there's space available
     pub flex_grow: f32,
     /// How to shrink if there's not enough space available
@@ -375,5 +378,5 @@ impl From<Handle<Image>> for UiImage {
 #[derive(Component, Default, Copy, Clone, Debug)]
 pub struct CalculatedClip {
     /// The rect of the clip
-    pub clip: crate::sprite::Rect,
+    pub clip: Rect,
 }

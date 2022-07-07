@@ -32,3 +32,12 @@ pub use system::{
     IntoSystem, System,
 };
 pub use world::{FromWorld, World};
+
+pub mod prelude {
+    pub use crate::ecs::{
+        Added, Bundle, ChangeTrackers, Changed, Commands, Component, DetectChanges, Entity,
+        EventReader, EventWriter, FromWorld, IntoSystem, Local, Or, ParamSet, Query, QueryState,
+        RemovedComponents, Res, ResMut, Resource, Schedule, Scheduler, System, With, Without,
+        World,
+    };
+}

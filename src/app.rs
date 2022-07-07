@@ -32,6 +32,8 @@ use crate::{
 
 use self::systems::Systems;
 
+pub mod prelude {}
+
 #[derive(Default)]
 pub struct App {
     pub(crate) world: World,     // TODO: Private?

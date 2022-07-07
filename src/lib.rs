@@ -19,3 +19,12 @@ pub mod transform;
 pub mod ty;
 pub mod ui;
 pub mod windowing;
+
+pub mod prelude {
+    pub use crate::{
+        app::prelude::*, asset::prelude::*, audio::prelude::*, ecs::prelude::*, input::prelude::*,
+        pipeline::prelude::*, render::prelude::*, run::prelude::*, sprite::prelude::*,
+        tasks::prelude::*, text::prelude::*, timing::prelude::*, transform::prelude::*,
+        ty::prelude::*, ui::prelude::*, windowing::prelude::*,
+    };
+}

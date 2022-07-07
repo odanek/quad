@@ -25,6 +25,12 @@ use crate::{
     render::render_resource::{Shader, SpecializedPipelines},
 };
 
+pub mod prelude {
+    pub use crate::sprite::{
+        Rect, Sprite, SpriteBundle, SpriteSheetBundle, TextureAtlas, TextureAtlasSprite,
+    };
+}
+
 #[derive(Default)]
 pub struct SpritePlugin;
 
