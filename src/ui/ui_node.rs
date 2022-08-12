@@ -144,7 +144,7 @@ impl Default for Style {
 }
 
 /// How items are aligned according to the cross axis
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum AlignItems {
     /// Items are aligned at the start
     FlexStart,
@@ -165,7 +165,7 @@ impl Default for AlignItems {
 }
 
 /// Works like [`AlignItems`] but applies only to a single item
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum AlignSelf {
     /// Use the value of [`AlignItems`]
     Auto,
@@ -190,7 +190,7 @@ impl Default for AlignSelf {
 /// Defines how each line is aligned within the flexbox.
 ///
 /// It only applies if [`FlexWrap::Wrap`] is present and if there are multiple lines of items.
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum AlignContent {
     /// Each line moves towards the start of the cross axis
     FlexStart,
@@ -217,7 +217,7 @@ impl Default for AlignContent {
 /// Defines the text direction
 ///
 /// For example English is written LTR (left-to-right) while Arabic is written RTL (right-to-left).
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Direction {
     /// Inherit from parent node
     Inherit,
@@ -234,7 +234,7 @@ impl Default for Direction {
 }
 
 /// Whether to use Flexbox layout
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Display {
     /// Use flexbox
     Flex,
@@ -249,7 +249,7 @@ impl Default for Display {
 }
 
 /// Defines how flexbox items are ordered within a flexbox
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum FlexDirection {
     /// Same way as text direction along the main axis
     Row,
@@ -268,7 +268,7 @@ impl Default for FlexDirection {
 }
 
 /// Defines how items are aligned according to the main axis
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum JustifyContent {
     /// Pushed towards the start
     FlexStart,
@@ -291,7 +291,7 @@ impl Default for JustifyContent {
 }
 
 /// Whether to show or hide overflowing items
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Overflow {
     /// Show overflowing items
     Visible,
@@ -306,7 +306,7 @@ impl Default for Overflow {
 }
 
 /// The strategy used to position this node
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum PositionType {
     /// Relative to all other nodes with the [`PositionType::Relative`] value
     Relative,
@@ -323,7 +323,7 @@ impl Default for PositionType {
 }
 
 /// Defines if flexbox items appear on a single line or on multiple lines
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum FlexWrap {
     /// Single line, will overflow if needed
     NoWrap,

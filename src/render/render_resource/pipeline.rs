@@ -138,7 +138,7 @@ impl VertexBufferLayout {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FragmentState {
     pub shader: Handle<Shader>,
     pub entry_point: Cow<'static, str>,

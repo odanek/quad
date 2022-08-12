@@ -83,7 +83,7 @@ pub fn derive_bundle(input: TokenStream) -> TokenStream {
                 }
             }
 
-            #[allow(unused_variables, unused_mut, forget_copy, forget_ref)]
+            #[allow(unused_variables, unused_mut, forget_copy, forget_ref, clippy::forget_non_drop)]
             fn get_components(mut self, mut func: impl FnMut(*mut u8)) {
                 #(#field_get_components)*
             }

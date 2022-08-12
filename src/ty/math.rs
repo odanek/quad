@@ -13,7 +13,7 @@ pub type Quat = cgm::Quat<f32>;
 pub type Rad = cgm::Rad<f32>;
 pub type Deg = cgm::Deg<f32>;
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Size<T: PartialEq = f32> {
     pub width: T,
     pub height: T,

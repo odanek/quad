@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct UiRect<T: PartialEq> {
     pub left: T,
     pub right: T,
