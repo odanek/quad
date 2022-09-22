@@ -127,6 +127,7 @@ pub fn prepare_windows(
                 PresentMode::Mailbox => wgpu::PresentMode::Mailbox,
                 PresentMode::Immediate => wgpu::PresentMode::Immediate,
             },
+            alpha_mode: wgpu::CompositeAlphaMode::Auto,
         };
 
         // Do the initial surface configuration if it hasn't been configured yet

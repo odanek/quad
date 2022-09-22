@@ -299,7 +299,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for WriteFetch<T> {
     #[inline]
     unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item {
         let value = &mut *self.table_components.as_ptr().add(archetype_index);
-        let component_ticks = &mut *(&*self.table_ticks.add(archetype_index)).get();
+        let component_ticks = &mut *(*self.table_ticks.add(archetype_index)).get();
         CmptMut::new(value, component_ticks, self.system_ticks)
     }
 }
@@ -470,7 +470,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for ChangeTrackersFetch<T> {
     #[inline]
     unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> Self::Item {
         ChangeTrackers {
-            component_ticks: (&*self.table_ticks.add(archetype_index)).clone(),
+            component_ticks: (*self.table_ticks.add(archetype_index)).clone(),
             system_ticks: self.system_ticks,
             marker: PhantomData,
         }

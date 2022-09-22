@@ -313,7 +313,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for AddedFetch<T> {
     }
 
     unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> bool {
-        let ticks = &*(&*self.table_ticks.add(archetype_index)).get();
+        let ticks = &*(*self.table_ticks.add(archetype_index)).get();
         ticks.is_added(self.system_ticks.last_change_tick)
     }
 }
@@ -388,7 +388,7 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for ChangedFetch<T> {
     }
 
     unsafe fn archetype_fetch(&mut self, archetype_index: usize) -> bool {
-        let ticks = &*(&*self.table_ticks.add(archetype_index)).get();
+        let ticks = &*(*self.table_ticks.add(archetype_index)).get();
         ticks.is_changed(self.system_ticks.last_change_tick)
     }
 }

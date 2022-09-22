@@ -119,7 +119,7 @@ impl Resources {
         id: ResourceId,
     ) -> Option<(*const T, *const ComponentTicks)> {
         let wrapper = self.map.get(&id)?;
-        let resource = (&*wrapper.resource.get()).downcast_ref::<T>()?;
+        let resource = (*wrapper.resource.get()).downcast_ref::<T>()?;
         let ticks = wrapper.ticks.get();
         Some((resource as *const T, ticks))
     }
@@ -139,7 +139,7 @@ impl Resources {
         id: ResourceId,
     ) -> Option<(*mut T, *mut ComponentTicks)> {
         let wrapper = self.map.get(&id)?;
-        let resource = (&mut *wrapper.resource.get()).downcast_mut::<T>()?;
+        let resource = (*wrapper.resource.get()).downcast_mut::<T>()?;
         let ticks = wrapper.ticks.get();
         Some((resource as *mut T, ticks))
     }

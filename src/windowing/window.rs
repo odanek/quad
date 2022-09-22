@@ -1,4 +1,4 @@
-use raw_window_handle::HasRawWindowHandle;
+use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 
 use crate::ty::{Size, Vec2, Vec2i};
 
@@ -98,7 +98,10 @@ impl Window {
             position,
             cursor_position: None,
             focused: true,
-            raw_window_handle: RawWindowHandleWrapper::new(winit_window.raw_window_handle()),
+            raw_window_handle: RawWindowHandleWrapper::new(
+                winit_window.raw_window_handle(),
+                winit_window.raw_display_handle(),
+            ),
             winit_window,
         }
     }
