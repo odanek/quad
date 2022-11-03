@@ -100,8 +100,8 @@ pub fn core_pipeline_plugin(app: &mut App, render_app: &mut App) {
             RenderStage::Extract,
             extract_core_pipeline_camera_phases.system(&mut app.world),
         )
-        .add_system_to_stage(RenderStage::PhaseSort, &sort_phase_system::<Transparent2d>)
-        .add_system_to_stage(RenderStage::PhaseSort, &batch_phase_system::<Transparent2d>);
+        .add_system_to_stage(RenderStage::PhaseSort, sort_phase_system::<Transparent2d>)
+        .add_system_to_stage(RenderStage::PhaseSort, batch_phase_system::<Transparent2d>);
 
     let clear_pass_node = ClearPassNode::new(&mut render_app.world);
     let pass_node_2d = MainPass2dNode::new(&mut render_app.world);

@@ -37,27 +37,27 @@ pub fn ui_plugin(app: &mut App, render_app: &mut App) {
     app.init_resource::<FlexSurface>()
         .add_system_to_stage(
             MainStage::PreUpdate, // After input systems
-            &ui_focus_system,
+            ui_focus_system,
         )
         .add_system_to_stage(
             MainStage::PreTransformUpdate, // Before flex_node_system after modifies_window
-            &widget::text_system,
+            widget::text_system,
         )
         .add_system_to_stage(
             MainStage::PreTransformUpdate, // Before flex_node_system
-            &widget::image_node_system,
+            widget::image_node_system,
         )
         .add_system_to_stage(
             MainStage::PreTransformUpdate, // Before transform_propagate_system, after modifies_windows
-            &flex_node_system,
+            flex_node_system,
         )
         .add_system_to_stage(
             MainStage::PreTransformUpdate, // Before transform_propagate_system, after flex_node_system
-            &ui_z_system,
+            ui_z_system,
         )
         .add_system_to_stage(
             MainStage::PostTransformUpdate, // After transform_propagate_system
-            &update_clipping_system,
+            update_clipping_system,
         );
 
     build_ui_render(app, render_app);

@@ -56,9 +56,9 @@ impl VisibleEntities {
 pub fn visibility_plugin(app: &mut App) {
     app.add_system_to_stage(
         MainStage::PostTransformUpdate,
-        &update_frusta::<OrthographicProjection>,
+        update_frusta::<OrthographicProjection>,
     ) // Must run after transform_propagate_system
-    .add_system_to_stage(MainStage::PostTransformUpdate, &check_visibility); // After calculate_bounds and update_frust
+    .add_system_to_stage(MainStage::PostTransformUpdate, check_visibility); // After calculate_bounds and update_frust
 }
 
 pub fn update_frusta<T: Component + CameraProjection + Send + Sync + 'static>(

@@ -11,7 +11,7 @@ use crate::app::{App, MainStage};
 pub fn camera_plugin(app: &mut App, render_app: &mut App) {
     app.add_system_to_stage(
         MainStage::PostTransformUpdate,
-        &camera_system::<OrthographicProjection>,
+        camera_system::<OrthographicProjection>,
     );
     app.world
         .spawn()

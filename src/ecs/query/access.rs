@@ -121,7 +121,7 @@ impl<T: AccessIndex> FilteredAccess<T> {
 }
 
 fn intersects(left: &HashSet<usize>, right: &HashSet<usize>) -> bool {
-    left.intersection(right).next() != None
+    left.intersection(right).next().is_some()
 }
 
 #[derive(Clone, Debug)]

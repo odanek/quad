@@ -128,10 +128,8 @@ impl App {
 
     // TODO: AddEvent trait ?
     pub fn add_event<T: Event>(&mut self) -> &mut Self {
-        self.init_resource::<Events<T>>().add_system_to_stage(
-            MainStage::PreUpdate,
-            &Events::<T>::update_system, // TODO: Why is the & needed?
-        );
+        self.init_resource::<Events<T>>()
+            .add_system_to_stage(MainStage::PreUpdate, Events::<T>::update_system);
 
         self
     }
@@ -147,8 +145,8 @@ impl App {
         };
 
         self.insert_resource(assets)
-            .add_system_to_stage(MainStage::AssetEvents, &Assets::<T>::asset_event_system)
-            .add_system_to_stage(MainStage::LoadAssets, &update_asset_storage_system::<T>)
+            .add_system_to_stage(MainStage::AssetEvents, Assets::<T>::asset_event_system)
+            .add_system_to_stage(MainStage::LoadAssets, update_asset_storage_system::<T>)
             .add_event::<AssetEvent<T>>();
 
         self

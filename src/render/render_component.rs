@@ -55,7 +55,7 @@ pub trait ExtractComponent: Component {
 pub fn uniform_component_plugin<C: Component + AsStd140 + Clone>(render_app: &mut App) {
     render_app
         .insert_resource(ComponentUniforms::<C>::default())
-        .add_system_to_stage(RenderStage::Prepare, &prepare_uniform_components::<C>);
+        .add_system_to_stage(RenderStage::Prepare, prepare_uniform_components::<C>);
 }
 
 /// Stores all uniforms of the component type.

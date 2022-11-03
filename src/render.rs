@@ -107,7 +107,7 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
 
     render_app.add_system_to_stage(
         RenderStage::Render,
-        &RenderPipelineCache::process_pipeline_queue_system,
+        RenderPipelineCache::process_pipeline_queue_system,
     );
 
     window_render_plugin(app, render_app);

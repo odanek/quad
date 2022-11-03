@@ -31,7 +31,7 @@ pub fn input_plugin(app: &mut App) {
         .add_event::<MouseButtonInput>()
         .add_event::<MouseWheel>()
         .add_event::<MouseMotion>()
-        .add_system_to_stage(MainStage::Flush, &input_flush_system);
+        .add_system_to_stage(MainStage::Flush, input_flush_system);
 }
 
 fn input_flush_system(

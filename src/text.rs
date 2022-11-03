@@ -37,7 +37,7 @@ pub fn text_plugin(app: &mut App, render_app: &mut App) {
         .add_asset::<FontAtlasSet>()
         .init_asset_loader::<FontLoader>()
         .insert_resource(DefaultTextPipeline::default())
-        .add_system_to_stage(MainStage::PreTransformUpdate, &text_system);
+        .add_system_to_stage(MainStage::PreTransformUpdate, text_system);
 
     render_app.add_system_to_stage(
         RenderStage::Extract,

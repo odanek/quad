@@ -27,7 +27,7 @@ pub fn image_plugin(app: &mut App, render_app: &mut App) {
     render_asset_plugin::<Image>(app, render_app);
     render_app
         .init_resource::<TextureCache>()
-        .add_system_to_stage(RenderStage::Cleanup, &update_texture_cache_system);
+        .add_system_to_stage(RenderStage::Cleanup, update_texture_cache_system);
 }
 
 pub trait QuadDefault {

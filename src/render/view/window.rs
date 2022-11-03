@@ -21,7 +21,7 @@ pub fn window_render_plugin(app: &mut App, render_app: &mut App) {
         .init_resource::<ExtractedWindows>()
         .init_resource::<WindowSurfaces>()
         .add_system_to_stage(RenderStage::Extract, extract_windows.system(&mut app.world))
-        .add_system_to_stage(RenderStage::Prepare, &prepare_windows);
+        .add_system_to_stage(RenderStage::Prepare, prepare_windows);
 }
 
 pub struct ExtractedWindow {

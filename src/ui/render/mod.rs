@@ -78,9 +78,9 @@ pub fn build_ui_render(app: &mut App, render_app: &mut App) {
             RenderStage::Extract,
             extract_text_uinodes.system(&mut app.world), // After extract_ui_nodes
         )
-        .add_system_to_stage(RenderStage::Prepare, &prepare_uinodes)
-        .add_system_to_stage(RenderStage::Queue, &queue_uinodes)
-        .add_system_to_stage(RenderStage::PhaseSort, &sort_phase_system::<TransparentUi>);
+        .add_system_to_stage(RenderStage::Prepare, prepare_uinodes)
+        .add_system_to_stage(RenderStage::Queue, queue_uinodes)
+        .add_system_to_stage(RenderStage::PhaseSort, sort_phase_system::<TransparentUi>);
 
     // Render graph
     let ui_pass_node = UiPassNode::new(&mut render_app.world);

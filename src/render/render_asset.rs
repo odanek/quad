@@ -52,7 +52,7 @@ pub fn render_asset_plugin<A: RenderAsset>(app: &mut App, render_app: &mut App) 
             RenderStage::Extract,
             extract_render_asset::<A>.system(&mut app.world),
         )
-        .add_system_to_stage(RenderStage::Prepare, &prepare_assets::<A>);
+        .add_system_to_stage(RenderStage::Prepare, prepare_assets::<A>);
 }
 
 /// Temporarily stores the extracted and removed assets of the current frame.

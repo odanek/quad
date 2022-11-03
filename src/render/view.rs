@@ -32,8 +32,8 @@ pub fn view_plugin(app: &mut App, render_app: &mut App) {
     render_app
         .init_resource::<ViewUniforms>()
         .add_system_to_stage(RenderStage::Extract, extract_msaa.system(&mut app.world))
-        .add_system_to_stage(RenderStage::Prepare, &prepare_view_uniforms)
-        .add_system_to_stage(RenderStage::Prepare, &prepare_view_targets); // Must run after prepare_windows
+        .add_system_to_stage(RenderStage::Prepare, prepare_view_uniforms)
+        .add_system_to_stage(RenderStage::Prepare, prepare_view_targets); // Must run after prepare_windows
 }
 
 #[derive(Clone)]
