@@ -43,7 +43,6 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
         }
     }
 
-    // TODO Ugly
     pub fn as_readonly(&self) -> &QueryState<Q::ReadOnly, F::ReadOnly> {
         unsafe {
             &*(self as *const QueryState<Q, F> as *const QueryState<Q::ReadOnly, F::ReadOnly>)
@@ -53,7 +52,6 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
     #[inline]
     pub fn is_empty(&self, world: &World) -> bool {
         let tick = Tick::default();
-        // TODO: Bevy uses nop
         unsafe {
             self.iter_unchecked_manual(world, SystemTicks::new(tick, tick))
                 .next()
@@ -216,7 +214,7 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
         &'s self,
         world: &'w World,
     ) -> QueryIter<'w, 's, Q::ReadOnly, F::ReadOnly> {
-        // TODO Validate that correct world is used
+        // TODO Validate world
         unsafe {
             self.as_readonly()
                 .iter_unchecked_manual(world, world.ticks())
@@ -267,12 +265,12 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
             Q::set_archetype(&mut fetch, &self.fetch_state, archetype, table);
             F::set_archetype(&mut filter, &self.filter_state, archetype, table);
 
-            for archetype_index in 0..archetype.len() {
-                let entity = *archetype.entities().get_unchecked(archetype_index);
-                if !F::filter_fetch(&mut filter, entity, archetype_index) {
+            for table_row in 0..archetype.len() {
+                let entity = *archetype.entities().get_unchecked(table_row);
+                if !F::filter_fetch(&mut filter, entity, table_row) {
                     continue;
                 }
-                func(Q::fetch(&mut fetch, entity, archetype_index));
+                func(Q::fetch(&mut fetch, entity, table_row));
             }
         }
     }

@@ -38,7 +38,6 @@ pub unsafe trait WorldQuery {
         system_ticks: SystemTicks,
     ) -> Self::Fetch<'w>;
 
-    // TODO Use Table instead of Archetype?
     #[allow(clippy::missing_safety_doc)]
     unsafe fn set_archetype<'w>(
         fetch: &mut Self::Fetch<'w>,
@@ -47,26 +46,23 @@ pub unsafe trait WorldQuery {
         table: &'w Table,
     );
 
-    // TODO: Should say table_row instead of archetype_index
     #[allow(clippy::missing_safety_doc)]
     unsafe fn fetch<'w>(
         fetch: &mut Self::Fetch<'w>,
         entity: Entity,
-        archetype_index: usize,
+        table_row: usize,
     ) -> Self::Item<'w>;
 
-    // TODO: Should say table_row instead of archetype_index
     #[allow(clippy::missing_safety_doc)]
     unsafe fn filter_fetch(
         _fetch: &mut Self::Fetch<'_>,
         _entity: Entity,
-        _archetype_index: usize,
+        _table_row: usize,
     ) -> bool {
         true
     }
 }
 
-// TODO: Are these needed?
 #[allow(clippy::missing_safety_doc)]
 pub unsafe trait ReadOnlyWorldQuery: WorldQuery<ReadOnly = Self> {}
 pub type QueryItem<'w, Q> = <Q as WorldQuery>::Item<'w>;
@@ -110,7 +106,7 @@ unsafe impl WorldQuery for Entity {
     unsafe fn fetch<'w>(
         _fetch: &mut Self::Fetch<'w>,
         entity: Entity,
-        _archetype_index: usize,
+        _table_row: usize,
     ) -> Self::Item<'w> {
         entity
     }
@@ -170,9 +166,9 @@ unsafe impl<T: Component> WorldQuery for &T {
     unsafe fn fetch<'w>(
         fetch: &mut Self::Fetch<'w>,
         _entity: Entity,
-        archetype_index: usize,
+        table_row: usize,
     ) -> Self::Item<'w> {
-        &*fetch.table_components.as_ptr().add(archetype_index)
+        &*fetch.table_components.as_ptr().add(table_row)
     }
 }
 
@@ -236,10 +232,10 @@ unsafe impl<'__w, T: Component> WorldQuery for &'__w mut T {
     unsafe fn fetch<'w>(
         fetch: &mut Self::Fetch<'w>,
         _entity: Entity,
-        archetype_index: usize,
+        table_row: usize,
     ) -> Self::Item<'w> {
-        let value = &mut *fetch.table_components.as_ptr().add(archetype_index);
-        let component_ticks = &mut *(*fetch.table_ticks.add(archetype_index)).get();
+        let value = &mut *fetch.table_components.as_ptr().add(table_row);
+        let component_ticks = &mut *(*fetch.table_ticks.add(table_row)).get();
         CmptMut::new(value, component_ticks, fetch.system_ticks)
     }
 }
@@ -298,10 +294,10 @@ unsafe impl<T: WorldQuery> WorldQuery for Option<T> {
     unsafe fn fetch<'w>(
         fetch: &mut Self::Fetch<'w>,
         entity: Entity,
-        archetype_index: usize,
+        table_row: usize,
     ) -> Self::Item<'w> {
         if fetch.matches {
-            Some(T::fetch(&mut fetch.fetch, entity, archetype_index))
+            Some(T::fetch(&mut fetch.fetch, entity, table_row))
         } else {
             None
         }
@@ -310,7 +306,6 @@ unsafe impl<T: WorldQuery> WorldQuery for Option<T> {
 
 unsafe impl<T: ReadOnlyWorldQuery> ReadOnlyWorldQuery for Option<T> {}
 
-#[derive(Clone)] // TODO Je clone potreba?
 pub struct ChangeTrackers<T: Component> {
     component_ticks: ComponentTicks,
     system_ticks: SystemTicks,
@@ -383,10 +378,10 @@ unsafe impl<T: Component> WorldQuery for ChangeTrackers<T> {
     unsafe fn fetch<'w>(
         fetch: &mut Self::Fetch<'w>,
         _entity: Entity,
-        archetype_index: usize,
+        table_row: usize,
     ) -> Self::Item<'w> {
         ChangeTrackers {
-            component_ticks: (*fetch.table_ticks.add(archetype_index)).clone(),
+            component_ticks: (*fetch.table_ticks.add(table_row)).clone(),
             system_ticks: fetch.system_ticks,
             marker: PhantomData,
         }
@@ -442,20 +437,20 @@ macro_rules! impl_tuple_fetch {
             unsafe fn fetch<'w>(
                 _fetch: &mut Self::Fetch<'w>,
                 _entity: Entity,
-                _archetype_index: usize
+                _table_row: usize
             ) -> Self::Item<'w> {
                 let ($($name,)*) = _fetch;
-                ($($name::fetch($name, _entity, _archetype_index),)*)
+                ($($name::fetch($name, _entity, _table_row),)*)
             }
 
             #[inline(always)]
             unsafe fn filter_fetch<'w>(
                 _fetch: &mut Self::Fetch<'w>,
                 _entity: Entity,
-                _archetype_index: usize
+                _table_row: usize
             ) -> bool {
                 let ($($name,)*) = _fetch;
-                true $(&& $name::filter_fetch($name, _entity, _archetype_index))*
+                true $(&& $name::filter_fetch($name, _entity, _table_row))*
             }
         }
 
@@ -465,47 +460,3 @@ macro_rules! impl_tuple_fetch {
 }
 
 all_pair_tuples!(impl_tuple_fetch);
-
-// TODO Why is this needed
-pub struct NopWorldQuery<Q: WorldQuery>(PhantomData<Q>);
-
-/// SAFETY: `Self::ReadOnly` is `Self`
-unsafe impl<Q: WorldQuery> WorldQuery for NopWorldQuery<Q> {
-    type Fetch<'w> = ();
-    type Item<'w> = ();
-    type ReadOnly = Self;
-    type State = Q::State;
-
-    #[inline(always)]
-    unsafe fn new_fetch(_world: &World, _state: &Q::State, _system_ticks: SystemTicks) {}
-
-    #[inline(always)]
-    unsafe fn set_archetype(
-        _fetch: &mut (),
-        _state: &Q::State,
-        _archetype: &Archetype,
-        _tables: &Table,
-    ) {
-    }
-
-    #[inline(always)]
-    unsafe fn fetch<'w>(
-        _fetch: &mut Self::Fetch<'w>,
-        _entity: Entity,
-        _table_row: usize,
-    ) -> Self::Item<'w> {
-    }
-
-    fn new_state(world: &mut World) -> Self::State {
-        Q::new_state(world)
-    }
-
-    fn update_component_access(_state: &Q::State, _access: &mut FilteredAccess<ComponentId>) {}
-
-    fn matches_archetype(state: &Self::State, archetype: &Archetype) -> bool {
-        Q::matches_archetype(state, archetype)
-    }
-}
-
-/// SAFETY: `NopFetch` never accesses any data
-unsafe impl<Q: WorldQuery> ReadOnlyWorldQuery for NopWorldQuery<Q> {}

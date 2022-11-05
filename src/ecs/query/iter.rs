@@ -1,4 +1,4 @@
-use std::{iter::FusedIterator, marker::PhantomData, slice::Iter};
+use std::{iter::FusedIterator, slice::Iter};
 
 use crate::ecs::{
     entity::{ArchetypeId, Archetypes, Entity},
@@ -79,7 +79,6 @@ struct QueryIterationCursor<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> {
     filter: F::Fetch<'w>,
     current_len: usize,
     current_index: usize,
-    phantom: PhantomData<Q>, // TODO Why?
 }
 
 impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> QueryIterationCursor<'w, 's, Q, F> {
@@ -97,7 +96,6 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> QueryIterationCursor<'w, 's, 
             archetype_entities: &[],
             current_len: 0,
             current_index: 0,
-            phantom: PhantomData,
         }
     }
 

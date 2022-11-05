@@ -53,7 +53,7 @@ unsafe impl<T: Component> WorldQuery for With<T> {
     unsafe fn fetch<'w>(
         _fetch: &mut Self::Fetch<'_>,
         _entity: Entity,
-        _archetype_index: usize,
+        _table_row: usize,
     ) -> Self::Item<'w> {
     }
 }
@@ -97,7 +97,7 @@ unsafe impl<T: Component> WorldQuery for Without<T> {
     unsafe fn fetch<'w>(
         _fetch: &mut Self::Fetch<'w>,
         _entity: Entity,
-        _archetype_index: usize,
+        _table_row: usize,
     ) -> Self::Item<'w> {
     }
 }
@@ -151,19 +151,19 @@ macro_rules! impl_query_filter_tuple {
             unsafe fn fetch<'w>(
                 fetch: &mut Self::Fetch<'w>,
                 _entity: Entity,
-                _archetype_index: usize
+                _table_row: usize
             ) -> Self::Item<'w> {
                 let ($($filter,)*) = fetch;
-                false $(|| ($filter.matches && $filter::filter_fetch(&mut $filter.fetch, _entity, _archetype_index)))*
+                false $(|| ($filter.matches && $filter::filter_fetch(&mut $filter.fetch, _entity, _table_row)))*
             }
 
             #[inline(always)]
             unsafe fn filter_fetch<'w>(
                 fetch: &mut Self::Fetch<'w>,
                 entity: Entity,
-                archetype_index: usize
+                table_row: usize
             ) -> bool {
-                Self::fetch(fetch, entity, archetype_index)
+                Self::fetch(fetch, entity, table_row)
             }
 
             fn update_component_access(state: &Self::State, access: &mut FilteredAccess<ComponentId>) {
@@ -270,9 +270,9 @@ unsafe impl<T: Component> WorldQuery for Added<T> {
     unsafe fn fetch<'w>(
         fetch: &mut Self::Fetch<'w>,
         _entity: Entity,
-        archetype_index: usize,
+        table_row: usize,
     ) -> Self::Item<'w> {
-        let ticks = &*(*fetch.table_ticks.add(archetype_index)).get();
+        let ticks = &*(*fetch.table_ticks.add(table_row)).get();
         ticks.is_added(fetch.system_ticks.last_change_tick)
     }
 }
@@ -334,9 +334,9 @@ unsafe impl<T: Component> WorldQuery for Changed<T> {
     unsafe fn fetch<'w>(
         fetch: &mut Self::Fetch<'w>,
         _entity: Entity,
-        archetype_index: usize,
+        table_row: usize,
     ) -> Self::Item<'w> {
-        let ticks = &*(*fetch.table_ticks.add(archetype_index)).get();
+        let ticks = &*(*fetch.table_ticks.add(table_row)).get();
         ticks.is_changed(fetch.system_ticks.last_change_tick)
     }
 }
