@@ -5,8 +5,8 @@ use taffy::{number::Number, Taffy};
 
 use crate::{
     ecs::{
-        Changed, Entity, EventReader, FilterFetch, Query, Res, ResMut, Resource, With, Without,
-        WorldQuery,
+        Changed, Entity, EventReader, Query, Res, ResMut, Resource, With, Without,
+        ReadOnlyWorldQuery,
     },
     transform::{Children, Parent, Transform},
     ty::Vec2,
@@ -225,13 +225,11 @@ pub fn flex_node_system(
         update_changed(&mut flex_surface, logical_to_physical_factor, node_query);
     }
 
-    fn update_changed<F: WorldQuery>(
+    fn update_changed<F: ReadOnlyWorldQuery>(
         flex_surface: &mut FlexSurface,
         scaling_factor: f64,
         query: Query<(Entity, &Style, Option<&CalculatedSize>), F>,
-    ) where
-        F::Fetch: FilterFetch,
-    {
+    ) {
         // update changed nodes
         for (entity, style, calculated_size) in query.iter() {
             // TODO: remove node from old hierarchy if its root has changed

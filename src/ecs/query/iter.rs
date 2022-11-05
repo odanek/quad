@@ -1,147 +1,167 @@
-use std::slice::Iter;
+use std::{slice::Iter, iter::FusedIterator, marker::PhantomData};
 
 use crate::ecs::{
-    entity::{ArchetypeId, Archetypes},
+    entity::{Entity, ArchetypeId, Archetypes},
     storage::Tables,
-    system::SystemTicks,
+    system::{SystemTicks},
     World,
 };
 
 use super::{
-    fetch::{Fetch, WorldQuery},
-    filter::FilterFetch,
-    state::QueryState,
+    fetch::{WorldQuery, ReadOnlyWorldQuery},
+    state::QueryState, filter::ArchetypeFilter,
 };
 
-pub struct QueryIter<'w, 's, Q: WorldQuery, QF: Fetch<'w, 's, State = Q::State>, F: WorldQuery>
-where
-    F::Fetch: FilterFetch,
-{
+pub struct QueryIter<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> {
     tables: &'w Tables,
     archetypes: &'w Archetypes,
     query_state: &'s QueryState<Q, F>,
-    world: &'w World,
-    archetype_id_iter: Iter<'s, ArchetypeId>,
-    fetch: QF,
-    filter: F::Fetch,
-    current_len: usize,
-    current_index: usize,
+    cursor: QueryIterationCursor<'w, 's, Q, F>,
 }
 
-impl<'w, 's, Q: WorldQuery, QF, F: WorldQuery> QueryIter<'w, 's, Q, QF, F>
-where
-    F::Fetch: FilterFetch,
-    QF: Fetch<'w, 's, State = Q::State>,
-{
+impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> QueryIter<'w, 's, Q, F> {
     pub unsafe fn new(
         world: &'w World,
         query_state: &'s QueryState<Q, F>,
         system_ticks: SystemTicks,
     ) -> Self {
-        let fetch = QF::new(world, &query_state.fetch_state, system_ticks);
-        let filter = <F::Fetch as Fetch>::new(world, &query_state.filter_state, system_ticks);
-
         QueryIter {
-            world,
             query_state,
             tables: &world.storages().tables,
             archetypes: world.archetypes(),
-            fetch,
-            filter,
-            archetype_id_iter: query_state.matched_archetypes.iter(),
-            current_len: 0,
-            current_index: 0,
-        }
-    }
-
-    pub fn none_remaining(mut self) -> bool {
-        unsafe {
-            loop {
-                if self.current_index == self.current_len {
-                    let archetype_id = match self.archetype_id_iter.next() {
-                        Some(archetype_id) => archetype_id,
-                        None => return true,
-                    };
-                    let archetype = &self.archetypes[*archetype_id];
-                    self.filter.set_archetype(
-                        &self.query_state.filter_state,
-                        archetype,
-                        self.tables,
-                    );
-                    self.current_len = archetype.len();
-                    self.current_index = 0;
-                    continue;
-                }
-
-                if !self.filter.archetype_filter_fetch(self.current_index) {
-                    self.current_index += 1;
-                    continue;
-                }
-
-                return false;
-            }
+            cursor: QueryIterationCursor::new(world, query_state, system_ticks),
         }
     }
 }
 
-impl<'w, 's, Q: WorldQuery, QF, F: WorldQuery> Iterator for QueryIter<'w, 's, Q, QF, F>
-where
-    F::Fetch: FilterFetch,
-    QF: Fetch<'w, 's, State = Q::State>,
-{
-    type Item = QF::Item;
+impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> Iterator for QueryIter<'w, 's, Q, F> {
+    type Item = Q::Item<'w>;
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
-            loop {
-                if self.current_index == self.current_len {
-                    let archetype_id = self.archetype_id_iter.next()?;
-                    let archetype = &self.archetypes[*archetype_id];
-                    self.fetch
-                        .set_archetype(&self.query_state.fetch_state, archetype, self.tables);
-                    self.filter.set_archetype(
-                        &self.query_state.filter_state,
-                        archetype,
-                        self.tables,
-                    );
-                    self.current_len = archetype.len();
-                    self.current_index = 0;
-                    continue;
-                }
-
-                if !self.filter.archetype_filter_fetch(self.current_index) {
-                    self.current_index += 1;
-                    continue;
-                }
-
-                let item = self.fetch.archetype_fetch(self.current_index);
-                self.current_index += 1;
-                return Some(item);
-            }
+            self.cursor
+                .next(self.tables, self.archetypes, self.query_state)
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let max_size = self
             .query_state
-            .matched_archetypes
+            .matched_archetype_ids
             .iter()
-            .map(|id| self.world.archetype(*id).len())
+            .map(|id| self.archetypes[*id].len())
             .sum();
 
         (0, Some(max_size))
     }
 }
 
-impl<'w, 's, Q: WorldQuery, QF> ExactSizeIterator for QueryIter<'w, 's, Q, QF, ()>
+impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> FusedIterator for QueryIter<'w, 's, Q, F> {}
+
+impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> ExactSizeIterator for QueryIter<'w, 's, Q, F>
 where
-    QF: Fetch<'w, 's, State = Q::State>,
+    F: ArchetypeFilter,
 {
     fn len(&self) -> usize {
         self.query_state
-            .matched_archetypes
+            .matched_archetype_ids
             .iter()
-            .map(|id| self.world.archetype(*id).len())
+            .map(|id| self.archetypes[*id].len())
             .sum()
+    }
+}
+
+struct QueryIterationCursor<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> {
+    archetype_id_iter: Iter<'s, ArchetypeId>,
+    archetype_entities: &'w [Entity],
+    fetch: Q::Fetch<'w>,
+    filter: F::Fetch<'w>,
+    current_len: usize,
+    current_index: usize,
+    phantom: PhantomData<Q>, // TODO Why?
+}
+
+impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> QueryIterationCursor<'w, 's, Q, F> {
+    unsafe fn new(
+        world: &'w World,
+        query_state: &'s QueryState<Q, F>,
+        system_ticks: SystemTicks,
+    ) -> Self {
+        let fetch = Q::new_fetch(
+            world,
+            &query_state.fetch_state,
+            system_ticks
+        );
+        let filter = F::new_fetch(
+            world,
+            &query_state.filter_state,
+            system_ticks
+        );
+        QueryIterationCursor {
+            fetch,
+            filter,
+            archetype_id_iter: query_state.matched_archetype_ids.iter(),
+            archetype_entities: &[],
+            current_len: 0,
+            current_index: 0,
+            phantom: PhantomData,
+        }
+    }
+
+    // NOTE: If you are changing query iteration code, remember to update the following places, where relevant:
+    // QueryIter, QueryIterationCursor, QueryManyIter, QueryCombinationIter, QueryState::for_each_unchecked_manual, QueryState::par_for_each_unchecked_manual
+    /// # Safety
+    /// `tables` and `archetypes` must belong to the same world that the [`QueryIterationCursor`]
+    /// was initialized for.
+    /// `query_state` must be the same [`QueryState`] that was passed to `init` or `init_empty`.
+    #[inline(always)]
+    unsafe fn next(
+        &mut self,
+        tables: &'w Tables,
+        archetypes: &'w Archetypes,
+        query_state: &'s QueryState<Q, F>,
+    ) -> Option<Q::Item<'w>> {
+        loop {
+            if self.current_index == self.current_len {
+                let archetype_id = self.archetype_id_iter.next()?;
+                let archetype = &archetypes[*archetype_id];
+                // SAFETY: `archetype` and `tables` are from the world that `fetch/filter` were created for,
+                // `fetch_state`/`filter_state` are the states that `fetch/filter` were initialized with
+                let table = &tables[archetype.table_id()];
+                Q::set_archetype(&mut self.fetch, &query_state.fetch_state, archetype, table);
+                F::set_archetype(
+                    &mut self.filter,
+                    &query_state.filter_state,
+                    archetype,
+                    table,
+                );
+                self.archetype_entities = archetype.entities();
+                self.current_len = archetype.len();
+                self.current_index = 0;
+                continue;
+            }
+
+            // SAFETY: set_archetype was called prior.
+            // `current_index` is an archetype index row in range of the current archetype, because if it was not, then the if above would have been executed.
+            let entity = *self.archetype_entities.get_unchecked(self.current_index);
+            if !F::filter_fetch(
+                &mut self.filter,
+                entity,
+                self.current_index,
+            ) {
+                self.current_index += 1;
+                continue;
+            }
+
+            // SAFETY: set_archetype was called prior, `current_index` is an archetype index in range of the current archetype
+            // `current_index` is an archetype index row in range of the current archetype, because if it was not, then the if above would have been executed.
+            let item = Q::fetch(
+                &mut self.fetch,
+                entity,
+                self.current_index,
+            );
+            self.current_index += 1;
+            return Some(item);
+        }
     }
 }

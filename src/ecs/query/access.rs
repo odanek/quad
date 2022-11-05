@@ -108,8 +108,8 @@ impl<T: AccessIndex> FilteredAccess<T> {
         if self.access.is_compatible(&other.access) {
             true
         } else {
-            self.with.intersection(&other.without).next().is_some()
-                || self.without.intersection(&other.with).next().is_some()
+            intersects(&self.with, &other.without)
+                || intersects(&self.without, &other.with)
         }
     }
 
@@ -117,6 +117,15 @@ impl<T: AccessIndex> FilteredAccess<T> {
         self.access.extend(&access.access);
         self.with.extend(access.with.iter());
         self.without.extend(access.without.iter());
+    }
+
+    pub fn extend_access(&mut self, other: &FilteredAccess<T>) {
+        self.access.extend(&other.access);
+    }
+
+    pub fn extend_intersect_filter(&mut self, other: &FilteredAccess<T>) {
+        self.without = self.without.intersection(&other.without).copied().collect();
+        self.with = self.with.intersection(&other.with).copied().collect();
     }
 }
 

@@ -17,10 +17,10 @@ use super::{
         AllocAtWithoutReplacement, Archetype, ArchetypeId, Archetypes, Entities, Entity,
         EntityLocation,
     },
-    query::{fetch::WorldQuery, state::QueryState},
+    query::{fetch::{WorldQuery, ReadOnlyWorldQuery}, state::QueryState},
     storage::Storages,
     system::SystemTicks,
-    FilterFetch, Res,
+    Res,
 };
 
 pub struct World {
@@ -99,6 +99,11 @@ impl World {
     }
 
     #[inline]
+    pub(crate) fn ticks(&self) -> SystemTicks {
+        SystemTicks::new(self.last_change_tick(), self.change_tick())
+    }
+
+    #[inline]
     pub(crate) fn resource_id<T: Resource>(&self) -> Option<ResourceId> {
         self.resources.get_id::<T>()
     }
@@ -138,10 +143,7 @@ impl World {
 
     #[inline]
     pub fn get_resource<T: Resource>(&self) -> Option<Res<T>> {
-        self.resources.get(SystemTicks::new(
-            self.last_change_tick(),
-            self.change_tick(),
-        ))
+        self.resources.get(self.ticks())
     }
 
     #[inline]
@@ -152,10 +154,7 @@ impl World {
 
     #[inline]
     pub fn get_resource_mut<T: Resource>(&mut self) -> Option<ResMut<T>> {
-        self.resources.get_mut(SystemTicks::new(
-            self.last_change_tick(),
-            self.change_tick(),
-        ))
+        self.resources.get_mut(self.ticks())
     }
 
     #[inline]
@@ -179,7 +178,7 @@ impl World {
         f: impl FnOnce(&mut World, ResMut<T>) -> U,
     ) -> U {
         let (mut resource, mut ticks) = self.resources.remove().unwrap();
-        let system_ticks = SystemTicks::new(self.last_change_tick(), self.change_tick());
+        let system_ticks = self.ticks();
         let result = f(self, ResMut::new(&mut resource, &mut ticks, system_ticks));
         self.resources.add(resource, ticks);
         result
@@ -325,9 +324,7 @@ impl World {
     }
 
     #[inline]
-    pub fn query_filtered<Q: WorldQuery, F: WorldQuery>(&mut self) -> QueryState<Q, F>
-    where
-        F::Fetch: FilterFetch,
+    pub fn query_filtered<Q: WorldQuery, F: ReadOnlyWorldQuery>(&mut self) -> QueryState<Q, F>
     {
         QueryState::new(self)
     }

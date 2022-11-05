@@ -9,35 +9,28 @@ use crate::ecs::{
 
 use super::{
     access::FilteredAccess,
-    fetch::{Fetch, FetchState, NopFetch, ReadOnlyFetch, WorldQuery},
-    filter::FilterFetch,
+    fetch::{WorldQuery, ReadOnlyWorldQuery, ROQueryItem},
     iter::QueryIter,
 };
 
-pub struct QueryState<Q: WorldQuery, F: WorldQuery = ()>
-where
-    F::Fetch: FilterFetch,
-{
+pub struct QueryState<Q: WorldQuery, F: ReadOnlyWorldQuery = ()> {
     pub(crate) archetype_generation: ArchetypeGeneration,
-    pub(crate) matched_archetypes: Vec<ArchetypeId>,
+    pub(crate) matched_archetype_ids: Vec<ArchetypeId>,
     pub(crate) component_access: FilteredAccess<ComponentId>,
     pub(crate) fetch_state: Q::State,
     pub(crate) filter_state: F::State,
 }
 
-impl<Q: WorldQuery, F: WorldQuery> QueryState<Q, F>
-where
-    F::Fetch: FilterFetch,
-{
+impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
     pub fn new(world: &mut World) -> Self {
-        let fetch_state = <Q::State as FetchState>::new(world);
-        let filter_state = <F::State as FetchState>::new(world);
+        let fetch_state = Q::new_state(world);
+        let filter_state = F::new_state(world);
 
         let mut component_access = FilteredAccess::default();
-        fetch_state.update_component_access(&mut component_access);
+        Q::update_component_access(&fetch_state, &mut component_access);
 
         let mut filter_component_access = FilteredAccess::default();
-        filter_state.update_component_access(&mut filter_component_access);
+        F::update_component_access(&filter_state, &mut filter_component_access);
 
         component_access.extend(&filter_component_access);
 
@@ -46,16 +39,25 @@ where
             fetch_state,
             filter_state,
             component_access,
-            matched_archetypes: Default::default(),
+            matched_archetype_ids: Default::default(),
         }
+    }
+
+    // TODO Ugly
+    pub fn as_readonly(&self) -> &QueryState<Q::ReadOnly, F::ReadOnly> {
+        unsafe { 
+            &*(self as *const QueryState<Q, F> as *const QueryState<Q::ReadOnly, F::ReadOnly>)
+         }
     }
 
     #[inline]
     pub fn is_empty(&self, world: &World) -> bool {
         let tick = Tick::default();
+        // TODO: Bevy uses nop
         unsafe {
-            self.iter_unchecked_manual::<NopFetch<Q::State>>(world, SystemTicks::new(tick, tick))
-                .none_remaining()
+            self.iter_unchecked_manual(world, SystemTicks::new(tick, tick))
+            .next()
+            .is_none()
         }
     }
 
@@ -68,24 +70,23 @@ where
         for archetype_index in archetype_index_range {
             let archetype = &archetypes[ArchetypeId::new(archetype_index)];
 
-            if self.fetch_state.matches_archetype(archetype)
-                && self.filter_state.matches_archetype(archetype)
+            if Q::matches_archetype(&self.fetch_state, archetype)
+                && F::matches_archetype(&self.filter_state, archetype)
             {
-                self.matched_archetypes.push(archetype.id());
+                self.matched_archetype_ids.push(archetype.id());
             }
         }
     }
 
     #[inline]
-    pub fn get<'w, 's>(
-        &'s mut self,
+    pub fn get<'w>(
+        &mut self,
         world: &'w World,
         entity: Entity,
-    ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError>
-    where
-        Q::Fetch: ReadOnlyFetch,
+    ) -> Result<ROQueryItem<'w, Q>, QueryEntityError>
     {
-        unsafe { self.get_unchecked(world, entity) }
+        self.update_archetypes(world);
+        unsafe { self.as_readonly().get_unchecked_manual(world, entity, world.ticks()) }
     }
 
     #[inline]
@@ -93,23 +94,9 @@ where
         &'s mut self,
         world: &'w mut World,
         entity: Entity,
-    ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError> {
-        unsafe { self.get_unchecked(world, entity) }
-    }
-
-    #[inline]
-    #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn get_unchecked<'w, 's>(
-        &'s mut self,
-        world: &'w World,
-        entity: Entity,
-    ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError> {
+    ) -> Result<Q::Item<'w>, QueryEntityError> {
         self.update_archetypes(world);
-        self.get_unchecked_manual::<Q::Fetch>(
-            world,
-            entity,
-            SystemTicks::new(world.last_change_tick(), world.change_tick()),
-        )
+        unsafe { self.get_unchecked_manual(world, entity, world.ticks()) }
     }
 
     #[inline]
@@ -117,41 +104,100 @@ where
         &'s self,
         world: &'w World,
         entity: Entity,
-    ) -> Result<<Q::ReadOnlyFetch as Fetch<'w, 's>>::Item, QueryEntityError> {
+    ) -> Result<ROQueryItem<'w, Q>, QueryEntityError> {
         // TODO Validate world
         unsafe {
-            self.get_unchecked_manual::<Q::ReadOnlyFetch>(
+            self.as_readonly().get_unchecked_manual(
                 world,
                 entity,
-                SystemTicks::new(world.last_change_tick(), world.change_tick()),
+                world.ticks(),
             )
         }
     }
 
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn get_unchecked_manual<'w, 's, QF: Fetch<'w, 's, State = Q::State>>(
-        &'s self,
+    pub unsafe fn get_unchecked_manual<'w>(
+        &self,
         world: &'w World,
         entity: Entity,
         system_ticks: SystemTicks,
-    ) -> Result<QF::Item, QueryEntityError> {
+    ) -> Result<Q::Item<'w>, QueryEntityError> {
         let location = world
             .entities()
             .get(entity)
             .ok_or(QueryEntityError::NoSuchEntity)?;
-        if !self.matched_archetypes.contains(&location.archetype_id) {
+        if !self.matched_archetype_ids.contains(&location.archetype_id) {
             return Err(QueryEntityError::QueryDoesNotMatch);
         }
         let archetype = &world.archetype(location.archetype_id);
-        let mut fetch = QF::new(world, &self.fetch_state, system_ticks);
-        let mut filter = <F::Fetch as Fetch>::new(world, &self.filter_state, system_ticks);
+        let mut fetch = Q::new_fetch(world, &self.fetch_state, system_ticks);
+        let mut filter = F::new_fetch(world, &self.filter_state, system_ticks);
+        let table = &world.storages().tables[archetype.table_id()];
 
-        fetch.set_archetype(&self.fetch_state, archetype, &world.storages().tables);
-        filter.set_archetype(&self.filter_state, archetype, &world.storages().tables);
-        if filter.archetype_filter_fetch(location.index) {
-            Ok(fetch.archetype_fetch(location.index))
+        Q::set_archetype(&mut fetch, &self.fetch_state, archetype, table);
+        F::set_archetype(&mut filter, &self.filter_state, archetype, table);
+        if F::filter_fetch(&mut filter, entity, location.index) {
+            Ok(Q::fetch(&mut fetch, entity,  location.index))
         } else {
             Err(QueryEntityError::QueryDoesNotMatch)
+        }
+    }
+
+    #[inline]
+    pub fn single<'w>(&mut self, world: &'w World) -> ROQueryItem<'w, Q> {
+        self.get_single(world).unwrap()
+    }
+
+    #[inline]
+    pub fn get_single<'w>(
+        &mut self,
+        world: &'w World,
+    ) -> Result<ROQueryItem<'w, Q>, QuerySingleError> {
+        self.update_archetypes(world);
+        unsafe {
+            self.as_readonly().get_single_unchecked_manual(
+                world,
+                world.ticks(),
+            )
+        }
+    }
+
+    #[inline]
+    pub fn single_mut<'w>(&mut self, world: &'w mut World) -> Q::Item<'w> {
+        self.get_single_mut(world).unwrap()
+    }
+
+    #[inline]
+    pub fn get_single_mut<'w>(
+        &mut self,
+        world: &'w mut World,
+    ) -> Result<Q::Item<'w>, QuerySingleError> {
+        self.update_archetypes(world);
+        unsafe {
+            self.get_single_unchecked_manual(
+                world,
+                world.ticks(),
+            )
+        }
+    }
+
+    #[inline]
+    #[allow(clippy::missing_safety_doc)]
+    pub unsafe fn get_single_unchecked_manual<'w>(
+        &self,
+        world: &'w World,
+        system_ticks: SystemTicks,
+    ) -> Result<Q::Item<'w>, QuerySingleError> {
+        let mut query = self.iter_unchecked_manual(world, system_ticks);
+        let first = query.next();
+        let extra = query.next().is_some();
+
+        match (first, extra) {
+            (Some(r), false) => Ok(r),
+            (None, _) => Err(QuerySingleError::NoEntities(std::any::type_name::<Self>())),
+            (Some(_), _) => Err(QuerySingleError::MultipleEntities(std::any::type_name::<
+                Self,
+            >())),
         }
     }
 
@@ -159,52 +205,45 @@ where
     pub fn iter<'w, 's>(
         &'s mut self,
         world: &'w World,
-    ) -> QueryIter<'w, 's, Q, Q::ReadOnlyFetch, F> {
-        unsafe { self.iter_unchecked(world) }
+    ) -> QueryIter<'w, 's, Q::ReadOnly, F::ReadOnly> {
+        self.update_archetypes(world);
+        unsafe {             
+            self.as_readonly().iter_unchecked_manual(world, world.ticks()) 
+        }
     }
 
     #[inline]
     pub fn iter_mut<'w, 's>(
         &'s mut self,
         world: &'w mut World,
-    ) -> QueryIter<'w, 's, Q, Q::Fetch, F> {
-        unsafe { self.iter_unchecked(world) }
+    ) -> QueryIter<'w, 's, Q, F> {
+        self.update_archetypes(world);
+        unsafe { 
+            self.iter_unchecked_manual(world, world.ticks()) 
+        }
     }
 
     #[inline]
     pub fn iter_manual<'w, 's>(
         &'s self,
         world: &'w World,
-    ) -> QueryIter<'w, 's, Q, Q::ReadOnlyFetch, F> {
+    ) -> QueryIter<'w, 's, Q::ReadOnly, F::ReadOnly> {
         // TODO Validate that correct world is used
         unsafe {
-            self.iter_unchecked_manual(
+            self.as_readonly().iter_unchecked_manual(
                 world,
-                SystemTicks::new(world.last_change_tick(), world.change_tick()),
+                world.ticks(),
             )
         }
     }
 
     #[inline]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn iter_unchecked<'w, 's, QF: Fetch<'w, 's, State = Q::State>>(
-        &'s mut self,
-        world: &'w World,
-    ) -> QueryIter<'w, 's, Q, QF, F> {
-        self.update_archetypes(world);
-        self.iter_unchecked_manual(
-            world,
-            SystemTicks::new(world.last_change_tick(), world.change_tick()),
-        )
-    }
-
-    #[inline]
-    #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn iter_unchecked_manual<'w, 's, QF: Fetch<'w, 's, State = Q::State>>(
+    pub unsafe fn iter_unchecked_manual<'w, 's>(
         &'s self,
         world: &'w World,
         system_ticks: SystemTicks,
-    ) -> QueryIter<'w, 's, Q, QF, F> {
+    ) -> QueryIter<'w, 's, Q, F> {
         QueryIter::new(world, self, system_ticks)
     }
 
@@ -212,12 +251,11 @@ where
     pub fn for_each<'w, 's>(
         &'s mut self,
         world: &'w World,
-        func: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item),
-    ) where
-        Q::Fetch: ReadOnlyFetch,
-    {
+        func: impl FnMut(ROQueryItem<'w, Q>),
+    ) {
+        self.update_archetypes(world);
         unsafe {
-            self.for_each_unchecked(world, func);
+            self.as_readonly().for_each_unchecked_manual(world, func, world.ticks());
         }
     }
 
@@ -225,51 +263,40 @@ where
     pub fn for_each_mut<'w, 's>(
         &'s mut self,
         world: &'w mut World,
-        func: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item),
-    ) {
-        unsafe {
-            self.for_each_unchecked(world, func);
-        }
-    }
-
-    #[inline]
-    #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn for_each_unchecked<'w, 's>(
-        &'s mut self,
-        world: &'w World,
-        func: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item),
+        func: impl FnMut(Q::Item<'w>),
     ) {
         self.update_archetypes(world);
-        self.for_each_unchecked_manual(
-            world,
-            func,
-            SystemTicks::new(world.last_change_tick(), world.change_tick()),
-        );
+        unsafe {
+            self.for_each_unchecked_manual(world, func, world.ticks());
+        }
     }
 
     #[allow(clippy::missing_safety_doc)]
     pub unsafe fn for_each_unchecked_manual<'w, 's>(
         &'s self,
         world: &'w World,
-        mut func: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item),
+        mut func: impl FnMut(Q::Item<'w>),
         system_ticks: SystemTicks,
     ) {
-        let mut fetch = <Q::Fetch as Fetch>::new(world, &self.fetch_state, system_ticks);
-        let mut filter = <F::Fetch as Fetch>::new(world, &self.filter_state, system_ticks);
+        let mut fetch = Q::new_fetch(world, &self.fetch_state, system_ticks);
+        let mut filter = F::new_fetch(world, &self.filter_state, system_ticks);
         let tables = &world.storages().tables;
-        for archetype_id in self.matched_archetypes.iter() {
+        for archetype_id in self.matched_archetype_ids.iter() {
             let archetype = world.archetype(*archetype_id);
-            fetch.set_archetype(&self.fetch_state, archetype, tables);
-            filter.set_archetype(&self.filter_state, archetype, tables);
+            let table = &tables[archetype.table_id()];
+            
+            Q::set_archetype(&mut fetch, &self.fetch_state, archetype, table);
+            F::set_archetype(&mut filter, &self.filter_state, archetype, table);
 
             for archetype_index in 0..archetype.len() {
-                if !filter.archetype_filter_fetch(archetype_index) {
+                let entity = *archetype.entities().get_unchecked(archetype_index);
+                if !F::filter_fetch(&mut filter, entity, archetype_index) {
                     continue;
                 }
-                func(fetch.archetype_fetch(archetype_index));
+                func(Q::fetch(&mut fetch, entity, archetype_index));
             }
         }
-    }
+    }    
 }
 
 #[derive(Error, Debug)]
@@ -278,4 +305,10 @@ pub enum QueryEntityError {
     QueryDoesNotMatch,
     #[error("The requested entity does not exist.")]
     NoSuchEntity,
+}
+
+#[derive(Debug)]
+pub enum QuerySingleError {
+    NoEntities(&'static str),
+    MultipleEntities(&'static str),
 }

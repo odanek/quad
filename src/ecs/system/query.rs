@@ -3,10 +3,9 @@ use std::any::TypeId;
 use crate::ecs::{
     component::{CmptMut, Component, Tick},
     query::{
-        fetch::{Fetch, ReadOnlyFetch, WorldQuery},
-        filter::FilterFetch,
+        fetch::{WorldQuery, ReadOnlyWorldQuery, ROQueryItem},
         iter::QueryIter,
-        state::{QueryEntityError, QueryState},
+        state::{QueryEntityError, QueryState, QuerySingleError},
     },
     system::function_system::SystemMeta,
     Entity, World,
@@ -25,25 +24,14 @@ pub enum QueryComponentError {
     NoSuchEntity,
 }
 
-#[derive(Debug)]
-pub enum QuerySingleError {
-    NoEntities,
-    MultipleEntities,
-}
 // TODO: This definition allows to have With, Without, Or in Q, while it should be possible only in F
-pub struct Query<'w, 's, Q: WorldQuery, F: WorldQuery = ()>
-where
-    F::Fetch: FilterFetch,
-{
+pub struct Query<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery = ()> {
     world: &'w World,
     state: &'s QueryState<Q, F>,
     system_ticks: SystemTicks,
 }
 
-impl<'w, 's, Q: WorldQuery, F: WorldQuery> Query<'w, 's, Q, F>
-where
-    F::Fetch: FilterFetch,
-{
+impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> Query<'w, 's, Q, F> {
     #[inline]
     #[allow(clippy::missing_safety_doc)]
     pub unsafe fn new(
@@ -59,18 +47,15 @@ where
     }
 
     #[inline]
-    pub fn iter(&self) -> QueryIter<'w, 's, Q, Q::ReadOnlyFetch, F>
-    where
-        Q::Fetch: ReadOnlyFetch,
-    {
+    pub fn iter(&self) -> QueryIter<'_, 's, Q::ReadOnly, F::ReadOnly> {
         unsafe {
-            self.state
+            self.state.as_readonly()
                 .iter_unchecked_manual(self.world, self.system_ticks)
         }
     }
 
     #[inline]
-    pub fn iter_mut(&mut self) -> QueryIter<'w, 's, Q, Q::Fetch, F> {
+    pub fn iter_mut(&mut self) -> QueryIter<'_, 's, Q, F> {
         unsafe {
             self.state
                 .iter_unchecked_manual(self.world, self.system_ticks)
@@ -79,24 +64,21 @@ where
 
     #[inline]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn iter_unsafe(&self) -> QueryIter<'_, '_, Q, Q::Fetch, F> {
+    pub unsafe fn iter_unsafe(&self) -> QueryIter<'_, 's, Q, F> {
         self.state
             .iter_unchecked_manual(self.world, self.system_ticks)
     }
 
     #[inline]
-    pub fn for_each(&self, f: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item))
-    where
-        Q::Fetch: ReadOnlyFetch,
-    {
+    pub fn for_each<'a>(&'a self, f: impl FnMut(ROQueryItem<'a, Q>)) {
         unsafe {
-            self.state
+            self.state.as_readonly()
                 .for_each_unchecked_manual(self.world, f, self.system_ticks)
         };
     }
 
     #[inline]
-    pub fn for_each_mut(&mut self, f: impl FnMut(<Q::Fetch as Fetch<'w, 's>>::Item)) {
+    pub fn for_each_mut<'a>(&'a mut self, f: impl FnMut(Q::Item<'a>)) {
         unsafe {
             self.state
                 .for_each_unchecked_manual(self.world, f, self.system_ticks)
@@ -107,9 +89,9 @@ where
     pub fn get(
         &self,
         entity: Entity,
-    ) -> Result<<Q::ReadOnlyFetch as Fetch<'w, 's>>::Item, QueryEntityError> {
+    ) -> Result<ROQueryItem<'_, Q>, QueryEntityError> {
         unsafe {
-            self.state.get_unchecked_manual::<Q::ReadOnlyFetch>(
+            self.state.as_readonly().get_unchecked_manual(
                 self.world,
                 entity,
                 self.system_ticks,
@@ -121,10 +103,10 @@ where
     pub fn get_mut(
         &mut self,
         entity: Entity,
-    ) -> Result<<Q::Fetch as Fetch>::Item, QueryEntityError> {
+    ) -> Result<Q::Item<'_>, QueryEntityError> {
         unsafe {
             self.state
-                .get_unchecked_manual::<Q::Fetch>(self.world, entity, self.system_ticks)
+                .get_unchecked_manual(self.world, entity, self.system_ticks)
         }
     }
 
@@ -133,9 +115,9 @@ where
     pub unsafe fn get_unchecked(
         &self,
         entity: Entity,
-    ) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QueryEntityError> {
+    ) -> Result<Q::Item<'_>, QueryEntityError> {
         self.state
-            .get_unchecked_manual::<Q::Fetch>(self.world, entity, self.system_ticks)
+            .get_unchecked_manual(self.world, entity, self.system_ticks)
     }
 
     #[inline]
@@ -186,30 +168,33 @@ where
         }
     }
 
-    pub fn single(&self) -> Result<<Q::ReadOnlyFetch as Fetch<'w, 's>>::Item, QuerySingleError>
-    where
-        Q::Fetch: ReadOnlyFetch,
-    {
-        let mut query = self.iter();
-        let first = query.next();
-        let extra = query.next().is_some();
+    #[inline]
+    pub fn single(&self) -> ROQueryItem<'_, Q> {
+        self.get_single().unwrap()
+    }
 
-        match (first, extra) {
-            (Some(r), false) => Ok(r),
-            (None, _) => Err(QuerySingleError::NoEntities),
-            (Some(_), _) => Err(QuerySingleError::MultipleEntities),
+    #[inline]
+    pub fn get_single(&self) -> Result<ROQueryItem<'_, Q>, QuerySingleError> {
+        unsafe {
+            self.state.as_readonly().get_single_unchecked_manual(
+                self.world,
+                self.system_ticks
+            )
         }
     }
 
-    pub fn single_mut(&mut self) -> Result<<Q::Fetch as Fetch<'w, 's>>::Item, QuerySingleError> {
-        let mut query = self.iter_mut();
-        let first = query.next();
-        let extra = query.next().is_some();
+    #[inline]
+    pub fn single_mut(&mut self) -> Q::Item<'_> {
+        self.get_single_mut().unwrap()
+    }
 
-        match (first, extra) {
-            (Some(r), false) => Ok(r),
-            (None, _) => Err(QuerySingleError::NoEntities),
-            (Some(_), _) => Err(QuerySingleError::MultipleEntities),
+    #[inline]
+    pub fn get_single_mut(&mut self) -> Result<Q::Item<'_>, QuerySingleError> {
+        unsafe {
+            self.state.get_single_unchecked_manual(
+                self.world,
+                self.system_ticks
+            )
         }
     }
 
@@ -219,24 +204,37 @@ where
     }
 }
 
-impl<'w, 's, Q: WorldQuery + 'static, F: WorldQuery + 'static> SystemParam for Query<'w, 's, Q, F>
-where
-    F::Fetch: FilterFetch,
+impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> IntoIterator for &'w Query<'_, 's, Q, F> {
+    type Item = ROQueryItem<'w, Q>;
+    type IntoIter = QueryIter<'w, 's, Q::ReadOnly, F::ReadOnly>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> IntoIterator for &'w mut Query<'_, 's, Q, F> {
+    type Item = Q::Item<'w>;
+    type IntoIter = QueryIter<'w, 's, Q, F>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
+impl<'w, 's, Q: WorldQuery + 'static, F: ReadOnlyWorldQuery + 'static> SystemParam
+    for Query<'w, 's, Q, F>
 {
     type Fetch = QueryState<Q, F>;
 }
 
-unsafe impl<Q: WorldQuery, F: WorldQuery> ReadOnlySystemParamFetch for QueryState<Q, F>
-where
-    Q::Fetch: ReadOnlyFetch,
-    F::Fetch: FilterFetch,
+// SAFETY: QueryState is constrained to read-only fetches, so it only reads World.
+unsafe impl<Q: ReadOnlyWorldQuery, F: ReadOnlyWorldQuery> ReadOnlySystemParamFetch
+    for QueryState<Q, F>
 {
 }
 
-unsafe impl<Q: WorldQuery + 'static, F: WorldQuery + 'static> SystemParamState for QueryState<Q, F>
-where
-    F::Fetch: FilterFetch,
-{
+unsafe impl<Q: WorldQuery + 'static, F: ReadOnlyWorldQuery + 'static> SystemParamState for QueryState<Q, F> {
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         let state = QueryState::new(world);
         if !system_meta
@@ -257,10 +255,8 @@ where
     }
 }
 
-impl<'w, 's, Q: WorldQuery + 'static, F: WorldQuery + 'static> SystemParamFetch<'w, 's>
+impl<'w, 's, Q: WorldQuery + 'static, F: ReadOnlyWorldQuery + 'static> SystemParamFetch<'w, 's>
     for QueryState<Q, F>
-where
-    F::Fetch: FilterFetch,
 {
     type Item = Query<'w, 's, Q, F>;
 

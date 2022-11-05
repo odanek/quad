@@ -6,8 +6,8 @@ use crate::{
     app::{App, RenderStage},
     asset::{Asset, Handle},
     ecs::{
-        Commands, Component, Entity, FilterFetch, IntoSystem, Local, Query, QueryItem, Res, ResMut,
-        Resource, StaticSystemParam, WorldQuery,
+        Commands, Component, Entity, IntoSystem, Local, Query, QueryItem, Res, ResMut,
+        Resource, StaticSystemParam, WorldQuery, ReadOnlyWorldQuery,
     },
 };
 
@@ -38,7 +38,7 @@ pub trait ExtractComponent: Component {
     /// ECS [`WorldQuery`] to fetch the components to extract.
     type Query: WorldQuery;
     /// Filters the entities with additional constraints.
-    type Filter: WorldQuery;
+    type Filter: ReadOnlyWorldQuery;
     /// Defines how the component is transferred into the "render world".
     fn extract_component(item: QueryItem<Self::Query>) -> Self;
 }
@@ -125,8 +125,6 @@ fn prepare_uniform_components<C: Component>(
 /// for the specified [`ExtractComponent`].
 
 pub fn extract_component_plugin<C: ExtractComponent>(app: &mut App, render_app: &mut App)
-where
-    <C::Filter as WorldQuery>::Fetch: FilterFetch,
 {
     render_app.add_system_to_stage(
         RenderStage::Extract,
@@ -150,8 +148,7 @@ fn extract_components<C: ExtractComponent>(
     mut commands: Commands,
     mut previous_len: Local<usize>,
     mut query: StaticSystemParam<Query<(Entity, C::Query), C::Filter>>,
-) where
-    <C::Filter as WorldQuery>::Fetch: FilterFetch,
+)
 {
     let mut values = Vec::with_capacity(*previous_len);
     for (entity, query_item) in query.iter_mut() {
