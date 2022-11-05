@@ -99,12 +99,6 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> QueryIterationCursor<'w, 's, 
         }
     }
 
-    // NOTE: If you are changing query iteration code, remember to update the following places, where relevant:
-    // QueryIter, QueryIterationCursor, QueryManyIter, QueryCombinationIter, QueryState::for_each_unchecked_manual, QueryState::par_for_each_unchecked_manual
-    /// # Safety
-    /// `tables` and `archetypes` must belong to the same world that the [`QueryIterationCursor`]
-    /// was initialized for.
-    /// `query_state` must be the same [`QueryState`] that was passed to `init` or `init_empty`.
     #[inline(always)]
     unsafe fn next(
         &mut self,
@@ -116,8 +110,6 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> QueryIterationCursor<'w, 's, 
             if self.current_index == self.current_len {
                 let archetype_id = self.archetype_id_iter.next()?;
                 let archetype = &archetypes[*archetype_id];
-                // SAFETY: `archetype` and `tables` are from the world that `fetch/filter` were created for,
-                // `fetch_state`/`filter_state` are the states that `fetch/filter` were initialized with
                 let table = &tables[archetype.table_id()];
                 Q::set_archetype(&mut self.fetch, &query_state.fetch_state, archetype, table);
                 F::set_archetype(
@@ -132,16 +124,12 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> QueryIterationCursor<'w, 's, 
                 continue;
             }
 
-            // SAFETY: set_archetype was called prior.
-            // `current_index` is an archetype index row in range of the current archetype, because if it was not, then the if above would have been executed.
             let entity = *self.archetype_entities.get_unchecked(self.current_index);
             if !F::filter_fetch(&mut self.filter, entity, self.current_index) {
                 self.current_index += 1;
                 continue;
             }
 
-            // SAFETY: set_archetype was called prior, `current_index` is an archetype index in range of the current archetype
-            // `current_index` is an archetype index row in range of the current archetype, because if it was not, then the if above would have been executed.
             let item = Q::fetch(&mut self.fetch, entity, self.current_index);
             self.current_index += 1;
             return Some(item);

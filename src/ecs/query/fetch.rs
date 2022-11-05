@@ -454,7 +454,6 @@ macro_rules! impl_tuple_fetch {
             }
         }
 
-        /// SAFETY: each item in the tuple is read only
         unsafe impl<$($name: ReadOnlyWorldQuery),*> ReadOnlyWorldQuery for ($($name,)*) {}
     };
 }
