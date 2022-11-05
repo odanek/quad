@@ -17,7 +17,10 @@ use super::{
         AllocAtWithoutReplacement, Archetype, ArchetypeId, Archetypes, Entities, Entity,
         EntityLocation,
     },
-    query::{fetch::{WorldQuery, ReadOnlyWorldQuery}, state::QueryState},
+    query::{
+        fetch::{ReadOnlyWorldQuery, WorldQuery},
+        state::QueryState,
+    },
     storage::Storages,
     system::SystemTicks,
     Res,
@@ -324,8 +327,7 @@ impl World {
     }
 
     #[inline]
-    pub fn query_filtered<Q: WorldQuery, F: ReadOnlyWorldQuery>(&mut self) -> QueryState<Q, F>
-    {
+    pub fn query_filtered<Q: WorldQuery, F: ReadOnlyWorldQuery>(&mut self) -> QueryState<Q, F> {
         QueryState::new(self)
     }
 

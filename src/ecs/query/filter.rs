@@ -3,7 +3,7 @@ use std::{cell::UnsafeCell, marker::PhantomData, ptr};
 use crate::{
     ecs::{
         component::{Component, ComponentId, ComponentTicks},
-        entity::{Entity, Archetype},
+        entity::{Archetype, Entity},
         storage::Table,
         system::SystemTicks,
         World,
@@ -13,7 +13,7 @@ use crate::{
 
 use super::{
     access::FilteredAccess,
-    fetch::{WorldQuery, ReadOnlyWorldQuery},
+    fetch::{ReadOnlyWorldQuery, WorldQuery},
 };
 
 pub struct With<T>(PhantomData<T>);
@@ -38,8 +38,7 @@ unsafe impl<T: Component> WorldQuery for With<T> {
         archetype.contains(*state)
     }
 
-    unsafe fn new_fetch(_world: &World, _state: &Self::State, _system_ticks: SystemTicks) {
-    }
+    unsafe fn new_fetch(_world: &World, _state: &Self::State, _system_ticks: SystemTicks) {}
 
     #[inline]
     unsafe fn set_archetype(
@@ -51,7 +50,11 @@ unsafe impl<T: Component> WorldQuery for With<T> {
     }
 
     #[inline]
-    unsafe fn fetch<'w>(_fetch: &mut Self::Fetch<'_>, _entity: Entity, _archetype_index: usize) -> Self::Item<'w> {
+    unsafe fn fetch<'w>(
+        _fetch: &mut Self::Fetch<'_>,
+        _entity: Entity,
+        _archetype_index: usize,
+    ) -> Self::Item<'w> {
     }
 }
 
@@ -91,7 +94,11 @@ unsafe impl<T: Component> WorldQuery for Without<T> {
     }
 
     #[inline]
-    unsafe fn fetch<'w>(_fetch: &mut Self::Fetch<'w>, _entity: Entity, _archetype_index: usize) -> Self::Item<'w> {
+    unsafe fn fetch<'w>(
+        _fetch: &mut Self::Fetch<'w>,
+        _entity: Entity,
+        _archetype_index: usize,
+    ) -> Self::Item<'w> {
     }
 }
 
@@ -239,7 +246,11 @@ unsafe impl<T: Component> WorldQuery for Added<T> {
         archetype.contains(*state)
     }
 
-    unsafe fn new_fetch<'w>(_world: &'w World, _state: &Self::State, system_ticks: SystemTicks) -> Self::Fetch<'w> {
+    unsafe fn new_fetch<'w>(
+        _world: &'w World,
+        _state: &Self::State,
+        system_ticks: SystemTicks,
+    ) -> Self::Fetch<'w> {
         AddedFetch {
             table_ticks: ptr::null::<UnsafeCell<ComponentTicks>>(),
             marker: PhantomData,
@@ -253,13 +264,14 @@ unsafe impl<T: Component> WorldQuery for Added<T> {
         _archetype: &Archetype,
         table: &Table,
     ) {
-        fetch.table_ticks = table
-            .get_column(*state)
-            .unwrap()
-            .get_ticks_ptr();
+        fetch.table_ticks = table.get_column(*state).unwrap().get_ticks_ptr();
     }
 
-    unsafe fn fetch<'w>(fetch: &mut Self::Fetch<'w>, _entity: Entity, archetype_index: usize) -> Self::Item<'w> {
+    unsafe fn fetch<'w>(
+        fetch: &mut Self::Fetch<'w>,
+        _entity: Entity,
+        archetype_index: usize,
+    ) -> Self::Item<'w> {
         let ticks = &*(*fetch.table_ticks.add(archetype_index)).get();
         ticks.is_added(fetch.system_ticks.last_change_tick)
     }
@@ -298,7 +310,11 @@ unsafe impl<T: Component> WorldQuery for Changed<T> {
         archetype.contains(*state)
     }
 
-    unsafe fn new_fetch<'w>(_world: &'w World, _state: &Self::State, system_ticks: SystemTicks) -> Self::Fetch<'w> {
+    unsafe fn new_fetch<'w>(
+        _world: &'w World,
+        _state: &Self::State,
+        system_ticks: SystemTicks,
+    ) -> Self::Fetch<'w> {
         ChangedFetch {
             table_ticks: ptr::null::<UnsafeCell<ComponentTicks>>(),
             marker: PhantomData,
@@ -312,13 +328,14 @@ unsafe impl<T: Component> WorldQuery for Changed<T> {
         _archetype: &Archetype,
         table: &Table,
     ) {
-        fetch.table_ticks = table
-            .get_column(*state)
-            .unwrap()
-            .get_ticks_ptr();
+        fetch.table_ticks = table.get_column(*state).unwrap().get_ticks_ptr();
     }
 
-    unsafe fn fetch<'w>(fetch: &mut Self::Fetch<'w>,_entity: Entity, archetype_index: usize) -> Self::Item<'w> {
+    unsafe fn fetch<'w>(
+        fetch: &mut Self::Fetch<'w>,
+        _entity: Entity,
+        archetype_index: usize,
+    ) -> Self::Item<'w> {
         let ticks = &*(*fetch.table_ticks.add(archetype_index)).get();
         ticks.is_changed(fetch.system_ticks.last_change_tick)
     }

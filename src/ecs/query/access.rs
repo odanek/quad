@@ -108,8 +108,7 @@ impl<T: AccessIndex> FilteredAccess<T> {
         if self.access.is_compatible(&other.access) {
             true
         } else {
-            intersects(&self.with, &other.without)
-                || intersects(&self.without, &other.with)
+            intersects(&self.with, &other.without) || intersects(&self.without, &other.with)
         }
     }
 

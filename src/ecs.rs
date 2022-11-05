@@ -15,7 +15,7 @@ pub use component::{
 pub use entity::Entity;
 pub use event::{Event, EventId, EventReader, EventWriter, Events};
 pub use query::{
-    fetch::{ChangeTrackers, QueryItem, WorldQuery, ReadOnlyWorldQuery},
+    fetch::{ChangeTrackers, QueryItem, ReadOnlyWorldQuery, WorldQuery},
     filter::{Added, Changed, Or, With, Without},
     state::QueryState,
 };

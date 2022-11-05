@@ -9,7 +9,7 @@ use crate::ecs::{
 
 use super::{
     access::FilteredAccess,
-    fetch::{WorldQuery, ReadOnlyWorldQuery, ROQueryItem},
+    fetch::{ROQueryItem, ReadOnlyWorldQuery, WorldQuery},
     iter::QueryIter,
 };
 
@@ -45,9 +45,9 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
 
     // TODO Ugly
     pub fn as_readonly(&self) -> &QueryState<Q::ReadOnly, F::ReadOnly> {
-        unsafe { 
+        unsafe {
             &*(self as *const QueryState<Q, F> as *const QueryState<Q::ReadOnly, F::ReadOnly>)
-         }
+        }
     }
 
     #[inline]
@@ -56,8 +56,8 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
         // TODO: Bevy uses nop
         unsafe {
             self.iter_unchecked_manual(world, SystemTicks::new(tick, tick))
-            .next()
-            .is_none()
+                .next()
+                .is_none()
         }
     }
 
@@ -83,10 +83,12 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
         &mut self,
         world: &'w World,
         entity: Entity,
-    ) -> Result<ROQueryItem<'w, Q>, QueryEntityError>
-    {
+    ) -> Result<ROQueryItem<'w, Q>, QueryEntityError> {
         self.update_archetypes(world);
-        unsafe { self.as_readonly().get_unchecked_manual(world, entity, world.ticks()) }
+        unsafe {
+            self.as_readonly()
+                .get_unchecked_manual(world, entity, world.ticks())
+        }
     }
 
     #[inline]
@@ -107,11 +109,8 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
     ) -> Result<ROQueryItem<'w, Q>, QueryEntityError> {
         // TODO Validate world
         unsafe {
-            self.as_readonly().get_unchecked_manual(
-                world,
-                entity,
-                world.ticks(),
-            )
+            self.as_readonly()
+                .get_unchecked_manual(world, entity, world.ticks())
         }
     }
 
@@ -137,7 +136,7 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
         Q::set_archetype(&mut fetch, &self.fetch_state, archetype, table);
         F::set_archetype(&mut filter, &self.filter_state, archetype, table);
         if F::filter_fetch(&mut filter, entity, location.index) {
-            Ok(Q::fetch(&mut fetch, entity,  location.index))
+            Ok(Q::fetch(&mut fetch, entity, location.index))
         } else {
             Err(QueryEntityError::QueryDoesNotMatch)
         }
@@ -155,10 +154,8 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
     ) -> Result<ROQueryItem<'w, Q>, QuerySingleError> {
         self.update_archetypes(world);
         unsafe {
-            self.as_readonly().get_single_unchecked_manual(
-                world,
-                world.ticks(),
-            )
+            self.as_readonly()
+                .get_single_unchecked_manual(world, world.ticks())
         }
     }
 
@@ -173,12 +170,7 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
         world: &'w mut World,
     ) -> Result<Q::Item<'w>, QuerySingleError> {
         self.update_archetypes(world);
-        unsafe {
-            self.get_single_unchecked_manual(
-                world,
-                world.ticks(),
-            )
-        }
+        unsafe { self.get_single_unchecked_manual(world, world.ticks()) }
     }
 
     #[inline]
@@ -207,20 +199,16 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
         world: &'w World,
     ) -> QueryIter<'w, 's, Q::ReadOnly, F::ReadOnly> {
         self.update_archetypes(world);
-        unsafe {             
-            self.as_readonly().iter_unchecked_manual(world, world.ticks()) 
+        unsafe {
+            self.as_readonly()
+                .iter_unchecked_manual(world, world.ticks())
         }
     }
 
     #[inline]
-    pub fn iter_mut<'w, 's>(
-        &'s mut self,
-        world: &'w mut World,
-    ) -> QueryIter<'w, 's, Q, F> {
+    pub fn iter_mut<'w, 's>(&'s mut self, world: &'w mut World) -> QueryIter<'w, 's, Q, F> {
         self.update_archetypes(world);
-        unsafe { 
-            self.iter_unchecked_manual(world, world.ticks()) 
-        }
+        unsafe { self.iter_unchecked_manual(world, world.ticks()) }
     }
 
     #[inline]
@@ -230,10 +218,8 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
     ) -> QueryIter<'w, 's, Q::ReadOnly, F::ReadOnly> {
         // TODO Validate that correct world is used
         unsafe {
-            self.as_readonly().iter_unchecked_manual(
-                world,
-                world.ticks(),
-            )
+            self.as_readonly()
+                .iter_unchecked_manual(world, world.ticks())
         }
     }
 
@@ -248,23 +234,16 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
     }
 
     #[inline]
-    pub fn for_each<'w, 's>(
-        &'s mut self,
-        world: &'w World,
-        func: impl FnMut(ROQueryItem<'w, Q>),
-    ) {
+    pub fn for_each<'w, 's>(&'s mut self, world: &'w World, func: impl FnMut(ROQueryItem<'w, Q>)) {
         self.update_archetypes(world);
         unsafe {
-            self.as_readonly().for_each_unchecked_manual(world, func, world.ticks());
+            self.as_readonly()
+                .for_each_unchecked_manual(world, func, world.ticks());
         }
     }
 
     #[inline]
-    pub fn for_each_mut<'w, 's>(
-        &'s mut self,
-        world: &'w mut World,
-        func: impl FnMut(Q::Item<'w>),
-    ) {
+    pub fn for_each_mut<'w, 's>(&'s mut self, world: &'w mut World, func: impl FnMut(Q::Item<'w>)) {
         self.update_archetypes(world);
         unsafe {
             self.for_each_unchecked_manual(world, func, world.ticks());
@@ -284,7 +263,7 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
         for archetype_id in self.matched_archetype_ids.iter() {
             let archetype = world.archetype(*archetype_id);
             let table = &tables[archetype.table_id()];
-            
+
             Q::set_archetype(&mut fetch, &self.fetch_state, archetype, table);
             F::set_archetype(&mut filter, &self.filter_state, archetype, table);
 
@@ -296,7 +275,7 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
                 func(Q::fetch(&mut fetch, entity, archetype_index));
             }
         }
-    }    
+    }
 }
 
 #[derive(Error, Debug)]

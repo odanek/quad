@@ -9,7 +9,7 @@ use crate::{
     ecs::{
         component::{CmptMut, Component, ComponentId, ComponentTicks},
         entity::{Archetype, Entity},
-        storage::{Table},
+        storage::Table,
         system::SystemTicks,
         World,
     },
@@ -82,8 +82,7 @@ unsafe impl WorldQuery for Entity {
     fn new_state(_world: &mut World) -> Self::State {}
 
     #[inline]
-    fn update_component_access(_state: &Self::State, _access: &mut FilteredAccess<ComponentId>) {
-    }
+    fn update_component_access(_state: &Self::State, _access: &mut FilteredAccess<ComponentId>) {}
 
     #[inline]
     fn matches_archetype(_state: &Self::State, _archetype: &Archetype) -> bool {
@@ -164,11 +163,7 @@ unsafe impl<T: Component> WorldQuery for &T {
         _archetype: &Archetype,
         table: &Table,
     ) {
-        fetch.table_components = table
-            .get_column(*state)
-            .unwrap()
-            .get_data_ptr()
-            .cast::<T>();
+        fetch.table_components = table.get_column(*state).unwrap().get_data_ptr().cast::<T>();
     }
 
     #[inline]
@@ -184,10 +179,10 @@ unsafe impl<T: Component> WorldQuery for &T {
 unsafe impl<T: Component> ReadOnlyWorldQuery for &T {}
 
 pub struct WriteFetch<'w, T> {
-    table_components: NonNull<T>, // TODO
+    table_components: NonNull<T>,                   // TODO
     table_ticks: *const UnsafeCell<ComponentTicks>, // TODO
     system_ticks: SystemTicks,
-    _marker: PhantomData<&'w [T]>
+    _marker: PhantomData<&'w [T]>,
 }
 
 unsafe impl<'__w, T: Component> WorldQuery for &'__w mut T {
@@ -212,12 +207,16 @@ unsafe impl<'__w, T: Component> WorldQuery for &'__w mut T {
         archetype.contains(*state)
     }
 
-    unsafe fn new_fetch<'w>(_world: &'w World, _state: &Self::State, system_ticks: SystemTicks) -> WriteFetch<'w, T> {
+    unsafe fn new_fetch<'w>(
+        _world: &'w World,
+        _state: &Self::State,
+        system_ticks: SystemTicks,
+    ) -> WriteFetch<'w, T> {
         WriteFetch {
             table_components: NonNull::dangling(),
             table_ticks: ptr::null::<UnsafeCell<ComponentTicks>>(),
             system_ticks,
-            _marker: PhantomData
+            _marker: PhantomData,
         }
     }
 
@@ -228,15 +227,17 @@ unsafe impl<'__w, T: Component> WorldQuery for &'__w mut T {
         _archetype: &Archetype,
         table: &Table,
     ) {
-        let column = table
-            .get_column(*state)
-            .unwrap();
+        let column = table.get_column(*state).unwrap();
         fetch.table_components = column.get_data_ptr().cast::<T>();
         fetch.table_ticks = column.get_ticks_ptr();
     }
 
     #[inline]
-    unsafe fn fetch<'w>(fetch: &mut Self::Fetch<'w>, _entity: Entity, archetype_index: usize) -> Self::Item<'w> {
+    unsafe fn fetch<'w>(
+        fetch: &mut Self::Fetch<'w>,
+        _entity: Entity,
+        archetype_index: usize,
+    ) -> Self::Item<'w> {
         let value = &mut *fetch.table_components.as_ptr().add(archetype_index);
         let component_ticks = &mut *(*fetch.table_ticks.add(archetype_index)).get();
         CmptMut::new(value, component_ticks, fetch.system_ticks)
@@ -269,7 +270,11 @@ unsafe impl<T: WorldQuery> WorldQuery for Option<T> {
         true
     }
 
-    unsafe fn new_fetch<'w>(world: &'w World, state: &Self::State, system_ticks: SystemTicks) -> OptionFetch<'w, T> {
+    unsafe fn new_fetch<'w>(
+        world: &'w World,
+        state: &Self::State,
+        system_ticks: SystemTicks,
+    ) -> OptionFetch<'w, T> {
         OptionFetch {
             fetch: T::new_fetch(world, state, system_ticks),
             matches: false,
@@ -290,7 +295,11 @@ unsafe impl<T: WorldQuery> WorldQuery for Option<T> {
     }
 
     #[inline]
-    unsafe fn fetch<'w>(fetch: &mut Self::Fetch<'w>, entity: Entity, archetype_index: usize) -> Self::Item<'w> {
+    unsafe fn fetch<'w>(
+        fetch: &mut Self::Fetch<'w>,
+        entity: Entity,
+        archetype_index: usize,
+    ) -> Self::Item<'w> {
         if fetch.matches {
             Some(T::fetch(&mut fetch.fetch, entity, archetype_index))
         } else {
@@ -348,7 +357,11 @@ unsafe impl<T: Component> WorldQuery for ChangeTrackers<T> {
         archetype.contains(*state)
     }
 
-    unsafe fn new_fetch<'w>(_world: &'w World, _state: &Self::State, system_ticks: SystemTicks) -> ChangeTrackersFetch<'w, T> {
+    unsafe fn new_fetch<'w>(
+        _world: &'w World,
+        _state: &Self::State,
+        system_ticks: SystemTicks,
+    ) -> ChangeTrackersFetch<'w, T> {
         ChangeTrackersFetch {
             table_ticks: ptr::null::<ComponentTicks>(),
             system_ticks,
@@ -363,14 +376,15 @@ unsafe impl<T: Component> WorldQuery for ChangeTrackers<T> {
         _archetype: &Archetype,
         table: &Table,
     ) {
-        fetch.table_ticks = table
-            .get_column(*state)
-            .unwrap()
-            .get_ticks_const_ptr();
+        fetch.table_ticks = table.get_column(*state).unwrap().get_ticks_const_ptr();
     }
 
     #[inline]
-    unsafe fn fetch<'w>(fetch: &mut Self::Fetch<'w>, _entity: Entity, archetype_index: usize) -> Self::Item<'w> {
+    unsafe fn fetch<'w>(
+        fetch: &mut Self::Fetch<'w>,
+        _entity: Entity,
+        archetype_index: usize,
+    ) -> Self::Item<'w> {
         ChangeTrackers {
             component_ticks: (*fetch.table_ticks.add(archetype_index)).clone(),
             system_ticks: fetch.system_ticks,
@@ -384,7 +398,7 @@ unsafe impl<T: Component> ReadOnlyWorldQuery for ChangeTrackers<T> {}
 macro_rules! impl_tuple_fetch {
     ($(($name: ident, $state: ident)),*) => {
         #[allow(non_snake_case)]
-        #[allow(clippy::unused_unit)]        
+        #[allow(clippy::unused_unit)]
         unsafe impl<$($name: WorldQuery),*> WorldQuery for ($($name,)*) {
             type Fetch<'w> = ($($name::Fetch<'w>,)*);
             type Item<'w> = ($($name::Item<'w>,)*);
@@ -463,12 +477,7 @@ unsafe impl<Q: WorldQuery> WorldQuery for NopWorldQuery<Q> {
     type State = Q::State;
 
     #[inline(always)]
-    unsafe fn new_fetch(
-        _world: &World,
-        _state: &Q::State,
-        _system_ticks: SystemTicks,
-    ) {
-    }
+    unsafe fn new_fetch(_world: &World, _state: &Q::State, _system_ticks: SystemTicks) {}
 
     #[inline(always)]
     unsafe fn set_archetype(
@@ -493,10 +502,7 @@ unsafe impl<Q: WorldQuery> WorldQuery for NopWorldQuery<Q> {
 
     fn update_component_access(_state: &Q::State, _access: &mut FilteredAccess<ComponentId>) {}
 
-    fn matches_archetype(
-        state: &Self::State,
-        archetype: &Archetype,
-    ) -> bool {
+    fn matches_archetype(state: &Self::State, archetype: &Archetype) -> bool {
         Q::matches_archetype(state, archetype)
     }
 }

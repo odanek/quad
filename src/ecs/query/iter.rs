@@ -1,15 +1,16 @@
-use std::{slice::Iter, iter::FusedIterator, marker::PhantomData};
+use std::{iter::FusedIterator, marker::PhantomData, slice::Iter};
 
 use crate::ecs::{
-    entity::{Entity, ArchetypeId, Archetypes},
+    entity::{ArchetypeId, Archetypes, Entity},
     storage::Tables,
-    system::{SystemTicks},
+    system::SystemTicks,
     World,
 };
 
 use super::{
-    fetch::{WorldQuery, ReadOnlyWorldQuery},
-    state::QueryState, filter::ArchetypeFilter,
+    fetch::{ReadOnlyWorldQuery, WorldQuery},
+    filter::ArchetypeFilter,
+    state::QueryState,
 };
 
 pub struct QueryIter<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> {
@@ -87,16 +88,8 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> QueryIterationCursor<'w, 's, 
         query_state: &'s QueryState<Q, F>,
         system_ticks: SystemTicks,
     ) -> Self {
-        let fetch = Q::new_fetch(
-            world,
-            &query_state.fetch_state,
-            system_ticks
-        );
-        let filter = F::new_fetch(
-            world,
-            &query_state.filter_state,
-            system_ticks
-        );
+        let fetch = Q::new_fetch(world, &query_state.fetch_state, system_ticks);
+        let filter = F::new_fetch(world, &query_state.filter_state, system_ticks);
         QueryIterationCursor {
             fetch,
             filter,
@@ -144,22 +137,14 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> QueryIterationCursor<'w, 's, 
             // SAFETY: set_archetype was called prior.
             // `current_index` is an archetype index row in range of the current archetype, because if it was not, then the if above would have been executed.
             let entity = *self.archetype_entities.get_unchecked(self.current_index);
-            if !F::filter_fetch(
-                &mut self.filter,
-                entity,
-                self.current_index,
-            ) {
+            if !F::filter_fetch(&mut self.filter, entity, self.current_index) {
                 self.current_index += 1;
                 continue;
             }
 
             // SAFETY: set_archetype was called prior, `current_index` is an archetype index in range of the current archetype
             // `current_index` is an archetype index row in range of the current archetype, because if it was not, then the if above would have been executed.
-            let item = Q::fetch(
-                &mut self.fetch,
-                entity,
-                self.current_index,
-            );
+            let item = Q::fetch(&mut self.fetch, entity, self.current_index);
             self.current_index += 1;
             return Some(item);
         }

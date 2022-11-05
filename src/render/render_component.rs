@@ -6,8 +6,8 @@ use crate::{
     app::{App, RenderStage},
     asset::{Asset, Handle},
     ecs::{
-        Commands, Component, Entity, IntoSystem, Local, Query, QueryItem, Res, ResMut,
-        Resource, StaticSystemParam, WorldQuery, ReadOnlyWorldQuery,
+        Commands, Component, Entity, IntoSystem, Local, Query, QueryItem, ReadOnlyWorldQuery, Res,
+        ResMut, Resource, StaticSystemParam, WorldQuery,
     },
 };
 
@@ -124,8 +124,7 @@ fn prepare_uniform_components<C: Component>(
 /// Therefore it sets up the [`RenderStage::Extract`](crate::RenderStage::Extract) step
 /// for the specified [`ExtractComponent`].
 
-pub fn extract_component_plugin<C: ExtractComponent>(app: &mut App, render_app: &mut App)
-{
+pub fn extract_component_plugin<C: ExtractComponent>(app: &mut App, render_app: &mut App) {
     render_app.add_system_to_stage(
         RenderStage::Extract,
         extract_components::<C>.system(&mut app.world),
@@ -148,8 +147,7 @@ fn extract_components<C: ExtractComponent>(
     mut commands: Commands,
     mut previous_len: Local<usize>,
     mut query: StaticSystemParam<Query<(Entity, C::Query), C::Filter>>,
-)
-{
+) {
     let mut values = Vec::with_capacity(*previous_len);
     for (entity, query_item) in query.iter_mut() {
         values.push((entity, (C::extract_component(query_item),)));

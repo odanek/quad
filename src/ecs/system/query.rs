@@ -3,9 +3,9 @@ use std::any::TypeId;
 use crate::ecs::{
     component::{CmptMut, Component, Tick},
     query::{
-        fetch::{WorldQuery, ReadOnlyWorldQuery, ROQueryItem},
+        fetch::{ROQueryItem, ReadOnlyWorldQuery, WorldQuery},
         iter::QueryIter,
-        state::{QueryEntityError, QueryState, QuerySingleError},
+        state::{QueryEntityError, QuerySingleError, QueryState},
     },
     system::function_system::SystemMeta,
     Entity, World,
@@ -49,7 +49,8 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> Query<'w, 's, Q, F> {
     #[inline]
     pub fn iter(&self) -> QueryIter<'_, 's, Q::ReadOnly, F::ReadOnly> {
         unsafe {
-            self.state.as_readonly()
+            self.state
+                .as_readonly()
                 .iter_unchecked_manual(self.world, self.system_ticks)
         }
     }
@@ -72,7 +73,8 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> Query<'w, 's, Q, F> {
     #[inline]
     pub fn for_each<'a>(&'a self, f: impl FnMut(ROQueryItem<'a, Q>)) {
         unsafe {
-            self.state.as_readonly()
+            self.state
+                .as_readonly()
                 .for_each_unchecked_manual(self.world, f, self.system_ticks)
         };
     }
@@ -86,24 +88,16 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> Query<'w, 's, Q, F> {
     }
 
     #[inline]
-    pub fn get(
-        &self,
-        entity: Entity,
-    ) -> Result<ROQueryItem<'_, Q>, QueryEntityError> {
+    pub fn get(&self, entity: Entity) -> Result<ROQueryItem<'_, Q>, QueryEntityError> {
         unsafe {
-            self.state.as_readonly().get_unchecked_manual(
-                self.world,
-                entity,
-                self.system_ticks,
-            )
+            self.state
+                .as_readonly()
+                .get_unchecked_manual(self.world, entity, self.system_ticks)
         }
     }
 
     #[inline]
-    pub fn get_mut(
-        &mut self,
-        entity: Entity,
-    ) -> Result<Q::Item<'_>, QueryEntityError> {
+    pub fn get_mut(&mut self, entity: Entity) -> Result<Q::Item<'_>, QueryEntityError> {
         unsafe {
             self.state
                 .get_unchecked_manual(self.world, entity, self.system_ticks)
@@ -112,10 +106,7 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> Query<'w, 's, Q, F> {
 
     #[inline]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn get_unchecked(
-        &self,
-        entity: Entity,
-    ) -> Result<Q::Item<'_>, QueryEntityError> {
+    pub unsafe fn get_unchecked(&self, entity: Entity) -> Result<Q::Item<'_>, QueryEntityError> {
         self.state
             .get_unchecked_manual(self.world, entity, self.system_ticks)
     }
@@ -176,10 +167,9 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> Query<'w, 's, Q, F> {
     #[inline]
     pub fn get_single(&self) -> Result<ROQueryItem<'_, Q>, QuerySingleError> {
         unsafe {
-            self.state.as_readonly().get_single_unchecked_manual(
-                self.world,
-                self.system_ticks
-            )
+            self.state
+                .as_readonly()
+                .get_single_unchecked_manual(self.world, self.system_ticks)
         }
     }
 
@@ -191,10 +181,8 @@ impl<'w, 's, Q: WorldQuery, F: ReadOnlyWorldQuery> Query<'w, 's, Q, F> {
     #[inline]
     pub fn get_single_mut(&mut self) -> Result<Q::Item<'_>, QuerySingleError> {
         unsafe {
-            self.state.get_single_unchecked_manual(
-                self.world,
-                self.system_ticks
-            )
+            self.state
+                .get_single_unchecked_manual(self.world, self.system_ticks)
         }
     }
 
@@ -234,7 +222,9 @@ unsafe impl<Q: ReadOnlyWorldQuery, F: ReadOnlyWorldQuery> ReadOnlySystemParamFet
 {
 }
 
-unsafe impl<Q: WorldQuery + 'static, F: ReadOnlyWorldQuery + 'static> SystemParamState for QueryState<Q, F> {
+unsafe impl<Q: WorldQuery + 'static, F: ReadOnlyWorldQuery + 'static> SystemParamState
+    for QueryState<Q, F>
+{
     fn new(world: &mut World, system_meta: &mut SystemMeta) -> Self {
         let state = QueryState::new(world);
         if !system_meta
