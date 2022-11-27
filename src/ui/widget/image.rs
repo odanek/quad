@@ -2,8 +2,7 @@ use crate::{
     asset::Assets,
     ecs::{Component, Query, Res, With},
     render::texture::Image,
-    ty::Size,
-    ui::{CalculatedSize, UiImage},
+    ui::{CalculatedSize, Size, UiImage, Val},
 };
 
 /// Describes how to resize the Image node
@@ -27,8 +26,8 @@ pub fn image_node_system(
     for (mut calculated_size, image) in query.iter_mut() {
         if let Some(texture) = textures.get(image.0.clone_weak()) {
             let size = Size {
-                width: texture.texture_descriptor.size.width as f32,
-                height: texture.texture_descriptor.size.height as f32,
+                width: Val::Px(texture.texture_descriptor.size.width as f32),
+                height: Val::Px(texture.texture_descriptor.size.height as f32),
             };
             // Update only if size has changed to avoid needless layout calculations
             if size != calculated_size.size {

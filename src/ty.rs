@@ -7,5 +7,5 @@ pub use future::*;
 pub use math::*;
 
 pub mod prelude {
-    pub use crate::ty::{Mat2, Mat3, Mat4, Size, Vec1, Vec2, Vec3, Vec4};
+    pub use crate::ty::{Mat2, Mat3, Mat4, Vec1, Vec2, Vec3, Vec4};
 }

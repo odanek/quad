@@ -6,7 +6,7 @@ use crate::{
     render::{texture::Image, view::Visibility, RenderWorld},
     sprite::{ExtractedSprite, ExtractedSprites, TextureAtlas},
     transform::{GlobalTransform, Transform},
-    ty::{Size, Vec2, Vec3},
+    ty::{Vec2, Vec3},
     windowing::{WindowId, Windows},
 };
 
@@ -41,7 +41,7 @@ pub fn extract_text_sprite(
         if !visibility.is_visible {
             continue;
         }
-        let (width, height) = (calculated_size.size.width, calculated_size.size.height);
+        let (width, height) = (calculated_size.size.x, calculated_size.size.y);
 
         if let Some(text_layout) = text_pipeline.get_glyphs(&entity) {
             let text_glyphs = &text_layout.glyphs;
@@ -150,10 +150,10 @@ pub fn text_system(
                     let text_layout_info = text_pipeline.get_glyphs(&entity).expect(
                         "Failed to get glyphs from the pipeline that have just been computed",
                     );
-                    calculated_size.size = Size {
-                        width: scale_value(text_layout_info.size.x, 1. / scale_factor),
-                        height: scale_value(text_layout_info.size.y, 1. / scale_factor),
-                    };
+                    calculated_size.size = Vec2::new(
+                        scale_value(text_layout_info.size.x, 1. / scale_factor),
+                        scale_value(text_layout_info.size.y, 1. / scale_factor),
+                    );
                 }
             }
         }

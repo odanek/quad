@@ -1,5 +1,5 @@
 use super::Font;
-use crate::{asset::Handle, ecs::Component, render::color::Color, ty::Size};
+use crate::{asset::Handle, ecs::Component, render::color::Color, ty::Vec2};
 
 #[derive(Component, Debug, Default, Clone)]
 pub struct Text {
@@ -110,5 +110,5 @@ impl Default for TextStyle {
 
 #[derive(Component, Default, Copy, Clone, Debug)]
 pub struct TextSize {
-    pub size: Size,
+    pub size: Vec2,
 }

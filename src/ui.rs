@@ -26,7 +26,7 @@ use self::entity::{CameraUi, UiCameraBundle};
 pub mod prelude {
     pub use crate::ui::{
         entity::{NodeBundle, UiTextBundle},
-        AlignItems, FlexDirection, JustifyContent, PositionType, Style, UiRect, Val,
+        AlignItems, FlexDirection, JustifyContent, PositionType, Size, Style, UiRect, Val,
     };
 }
 

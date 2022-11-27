@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign};
+use std::ops::{Div, DivAssign, Mul, MulAssign};
 
 use crate::{
     asset::{Handle, HandleId},
@@ -8,10 +8,10 @@ use crate::{
         texture::{Image, DEFAULT_IMAGE_HANDLE},
     },
     sprite::Rect,
-    ty::{Size, Vec2},
+    ty::Vec2,
 };
 
-use super::UiRect;
+use super::{Size, UiRect};
 
 /// Describes the size of a UI node
 #[derive(Component, Debug, Clone, Default)]
@@ -20,10 +20,10 @@ pub struct Node {
     pub size: Vec2,
 }
 
-/// An enum that describes possible types of value in flexbox layout options
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, Default)]
 pub enum Val {
     /// No value defined
+    #[default]
     Undefined,
     /// Automatically determine this value
     Auto,
@@ -33,31 +33,46 @@ pub enum Val {
     Percent(f32),
 }
 
-impl Default for Val {
-    fn default() -> Self {
-        Val::Undefined
-    }
-}
-
-impl Add<f32> for Val {
+impl Mul<f32> for Val {
     type Output = Val;
 
-    fn add(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         match self {
             Val::Undefined => Val::Undefined,
             Val::Auto => Val::Auto,
-            Val::Px(value) => Val::Px(value + rhs),
-            Val::Percent(value) => Val::Percent(value + rhs),
+            Val::Px(value) => Val::Px(value * rhs),
+            Val::Percent(value) => Val::Percent(value * rhs),
         }
     }
 }
 
-impl AddAssign<f32> for Val {
-    fn add_assign(&mut self, rhs: f32) {
+impl MulAssign<f32> for Val {
+    fn mul_assign(&mut self, rhs: f32) {
         match self {
             Val::Undefined | Val::Auto => {}
-            Val::Px(value) => *value += rhs,
-            Val::Percent(value) => *value += rhs,
+            Val::Px(value) | Val::Percent(value) => *value *= rhs,
+        }
+    }
+}
+
+impl Div<f32> for Val {
+    type Output = Val;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        match self {
+            Val::Undefined => Val::Undefined,
+            Val::Auto => Val::Auto,
+            Val::Px(value) => Val::Px(value / rhs),
+            Val::Percent(value) => Val::Percent(value / rhs),
+        }
+    }
+}
+
+impl DivAssign<f32> for Val {
+    fn div_assign(&mut self, rhs: f32) {
+        match self {
+            Val::Undefined | Val::Auto => {}
+            Val::Px(value) | Val::Percent(value) => *value /= rhs,
         }
     }
 }
@@ -90,13 +105,13 @@ pub struct Style {
     /// How items align according to the main axis
     pub justify_content: JustifyContent,
     /// The position of the node as descrided by its Rect
-    pub position: UiRect<Val>,
+    pub position: UiRect,
     /// The margin of the node
-    pub margin: UiRect<Val>,
+    pub margin: UiRect,
     /// The padding of the node
-    pub padding: UiRect<Val>,
+    pub padding: UiRect,
     /// The border of the node
-    pub border: UiRect<Val>,
+    pub border: UiRect,
     /// Defines how much a flexbox item should grow if there's space available
     pub flex_grow: f32,
     /// How to shrink if there's not enough space available
@@ -104,15 +119,17 @@ pub struct Style {
     /// The initial size of the item
     pub flex_basis: Val,
     /// The size of the flexbox
-    pub size: Size<Val>,
+    pub size: Size,
     /// The minimum size of the flexbox
-    pub min_size: Size<Val>,
+    pub min_size: Size,
     /// The maximum size of the flexbox
-    pub max_size: Size<Val>,
+    pub max_size: Size,
     /// The aspect ratio of the flexbox
     pub aspect_ratio: Option<f32>,
     /// How to handle overflow
     pub overflow: Overflow,
+    /// The size of the gutters between the rows and columns of the flexbox layout
+    pub gap: Size,
 }
 
 impl Default for Style {
@@ -139,6 +156,7 @@ impl Default for Style {
             max_size: Size::new(Val::Auto, Val::Auto),
             aspect_ratio: Default::default(),
             overflow: Default::default(),
+            gap: Size::UNDEFINED,
         }
     }
 }

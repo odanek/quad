@@ -5,7 +5,7 @@ use crate::{
         render_resource::{Sampler, Texture, TextureView},
         renderer::{RenderDevice, RenderQueue},
     },
-    ty::{Size, Vec2},
+    ty::Vec2,
 };
 
 use super::{image_texture_conversion::image_to_texture, QuadDefault};
@@ -469,7 +469,7 @@ pub struct GpuImage {
     pub texture_view: TextureView,
     pub texture_format: TextureFormat,
     pub sampler: Sampler,
-    pub size: Size,
+    pub size: Vec2,
 }
 
 impl RenderAsset for Image {
@@ -517,7 +517,7 @@ impl RenderAsset for Image {
         );
 
         let texture_view = texture.create_view(&TextureViewDescriptor::default());
-        let size = Size::new(
+        let size = Vec2::new(
             image.texture_descriptor.size.width as f32,
             image.texture_descriptor.size.height as f32,
         );
