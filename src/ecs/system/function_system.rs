@@ -44,7 +44,6 @@ where
     func: F,
     param_state: Option<Param::Fetch>,
     system_meta: SystemMeta,
-    initialized: bool,
 
     // NOTE: PhantomData<fn()-> T> gives this safe Send/Sync impls
     #[allow(clippy::type_complexity)]
@@ -68,7 +67,6 @@ where
             param_state: None,
             system_meta: meta,
             marker: PhantomData,
-            initialized: false,
         }
     }
 }
@@ -101,13 +99,10 @@ where
 
     #[inline]
     fn initialize(&mut self, world: &mut World) {
-        if !self.initialized {
-            self.initialized = true;
-            self.param_state = Some(<Param::Fetch as SystemParamState>::new(
-                world,
-                &mut self.system_meta,
-            ));    
-        }
+        self.param_state = Some(<Param::Fetch as SystemParamState>::new(
+            world,
+            &mut self.system_meta,
+        ));
     }
 
     #[inline]

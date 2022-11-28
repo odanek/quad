@@ -9,6 +9,7 @@ mod parallel_system;
 
 pub struct Schedule<In = (), Out = ()> {
     system: Box<dyn System<In = In, Out = Out>>,
+    initialized: bool,
     marker: PhantomData<fn(In) -> Out>,
 }
 
@@ -23,13 +24,17 @@ where
     {
         Self {
             system: Box::new(system),
+            initialized: false,
             marker: PhantomData,
         }
     }
 
     // TODO Remove
     pub fn run_with(&mut self, input: In, world: &mut World) -> Out {
-        self.system.initialize(world);
+        if !self.initialized {
+            self.initialized = true;
+            self.system.initialize(world);
+        }        
         let result = unsafe { self.system.run(input, world) };
         self.system.apply_buffers(world);
         result
@@ -42,7 +47,10 @@ where
 {
     // TODO Remove
     pub fn run(&mut self, world: &mut World) -> Out {
-        self.system.initialize(world);
+        if !self.initialized {
+            self.initialized = true;
+            self.system.initialize(world);
+        }        
         let result = unsafe { self.system.run((), world) };
         self.system.apply_buffers(world);
         result

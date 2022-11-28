@@ -4,31 +4,40 @@ use crate::ecs::{System, World};
 
 use super::stage::{StageId, StageLabel};
 
-type BoxedSystem = Box<dyn System<In = (), Out = ()>>;
+struct SystemEntry {
+    pub initialized: bool,
+    pub system: Box<dyn System<In = (), Out = ()>>,
+}
 
 #[derive(Default)]
-pub struct StageSystems(Vec<BoxedSystem>);
+pub struct StageSystems(Vec<SystemEntry>);
 
 impl StageSystems {
     pub fn add<S>(&mut self, system: S)
     where
         S: System<In = (), Out = ()>,
     {
-        self.0.push(Box::new(system));
+        self.0.push(SystemEntry {
+            initialized: false,
+            system: Box::new(system),
+        });
     }
 
     pub fn run(&mut self, world: &mut World) {
-        for system in &mut self.0 {
-            system.initialize(world);
+        for entry in &mut self.0 {
+            if !entry.initialized {
+                entry.initialized = true;
+                entry.system.initialize(world);
+            }            
             unsafe {                
-                system.run((), world);
+                entry.system.run((), world);
             }
         }
     }
 
     pub fn apply_buffers(&mut self, world: &mut World) {
-        for system in &mut self.0 {
-            system.apply_buffers(world);
+        for entry in &mut self.0 {
+            entry.system.apply_buffers(world);
         }
     }
 }
