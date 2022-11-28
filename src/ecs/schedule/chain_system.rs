@@ -61,6 +61,11 @@ where
         &self.component_access
     }
 
+    fn initialize(&mut self, world: &mut World) {
+        self.left.initialize(world);
+        self.right.initialize(world);
+    }
+
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out {
         self.right.run(self.left.run(input, world), world)
     }
@@ -86,7 +91,7 @@ impl<'w> EmptyChainBuilder<'w> {
     where
         S: IntoSystem<In, Out, Param>,
     {
-        let system = input.system(self.world);
+        let system = input.system();
         ChainBuilder {
             world: self.world,
             system,
@@ -107,7 +112,7 @@ where
     where
         S: IntoSystem<T::Out, Out, Param>,
     {
-        let system = input.system(self.world);
+        let system = input.system();
         ChainBuilder {
             world: self.world,
             system: ChainSystem::new(self.system, system),

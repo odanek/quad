@@ -19,7 +19,8 @@ impl StageSystems {
 
     pub fn run(&mut self, world: &mut World) {
         for system in &mut self.0 {
-            unsafe {
+            system.initialize(world);
+            unsafe {                
                 system.run((), world);
             }
         }

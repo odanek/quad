@@ -22,7 +22,7 @@ pub use text::*;
 
 use crate::{
     app::{App, MainStage, RenderStage},
-    ecs::{Entity, IntoSystem, Resource},
+    ecs::{Entity, Resource},
 };
 
 pub mod prelude {
@@ -41,6 +41,6 @@ pub fn text_plugin(app: &mut App, render_app: &mut App) {
 
     render_app.add_system_to_stage(
         RenderStage::Extract,
-        extract_text_sprite.system(&mut app.world), // Must come after extract_sprites
+        extract_text_sprite, // Must come after extract_sprites
     );
 }

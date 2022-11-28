@@ -21,6 +21,8 @@ pub trait System: Send + Sync + 'static {
     fn resource_access(&self) -> &Access<ResourceId>;
     fn component_access(&self) -> &Access<ComponentId>;
 
+    fn initialize(&mut self, world: &mut World);
+
     #[allow(clippy::missing_safety_doc)]
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out;
 
@@ -45,7 +47,7 @@ impl SystemTicks {
 pub trait IntoSystem<In, Out, Params> {
     type System: System<In = In, Out = Out>;
 
-    fn system(self, world: &mut World) -> Self::System;
+    fn system(self) -> Self::System;
 }
 
 pub struct AlreadyWasSystem;
@@ -53,7 +55,7 @@ pub struct AlreadyWasSystem;
 impl<In, Out, Sys: System<In = In, Out = Out>> IntoSystem<In, Out, AlreadyWasSystem> for Sys {
     type System = Sys;
 
-    fn system(self, _world: &mut World) -> Sys {
+    fn system(self) -> Sys {
         self
     }
 }

@@ -14,7 +14,7 @@ use wgpu::{
 use crate::{
     asset::{AssetEvent, Assets, Handle},
     ecs::{EventReader, Res, ResMut, Resource},
-    render::{renderer::RenderDevice, RenderWorld},
+    render::{extract_param::Extract, renderer::RenderDevice},
 };
 
 use super::{BindGroupLayout, BindGroupLayoutId, RenderPipeline, RenderPipelineDescriptor, Shader};
@@ -301,11 +301,10 @@ impl RenderPipelineCache {
     }
 
     pub(crate) fn extract_shaders(
-        mut world: ResMut<RenderWorld>,
-        shaders: Res<Assets<Shader>>,
-        mut events: EventReader<AssetEvent<Shader>>,
+        mut cache: ResMut<Self>,
+        shaders: Extract<Res<Assets<Shader>>>,
+        mut events: Extract<EventReader<AssetEvent<Shader>>>,
     ) {
-        let mut cache = world.get_resource_mut::<Self>().unwrap();
         for event in events.iter() {
             match event {
                 AssetEvent::Created { handle } | AssetEvent::Modified { handle } => {

@@ -20,6 +20,7 @@ use crate::{
     pipeline::Transparent2d,
     render::{
         color::Color,
+        extract_param::Extract,
         render_asset::RenderAssets,
         render_phase::{
             BatchedPhaseItem, DrawFunctions, EntityRenderCommand, RenderCommand,
@@ -33,7 +34,6 @@ use crate::{
         renderer::{RenderDevice, RenderQueue},
         texture::{Image, QuadDefault},
         view::{Msaa, ViewUniform, ViewUniformOffset, ViewUniforms, Visibility},
-        RenderWorld,
     },
     transform::GlobalTransform,
     ty::{FloatOrd, Vec2},
@@ -210,10 +210,9 @@ pub struct SpriteAssetEvents {
 }
 
 pub fn extract_sprite_events(
-    mut render_world: ResMut<RenderWorld>,
-    mut image_events: EventReader<AssetEvent<Image>>,
+    mut events: ResMut<SpriteAssetEvents>,
+    mut image_events: Extract<EventReader<AssetEvent<Image>>>,
 ) {
-    let mut events = render_world.resource_mut::<SpriteAssetEvents>();
     let SpriteAssetEvents { ref mut images } = *events;
     images.clear();
 
@@ -233,18 +232,20 @@ pub fn extract_sprite_events(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn extract_sprites(
-    mut render_world: ResMut<RenderWorld>,
-    texture_atlases: Res<Assets<TextureAtlas>>,
-    sprite_query: Query<(&Visibility, &Sprite, &GlobalTransform, &Handle<Image>)>,
-    atlas_query: Query<(
-        &Visibility,
-        &TextureAtlasSprite,
-        &GlobalTransform,
-        &Handle<TextureAtlas>,
-    )>,
+    mut extracted_sprites: ResMut<ExtractedSprites>,
+    texture_atlases: Extract<Res<Assets<TextureAtlas>>>,
+    sprite_query: Extract<Query<(&Visibility, &Sprite, &GlobalTransform, &Handle<Image>)>>,
+    atlas_query: Extract<
+        Query<(
+            &Visibility,
+            &TextureAtlasSprite,
+            &GlobalTransform,
+            &Handle<TextureAtlas>,
+        )>,
+    >,
 ) {
-    let mut extracted_sprites = render_world.resource_mut::<ExtractedSprites>();
     extracted_sprites.sprites.clear();
     for (visibility, sprite, transform, handle) in sprite_query.iter() {
         if !visibility.is_visible {

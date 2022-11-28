@@ -14,10 +14,11 @@ use wgpu::{BindGroupDescriptor, BindGroupEntry, BindingResource, BufferUsages};
 use crate::{
     app::{App, RenderStage},
     asset::{AssetEvent, Assets, Handle, HandleId},
-    ecs::{Commands, Component, Entity, IntoSystem, Query, Res, ResMut, Resource},
+    ecs::{Commands, Component, Entity, Query, Res, ResMut, Resource},
     pipeline::node::MAIN_PASS_DRIVER,
     render::{
         color::Color,
+        extract_param::Extract,
         render_asset::RenderAssets,
         render_graph::{RenderGraph, SlotInfo, SlotType},
         render_phase::{sort_phase_system, DrawFunctions, RenderPhase},
@@ -27,7 +28,6 @@ use crate::{
         renderer::{RenderDevice, RenderQueue},
         texture::Image,
         view::{ViewUniforms, Visibility},
-        RenderWorld,
     },
     sprite::{Rect, SpriteAssetEvents, TextureAtlas},
     text::{DefaultTextPipeline, Text},
@@ -69,14 +69,11 @@ pub fn build_ui_render(app: &mut App, render_app: &mut App) {
         .init_resource::<ExtractedUiNodes>()
         .init_resource::<DrawFunctions<TransparentUi>>()
         .add_render_command::<TransparentUi, DrawUi>()
+        .add_system_to_stage(RenderStage::Extract, extract_ui_camera_phases)
+        .add_system_to_stage(RenderStage::Extract, extract_uinodes)
         .add_system_to_stage(
             RenderStage::Extract,
-            extract_ui_camera_phases.system(&mut app.world),
-        )
-        .add_system_to_stage(RenderStage::Extract, extract_uinodes.system(&mut app.world))
-        .add_system_to_stage(
-            RenderStage::Extract,
-            extract_text_uinodes.system(&mut app.world), // After extract_ui_nodes
+            extract_text_uinodes, // After extract_ui_nodes
         )
         .add_system_to_stage(RenderStage::Prepare, prepare_uinodes)
         .add_system_to_stage(RenderStage::Queue, queue_uinodes)
@@ -124,18 +121,19 @@ pub struct ExtractedUiNodes {
 
 #[allow(clippy::type_complexity)]
 pub fn extract_uinodes(
-    mut render_world: ResMut<RenderWorld>,
-    images: Res<Assets<Image>>,
-    uinode_query: Query<(
-        &Node,
-        &GlobalTransform,
-        &UiColor,
-        &UiImage,
-        &Visibility,
-        Option<&CalculatedClip>,
-    )>,
+    mut extracted_uinodes: ResMut<ExtractedUiNodes>,
+    images: Extract<Res<Assets<Image>>>,
+    uinode_query: Extract<
+        Query<(
+            &Node,
+            &GlobalTransform,
+            &UiColor,
+            &UiImage,
+            &Visibility,
+            Option<&CalculatedClip>,
+        )>,
+    >,
 ) {
-    let mut extracted_uinodes = render_world.resource_mut::<ExtractedUiNodes>();
     extracted_uinodes.uinodes.clear();
     for (uinode, transform, color, image, visibility, clip) in uinode_query.iter() {
         if !visibility.is_visible {
@@ -162,21 +160,21 @@ pub fn extract_uinodes(
 
 #[allow(clippy::type_complexity)]
 pub fn extract_text_uinodes(
-    mut render_world: ResMut<RenderWorld>,
-    texture_atlases: Res<Assets<TextureAtlas>>,
-    text_pipeline: Res<DefaultTextPipeline>,
-    windows: Res<Windows>,
-    uinode_query: Query<(
-        Entity,
-        &Node,
-        &GlobalTransform,
-        &Text,
-        &Visibility,
-        Option<&CalculatedClip>,
-    )>,
+    mut extracted_uinodes: ResMut<ExtractedUiNodes>,
+    texture_atlases: Extract<Res<Assets<TextureAtlas>>>,
+    text_pipeline: Extract<Res<DefaultTextPipeline>>,
+    windows: Extract<Res<Windows>>,
+    uinode_query: Extract<
+        Query<(
+            Entity,
+            &Node,
+            &GlobalTransform,
+            &Text,
+            &Visibility,
+            Option<&CalculatedClip>,
+        )>,
+    >,
 ) {
-    let mut extracted_uinodes = render_world.resource_mut::<ExtractedUiNodes>();
-
     let scale_factor = windows.scale_factor(WindowId::primary()) as f32;
 
     for (entity, uinode, transform, text, visibility, clip) in uinode_query.iter() {

@@ -11,6 +11,7 @@ pub use quad_macros::{Bundle, Component, Event, Resource};
 
 pub use component::{
     Bundle, Component, ComponentId, Components, DetectChanges, Res, ResMut, Resource, ResourceId,
+    Tick,
 };
 pub use entity::Entity;
 pub use event::{Event, EventId, EventReader, EventWriter, Events};
@@ -22,12 +23,14 @@ pub use query::{
 pub use schedule::{Schedule, Scheduler};
 pub use system::{
     command::Commands,
+    function_system::SystemMeta,
     local::Local,
     query::Query,
     removed_components::RemovedComponents,
+    resource::ResState,
     system_param::{
-        ParamSet, ReadOnlySystemParamFetch, StaticSystemParam, SystemParam, SystemParamItem,
-        SystemState,
+        ParamSet, ReadOnlySystemParamFetch, StaticSystemParam, SystemParam, SystemParamFetch,
+        SystemParamItem, SystemParamState, SystemState,
     },
     IntoSystem, System,
 };

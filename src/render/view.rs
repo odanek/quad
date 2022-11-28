@@ -11,7 +11,7 @@ use wgpu::{
 
 use crate::{
     app::{App, RenderStage},
-    ecs::{Commands, Component, Entity, IntoSystem, Query, Res, ResMut, Resource},
+    ecs::{Commands, Component, Entity, Query, Res, ResMut, Resource},
     transform::GlobalTransform,
     ty::{Mat4, Vec3},
 };
@@ -20,6 +20,7 @@ use self::window::ExtractedWindows;
 
 use super::{
     cameras::ExtractedCamera,
+    extract_param::Extract,
     render_asset::RenderAssets,
     render_resource::{DynamicUniformVec, Texture, TextureView},
     renderer::{RenderDevice, RenderQueue},
@@ -31,7 +32,7 @@ pub fn view_plugin(app: &mut App, render_app: &mut App) {
     visibility_plugin(app);
     render_app
         .init_resource::<ViewUniforms>()
-        .add_system_to_stage(RenderStage::Extract, extract_msaa.system(&mut app.world))
+        .add_system_to_stage(RenderStage::Extract, extract_msaa)
         .add_system_to_stage(RenderStage::Prepare, prepare_view_uniforms)
         .add_system_to_stage(RenderStage::Prepare, prepare_view_targets); // Must run after prepare_windows
 }
@@ -56,7 +57,7 @@ impl Default for Msaa {
     }
 }
 
-pub fn extract_msaa(mut commands: Commands, msaa: Res<Msaa>) {
+pub fn extract_msaa(mut commands: Commands, msaa: Extract<Res<Msaa>>) {
     // NOTE: windows.is_changed() handles cases where a window was resized
     commands.insert_resource(msaa.clone());
 }

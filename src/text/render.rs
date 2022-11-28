@@ -3,7 +3,7 @@ use cgm::Zero;
 use crate::{
     asset::Assets,
     ecs::{Bundle, Changed, Entity, Local, ParamSet, Query, Res, ResMut, With},
-    render::{texture::Image, view::Visibility, RenderWorld},
+    render::{extract_param::Extract, texture::Image, view::Visibility},
     sprite::{ExtractedSprite, ExtractedSprites, TextureAtlas},
     transform::{GlobalTransform, Transform},
     ty::{Vec2, Vec3},
@@ -26,15 +26,14 @@ pub struct TextBundle {
     pub visibility: Visibility,
 }
 
+#[allow(clippy::type_complexity)]
 pub fn extract_text_sprite(
-    mut render_world: ResMut<RenderWorld>,
-    texture_atlases: Res<Assets<TextureAtlas>>,
-    text_pipeline: Res<DefaultTextPipeline>,
-    windows: Res<Windows>,
-    text2d_query: Query<(Entity, &Visibility, &Text, &GlobalTransform, &TextSize)>,
+    mut extracted_sprites: ResMut<ExtractedSprites>,
+    texture_atlases: Extract<Res<Assets<TextureAtlas>>>,
+    text_pipeline: Extract<Res<DefaultTextPipeline>>,
+    windows: Extract<Res<Windows>>,
+    text2d_query: Extract<Query<(Entity, &Visibility, &Text, &GlobalTransform, &TextSize)>>,
 ) {
-    let mut extracted_sprites = render_world.resource_mut::<ExtractedSprites>();
-
     let scale_factor = windows.scale_factor(WindowId::primary()) as f32;
 
     for (entity, visibility, text, transform, calculated_size) in text2d_query.iter() {

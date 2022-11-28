@@ -26,6 +26,7 @@ pub unsafe trait SystemParamState: Send + Sync + 'static {
 pub trait SystemParamFetch<'w, 's>: SystemParamState {
     type Item: SystemParam<Fetch = Self>;
 
+    #[allow(clippy::missing_safety_doc)]
     unsafe fn get_param(
         state: &'s mut Self,
         system_meta: &SystemMeta,

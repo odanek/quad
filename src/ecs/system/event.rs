@@ -2,7 +2,7 @@ use std::{any::type_name, marker::PhantomData};
 
 use crate::ecs::{
     component::{ResourceId, Tick},
-    Event, EventReader, EventWriter, Events, World,
+    Event, EventReader, EventWriter, Events, ReadOnlySystemParamFetch, World,
 };
 
 use super::{
@@ -65,6 +65,8 @@ impl<'w, 's, T: Event> SystemParamFetch<'w, 's> for EventReaderState<T> {
         EventReader::new(&*resource, &mut state.last_event_count)
     }
 }
+
+unsafe impl<T: Event> ReadOnlySystemParamFetch for EventReaderState<T> {}
 
 pub struct EventWriterState<T: Event> {
     resource_id: ResourceId,

@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use self::chain_system::EmptyChainBuilder;
 
-use super::{System, World};
+use super::{System, World, IntoSystem};
 
 mod chain_system;
 mod parallel_system;
@@ -29,6 +29,7 @@ where
 
     // TODO Remove
     pub fn run_with(&mut self, input: In, world: &mut World) -> Out {
+        self.system.initialize(world);
         let result = unsafe { self.system.run(input, world) };
         self.system.apply_buffers(world);
         result
@@ -41,6 +42,7 @@ where
 {
     // TODO Remove
     pub fn run(&mut self, world: &mut World) -> Out {
+        self.system.initialize(world);
         let result = unsafe { self.system.run((), world) };
         self.system.apply_buffers(world);
         result
@@ -50,13 +52,13 @@ where
 pub struct Scheduler {}
 
 impl Scheduler {
-    pub fn single<S, In, Out>(system: S) -> Schedule<In, Out>
+    pub fn single<S, In, Out, Param>(system: S) -> Schedule<In, Out>
     where
-        S: System<In = In, Out = Out>,
+        S: IntoSystem<In, Out, Param>,
         In: 'static,
         Out: 'static,
     {
-        Schedule::new(system)
+        Schedule::new(system.system())
     }
 
     pub fn chain(world: &mut World) -> EmptyChainBuilder {

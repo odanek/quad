@@ -42,8 +42,9 @@ where
     Param: SystemParam,
 {
     func: F,
-    param_state: Param::Fetch,
+    param_state: Option<Param::Fetch>,
     system_meta: SystemMeta,
+    initialized: bool,
 
     // NOTE: PhantomData<fn()-> T> gives this safe Send/Sync impls
     #[allow(clippy::type_complexity)]
@@ -60,13 +61,14 @@ where
 {
     type System = FunctionSystem<In, Out, Param, Marker, F>;
 
-    fn system(self, world: &mut World) -> Self::System {
-        let mut meta = SystemMeta::new(type_name::<F>().to_owned());
+    fn system(self) -> Self::System {
+        let meta = SystemMeta::new(type_name::<F>().to_owned());
         FunctionSystem {
             func: self,
-            param_state: <Param::Fetch as SystemParamState>::new(world, &mut meta),
+            param_state: None,
             system_meta: meta,
             marker: PhantomData,
+            initialized: false,
         }
     }
 }
@@ -98,12 +100,24 @@ where
     }
 
     #[inline]
+    fn initialize(&mut self, world: &mut World) {
+        if !self.initialized {
+            self.initialized = true;
+            self.param_state = Some(<Param::Fetch as SystemParamState>::new(
+                world,
+                &mut self.system_meta,
+            ));    
+        }
+    }
+
+    #[inline]
     unsafe fn run(&mut self, input: Self::In, world: &World) -> Self::Out {
         let change_tick = world.increment_change_tick();
-        self.param_state.update(world, &mut self.system_meta);
+        let param_state = self.param_state.as_mut().unwrap();
+        param_state.update(world, &mut self.system_meta);
         let result = self.func.run(
             input,
-            &mut self.param_state,
+            param_state,
             &self.system_meta,
             world,
             change_tick,
@@ -114,7 +128,8 @@ where
 
     #[inline]
     fn apply_buffers(&mut self, world: &mut World) {
-        self.param_state.apply(world);
+        let param_state = self.param_state.as_mut().unwrap();
+        param_state.apply(world);
     }
 }
 

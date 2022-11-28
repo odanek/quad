@@ -6,21 +6,21 @@ use wgpu::TextureFormat;
 
 use crate::{
     app::{App, RenderStage},
-    ecs::{IntoSystem, Res, ResMut, Resource},
+    ecs::{Res, ResMut, Resource},
     render::{
+        extract_param::Extract,
         render_resource::TextureView,
         renderer::{RenderDevice, RenderInstance},
         texture::QuadDefault,
-        RenderWorld,
     },
     windowing::{PresentMode, RawWindowHandleWrapper, WindowId, Windows},
 };
 
-pub fn window_render_plugin(app: &mut App, render_app: &mut App) {
+pub fn window_render_plugin(_app: &mut App, render_app: &mut App) {
     render_app
         .init_resource::<ExtractedWindows>()
         .init_resource::<WindowSurfaces>()
-        .add_system_to_stage(RenderStage::Extract, extract_windows.system(&mut app.world))
+        .add_system_to_stage(RenderStage::Extract, extract_windows)
         .add_system_to_stage(RenderStage::Prepare, prepare_windows);
 }
 
@@ -53,8 +53,10 @@ impl DerefMut for ExtractedWindows {
     }
 }
 
-fn extract_windows(mut render_world: ResMut<RenderWorld>, windows: Res<Windows>) {
-    let mut extracted_windows = render_world.resource_mut::<ExtractedWindows>();
+fn extract_windows(
+    mut extracted_windows: ResMut<ExtractedWindows>,
+    windows: Extract<Res<Windows>>,
+) {
     for window in windows.iter() {
         let (new_width, new_height) = (
             window.physical_width().max(1),

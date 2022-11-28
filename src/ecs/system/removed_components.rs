@@ -22,6 +22,15 @@ impl<'w, T> RemovedComponents<'w, T> {
     }
 }
 
+impl<'a, T: Component> IntoIterator for &'a RemovedComponents<'a, T> {
+    type Item = Entity;
+    type IntoIter = std::iter::Cloned<std::slice::Iter<'a, Entity>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 pub struct RemovedComponentsState<T> {
     component_id: ComponentId,
     marker: PhantomData<T>,
@@ -63,7 +72,7 @@ impl<'w, 's, T: Component> SystemParamFetch<'w, 's> for RemovedComponentsState<T
 #[cfg(test)]
 mod test {
     use crate::ecs::{
-        Component, Entity, IntoSystem, RemovedComponents, Res, ResMut, Resource, Scheduler, World,
+        Component, Entity, RemovedComponents, Res, ResMut, Resource, Scheduler, World,
     };
 
     #[derive(Resource)]
@@ -104,7 +113,7 @@ mod test {
             ran.0 = true;
         }
 
-        Scheduler::single(validate_removed.system(&mut world)).run(&mut world);
+        Scheduler::single(validate_removed).run(&mut world);
         assert!(world.get_resource::<Ran>().unwrap().0, "system ran");
     }
 }

@@ -20,7 +20,6 @@ pub use texture_atlas_builder::*;
 use crate::{
     app::{App, RenderStage},
     asset::{Assets, HandleId},
-    ecs::IntoSystem,
     pipeline::Transparent2d,
     render::render_resource::{Shader, SpecializedPipelines},
 };
@@ -61,11 +60,8 @@ pub fn sprite_plugin(app: &mut App, render_app: &mut App) {
         .init_resource::<ExtractedSprites>()
         .init_resource::<SpriteAssetEvents>()
         .add_render_command::<Transparent2d, DrawSprite>()
-        .add_system_to_stage(RenderStage::Extract, extract_sprites.system(&mut app.world))
-        .add_system_to_stage(
-            RenderStage::Extract,
-            extract_sprite_events.system(&mut app.world),
-        )
+        .add_system_to_stage(RenderStage::Extract, extract_sprites)
+        .add_system_to_stage(RenderStage::Extract, extract_sprite_events)
         .add_system_to_stage(RenderStage::Queue, queue_sprites);
 
     // TODO Are sprites using the sort phase and visibility plugin? Everything seems to be done in queue_sprites ignoring these.

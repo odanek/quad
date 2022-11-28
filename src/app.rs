@@ -122,7 +122,7 @@ impl App {
         L: StageLabel,
         S: IntoSystem<(), (), Params>,
     {
-        self.systems.add(stage, system.system(&mut self.world));
+        self.systems.add(stage, system.system());
         self
     }
 

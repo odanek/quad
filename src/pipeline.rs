@@ -12,17 +12,17 @@ use std::{collections::HashMap, ops::Range};
 
 use crate::{
     app::{App, RenderStage},
-    ecs::{Commands, Entity, IntoSystem, Res, ResMut, Resource},
+    ecs::{Commands, Entity, Res, Resource},
     render::{
         cameras::{ActiveCamera, Camera2d, RenderTarget},
         color::Color,
+        extract_param::Extract,
         render_graph::{EmptyNode, RenderGraph, SlotInfo, SlotType},
         render_phase::{
             batch_phase_system, sort_phase_system, BatchedPhaseItem, CachedPipelinePhaseItem,
             DrawFunctionId, DrawFunctions, EntityPhaseItem, PhaseItem, RenderPhase,
         },
         render_resource::CachedPipelineId,
-        RenderWorld,
     },
     ty::FloatOrd,
 };
@@ -92,14 +92,8 @@ pub fn core_pipeline_plugin(app: &mut App, render_app: &mut App) {
 
     render_app
         .init_resource::<DrawFunctions<Transparent2d>>()
-        .add_system_to_stage(
-            RenderStage::Extract,
-            extract_clear_color.system(&mut app.world),
-        )
-        .add_system_to_stage(
-            RenderStage::Extract,
-            extract_core_pipeline_camera_phases.system(&mut app.world),
-        )
+        .add_system_to_stage(RenderStage::Extract, extract_clear_color)
+        .add_system_to_stage(RenderStage::Extract, extract_core_pipeline_camera_phases)
         .add_system_to_stage(RenderStage::PhaseSort, sort_phase_system::<Transparent2d>)
         .add_system_to_stage(RenderStage::PhaseSort, batch_phase_system::<Transparent2d>);
 
@@ -187,26 +181,26 @@ impl BatchedPhaseItem for Transparent2d {
 }
 
 pub fn extract_clear_color(
-    clear_color: Res<ClearColor>,
-    clear_colors: Res<RenderTargetClearColors>,
-    mut render_world: ResMut<RenderWorld>,
+    clear_color: Extract<Res<ClearColor>>,
+    clear_colors: Extract<Res<RenderTargetClearColors>>,
+    mut commands: Commands,
 ) {
     // If the clear color has changed
     if clear_color.is_changed() {
         // Update the clear color resource in the render world
-        render_world.insert_resource(clear_color.clone());
+        commands.insert_resource(clear_color.clone());
     }
 
     // If the clear color has changed
     if clear_colors.is_changed() {
         // Update the clear color resource in the render world
-        render_world.insert_resource(clear_colors.clone());
+        commands.insert_resource(clear_colors.clone());
     }
 }
 
 pub fn extract_core_pipeline_camera_phases(
     mut commands: Commands,
-    active_2d: Res<ActiveCamera<Camera2d>>,
+    active_2d: Extract<Res<ActiveCamera<Camera2d>>>,
 ) {
     if let Some(entity) = active_2d.get() {
         commands

@@ -7,10 +7,11 @@ use crate::{
     app::{App, MainStage, RenderStage},
     asset::{AssetEvent, Assets, Handle},
     ecs::{
-        Added, Commands, Component, DetectChanges, Entity, EventReader, IntoSystem, ParamSet,
-        Query, Res, ResMut, Resource, With,
+        Added, Commands, Component, DetectChanges, Entity, EventReader, ParamSet, Query, Res,
+        ResMut, Resource, With,
     },
     render::{
+        extract_param::Extract,
         render_asset::RenderAssets,
         render_resource::TextureView,
         texture::Image,
@@ -212,10 +213,7 @@ pub fn camera_type_plugin<T: Component + Default>(app: &mut App, render_app: &mu
         // TODO Initialize the camera
         //.add_startup_system_to_stage(StartupStage::PostStartup, set_active_camera::<T>)
         .add_system_to_stage(MainStage::PostTransformUpdate, set_active_camera::<T>);
-    render_app.add_system_to_stage(
-        RenderStage::Extract,
-        extract_cameras::<T>.system(&mut app.world),
-    );
+    render_app.add_system_to_stage(RenderStage::Extract, extract_cameras::<T>);
 }
 
 /// The canonical source of the "active camera" of the given camera type `T`.
@@ -274,12 +272,13 @@ pub struct ExtractedCamera {
     pub physical_size: Option<Vec2u>,
 }
 
+#[allow(clippy::type_complexity)]
 pub fn extract_cameras<M: Component + Default>(
     mut commands: Commands,
-    windows: Res<Windows>,
-    images: Res<Assets<Image>>,
-    active_camera: Res<ActiveCamera<M>>,
-    query: Query<(&Camera, &GlobalTransform, &VisibleEntities), With<M>>,
+    windows: Extract<Res<Windows>>,
+    images: Extract<Res<Assets<Image>>>,
+    active_camera: Extract<Res<ActiveCamera<M>>>,
+    query: Extract<Query<(&Camera, &GlobalTransform, &VisibleEntities), With<M>>>,
 ) {
     if let Some(entity) = active_camera.get() {
         if let Ok((camera, transform, visible_entities)) = query.get(entity) {

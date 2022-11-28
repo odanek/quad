@@ -1,5 +1,6 @@
 pub mod cameras;
 pub mod color;
+pub mod extract_param;
 pub mod primitives;
 pub mod render_asset;
 pub mod render_component;
@@ -16,7 +17,7 @@ use derive_deref::{Deref, DerefMut};
 use crate::{
     app::{App, RenderStage},
     asset::AssetServer,
-    ecs::{IntoSystem, Resource, World},
+    ecs::{Resource, World},
     render::{
         cameras::camera_plugin,
         render_graph::RenderGraph,
@@ -38,18 +39,17 @@ pub mod prelude {
     };
 }
 
-/// The Render App World. This is only available as a resource during the Extract step.
 #[derive(Default, Resource, Deref, DerefMut)]
-pub struct RenderWorld(World);
+pub struct MainWorld(World);
 
 /// A Label for the rendering sub-app.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct RenderApp;
 
 /// A "scratch" world used to avoid allocating new worlds every frame when
-/// swapping out the [`RenderWorld`].
+/// swapping out the [`MainWorld`].
 #[derive(Default, Resource)]
-struct ScratchRenderWorld(World);
+struct ScratchMainWorld(World);
 
 // TODO Maybe this should create the render app and return it
 pub fn render_plugin(app: &mut App, render_app: &mut App) {
@@ -85,7 +85,7 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
     app.insert_resource(device.clone())
         .insert_resource(queue.clone())
         .insert_resource(adapter_info.clone())
-        .init_resource::<ScratchRenderWorld>();
+        .init_resource::<ScratchMainWorld>();
 
     let render_pipeline_cache = RenderPipelineCache::new(device.clone());
     let asset_server = app.world.resource::<AssetServer>().clone();
@@ -99,11 +99,7 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
         .insert_resource(asset_server)
         .init_resource::<RenderGraph>();
 
-    // Has to use world from the main app
-    render_app.add_system_to_stage(
-        RenderStage::Extract,
-        (RenderPipelineCache::extract_shaders).system(&mut app.world),
-    );
+    render_app.add_system_to_stage(RenderStage::Extract, RenderPipelineCache::extract_shaders);
 
     render_app.add_system_to_stage(
         RenderStage::Render,
@@ -166,25 +162,26 @@ pub fn update_render_app(app_world: &mut World, render_app: &mut App) {
 /// Executes the [`Extract`](RenderStage::Extract) stage of the renderer.
 /// This updates the render world with the extracted ECS data of the current frame.
 fn extract(app_world: &mut World, render_app: &mut App) {
-    // temporarily add the render world to the app world as a resource
-    let scratch_world = app_world.remove_resource::<ScratchRenderWorld>().unwrap();
-    let render_world = std::mem::replace(&mut render_app.world, scratch_world.0);
-    app_world.insert_resource(RenderWorld(render_world));
+    // temporarily add the app world to the render world as a resource
+    let scratch_world = app_world.remove_resource::<ScratchMainWorld>().unwrap();
+    let inserted_world = std::mem::replace(app_world, scratch_world.0);
+    let running_world = &mut render_app.world;
+    running_world.insert_resource(MainWorld(inserted_world));
 
     render_app
         .systems
         .get(RenderStage::Extract)
         .unwrap()
-        .run(app_world);
+        .run(running_world);
 
-    // add the render world back to the render app
-    let render_world = app_world.remove_resource::<RenderWorld>().unwrap();
-    let scratch_world = std::mem::replace(&mut render_app.world, render_world.0);
-    app_world.insert_resource(ScratchRenderWorld(scratch_world));
+    // move the app world back, as if nothing happened.
+    let inserted_world = running_world.remove_resource::<MainWorld>().unwrap();
+    let scratch_world = std::mem::replace(app_world, inserted_world.0);
+    app_world.insert_resource(ScratchMainWorld(scratch_world));
 
     render_app
         .systems
         .get(RenderStage::Extract)
         .unwrap()
-        .apply_buffers(&mut render_app.world);
+        .apply_buffers(running_world);
 }

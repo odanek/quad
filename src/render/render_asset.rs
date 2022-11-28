@@ -7,10 +7,12 @@ use crate::{
     app::{App, RenderStage},
     asset::{Asset, AssetEvent, Assets, Handle},
     ecs::{
-        Commands, EventReader, IntoSystem, Res, ResMut, Resource, StaticSystemParam, SystemParam,
+        Commands, EventReader, Res, ResMut, Resource, StaticSystemParam, SystemParam,
         SystemParamItem,
     },
 };
+
+use super::extract_param::Extract;
 
 pub enum PrepareAssetError<E: Send + Sync + 'static> {
     RetryNextUpdate(E),
@@ -43,15 +45,12 @@ pub trait RenderAsset: Asset {
     ) -> Result<Self::PreparedAsset, PrepareAssetError<Self::ExtractedAsset>>;
 }
 
-pub fn render_asset_plugin<A: RenderAsset>(app: &mut App, render_app: &mut App) {
+pub fn render_asset_plugin<A: RenderAsset>(_app: &mut App, render_app: &mut App) {
     render_app
         .init_resource::<ExtractedAssets<A>>()
         .init_resource::<RenderAssets<A>>()
         .init_resource::<PrepareNextFrameAssets<A>>()
-        .add_system_to_stage(
-            RenderStage::Extract,
-            extract_render_asset::<A>.system(&mut app.world),
-        )
+        .add_system_to_stage(RenderStage::Extract, extract_render_asset::<A>)
         .add_system_to_stage(RenderStage::Prepare, prepare_assets::<A>);
 }
 
@@ -100,8 +99,8 @@ impl<A: RenderAsset> DerefMut for RenderAssets<A> {
 /// into the "render world".
 fn extract_render_asset<A: RenderAsset>(
     mut commands: Commands,
-    mut events: EventReader<AssetEvent<A>>,
-    assets: Res<Assets<A>>,
+    mut events: Extract<EventReader<AssetEvent<A>>>,
+    assets: Extract<Res<Assets<A>>>,
 ) {
     let mut changed_assets: HashSet<&Handle<A>> = HashSet::default();
     let mut removed = Vec::new();

@@ -6,8 +6,8 @@ use crate::{
     app::{App, RenderStage},
     asset::{Asset, Handle},
     ecs::{
-        Commands, Component, Entity, IntoSystem, Local, Query, QueryItem, ReadOnlyWorldQuery, Res,
-        ResMut, Resource, StaticSystemParam, WorldQuery,
+        Commands, Component, Entity, Query, QueryItem, ReadOnlyWorldQuery, Res, ResMut, Resource,
+        WorldQuery,
     },
 };
 
@@ -119,18 +119,6 @@ fn prepare_uniform_components<C: Component>(
         .write_buffer(&render_device, &render_queue);
 }
 
-/// This plugin extracts the components into the "render world".
-///
-/// Therefore it sets up the [`RenderStage::Extract`](crate::RenderStage::Extract) step
-/// for the specified [`ExtractComponent`].
-
-pub fn extract_component_plugin<C: ExtractComponent>(app: &mut App, render_app: &mut App) {
-    render_app.add_system_to_stage(
-        RenderStage::Extract,
-        extract_components::<C>.system(&mut app.world),
-    );
-}
-
 impl<T: Asset> ExtractComponent for Handle<T> {
     type Query = &'static Handle<T>;
     type Filter = ();
@@ -139,19 +127,4 @@ impl<T: Asset> ExtractComponent for Handle<T> {
     fn extract_component(handle: QueryItem<Self::Query>) -> Self {
         handle.clone_weak()
     }
-}
-
-/// This system extracts all components of the corresponding [`ExtractComponent`] type.
-#[allow(clippy::type_complexity)]
-fn extract_components<C: ExtractComponent>(
-    mut commands: Commands,
-    mut previous_len: Local<usize>,
-    mut query: StaticSystemParam<Query<(Entity, C::Query), C::Filter>>,
-) {
-    let mut values = Vec::with_capacity(*previous_len);
-    for (entity, query_item) in query.iter_mut() {
-        values.push((entity, (C::extract_component(query_item),)));
-    }
-    *previous_len = values.len();
-    commands.insert_or_spawn_batch(values);
 }
