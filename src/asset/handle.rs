@@ -49,6 +49,7 @@ impl HandleId {
     }
 
     #[inline]
+    #[allow(clippy::should_implement_trait)]
     pub fn default<T: Asset>() -> Self {
         // TODO Make const once TypeId::of is const
         HandleId::Id(T::static_asset_type_id(), 0)

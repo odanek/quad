@@ -106,7 +106,7 @@ impl AssetServer {
     pub(crate) fn register_asset_type<T: Asset>(&self) -> Assets<T> {
         self.server.asset_lifecycles.write().insert(
             T::static_asset_type_id(),
-            Box::new(AssetLifecycleChannel::<T>::default()),
+            Box::<AssetLifecycleChannel<T>>::default(),
         );
         Assets::new(self.server.asset_ref_counter.channel.sender.clone())
     }

@@ -110,13 +110,9 @@ where
         let change_tick = world.increment_change_tick();
         let param_state = self.param_state.as_mut().unwrap();
         param_state.update(world, &mut self.system_meta);
-        let result = self.func.run(
-            input,
-            param_state,
-            &self.system_meta,
-            world,
-            change_tick,
-        );
+        let result = self
+            .func
+            .run(input, param_state, &self.system_meta, world, change_tick);
         self.system_meta.last_change_tick = change_tick;
         result
     }

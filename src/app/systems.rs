@@ -28,8 +28,8 @@ impl StageSystems {
             if !entry.initialized {
                 entry.initialized = true;
                 entry.system.initialize(world);
-            }            
-            unsafe {                
+            }
+            unsafe {
                 entry.system.run((), world);
             }
         }

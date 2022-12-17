@@ -66,7 +66,7 @@ pub fn extract_text_sprite(
                     .get(text_glyph.atlas_info.texture_atlas.clone_weak())
                     .unwrap();
                 let handle = atlas.texture.clone_weak();
-                let index = text_glyph.atlas_info.glyph_index as usize;
+                let index = text_glyph.atlas_info.glyph_index;
                 let rect = Some(atlas.textures[index]);
 
                 let glyph_transform = Transform::from_translation(

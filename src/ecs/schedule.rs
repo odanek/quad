@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use self::chain_system::EmptyChainBuilder;
 
-use super::{System, World, IntoSystem};
+use super::{IntoSystem, System, World};
 
 mod chain_system;
 mod parallel_system;
@@ -34,7 +34,7 @@ where
         if !self.initialized {
             self.initialized = true;
             self.system.initialize(world);
-        }        
+        }
         let result = unsafe { self.system.run(input, world) };
         self.system.apply_buffers(world);
         result
@@ -50,7 +50,7 @@ where
         if !self.initialized {
             self.initialized = true;
             self.system.initialize(world);
-        }        
+        }
         let result = unsafe { self.system.run((), world) };
         self.system.apply_buffers(world);
         result

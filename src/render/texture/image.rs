@@ -103,7 +103,7 @@ pub struct Image {
 impl Default for Image {
     fn default() -> Self {
         let format = wgpu::TextureFormat::quad_default();
-        let data = vec![255; format.pixel_size() as usize];
+        let data = vec![255; format.pixel_size()];
         Image {
             data,
             texture_descriptor: wgpu::TextureDescriptor {
