@@ -1,7 +1,8 @@
 use crate::{
     asset::Assets,
-    ecs::{Component, Query, Res, With},
+    ecs::{Component, Query, Res, Without},
     render::texture::Image,
+    text::Text,
     ui::{CalculatedSize, Size, UiImage, Val},
 };
 
@@ -19,12 +20,12 @@ impl Default for ImageMode {
 }
 
 /// Updates calculated size of the node based on the image provided
-pub fn image_node_system(
+pub fn update_image_calculated_size_system(
     textures: Res<Assets<Image>>,
-    mut query: Query<(&mut CalculatedSize, &UiImage), With<ImageMode>>,
+    mut query: Query<(&mut CalculatedSize, &UiImage), Without<Text>>,
 ) {
-    for (mut calculated_size, image) in query.iter_mut() {
-        if let Some(texture) = textures.get(image.0.clone_weak()) {
+    for (mut calculated_size, image) in &mut query {
+        if let Some(texture) = textures.get(&image.texture) {
             let size = Size {
                 width: Val::Px(texture.texture_descriptor.size.width as f32),
                 height: Val::Px(texture.texture_descriptor.size.height as f32),

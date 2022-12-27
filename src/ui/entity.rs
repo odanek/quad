@@ -12,7 +12,7 @@ use crate::{
 
 use super::{
     widget::{Button, ImageMode},
-    CalculatedSize, FocusPolicy, Interaction, Node, Style, UiColor, UiImage,
+    BackgroundColor, CalculatedSize, FocusPolicy, Interaction, Node, Style, UiImage,
 };
 
 /// The basic UI node
@@ -23,7 +23,7 @@ pub struct NodeBundle {
     /// Describes the style including flexbox settings
     pub style: Style,
     /// Describes the color of the node
-    pub color: UiColor,
+    pub color: BackgroundColor,
     /// Describes the image of the node
     pub image: UiImage,
     /// Whether this node should block interaction with lower nodes
@@ -48,7 +48,7 @@ pub struct ImageBundle {
     /// The calculated size based on the given image
     pub calculated_size: CalculatedSize,
     /// The color of the node
-    pub color: UiColor,
+    pub background_color: BackgroundColor,
     /// The image of the node
     pub image: UiImage,
     /// Whether this node should block interaction with lower nodes
@@ -110,8 +110,8 @@ pub struct ButtonBundle {
     pub interaction: Interaction,
     /// Whether this node should block interaction with lower nodes
     pub focus_policy: FocusPolicy,
-    /// The color of the node
-    pub color: UiColor,
+    /// When combined with `UiImage`, tints the provided image.
+    pub background_color: BackgroundColor,
     /// The image of the node
     pub image: UiImage,
     /// The transform of the node
@@ -130,7 +130,7 @@ impl Default for ButtonBundle {
             focus_policy: Default::default(),
             node: Default::default(),
             style: Default::default(),
-            color: Default::default(),
+            background_color: Default::default(),
             image: Default::default(),
             transform: Default::default(),
             global_transform: Default::default(),

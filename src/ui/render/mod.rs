@@ -36,7 +36,7 @@ use crate::{
     windowing::{WindowId, Windows},
 };
 
-use super::{CalculatedClip, Node, UiColor, UiImage};
+use super::{BackgroundColor, CalculatedClip, Node, UiImage};
 
 pub mod node {
     pub const UI_PASS_DRIVER: &str = "ui_pass_driver";
@@ -127,7 +127,7 @@ pub fn extract_uinodes(
         Query<(
             &Node,
             &GlobalTransform,
-            &UiColor,
+            &BackgroundColor,
             &UiImage,
             &Visibility,
             Option<&CalculatedClip>,
@@ -139,7 +139,7 @@ pub fn extract_uinodes(
         if !visibility.is_visible {
             continue;
         }
-        let image_handle_id = image.0.id;
+        let image_handle_id = image.texture.id;
         // Skip loading images
         if !images.contains(image_handle_id) {
             continue;
@@ -149,7 +149,7 @@ pub fn extract_uinodes(
             color: color.0,
             rect: Rect {
                 min: Vec2::ZERO,
-                max: uinode.size,
+                max: uinode.calculated_size,
             },
             image_handle_id,
             atlas_size: None,
@@ -182,12 +182,12 @@ pub fn extract_text_uinodes(
             continue;
         }
         // Skip if size is set to zero (e.g. when a parent is set to `Display::None`)
-        if uinode.size == Vec2::ZERO {
+        if uinode.size() == Vec2::ZERO {
             continue;
         }
         if let Some(text_layout) = text_pipeline.get_glyphs(&entity) {
             let text_glyphs = &text_layout.glyphs;
-            let alignment_offset = (uinode.size / -2.0).extend(0.0);
+            let alignment_offset = (uinode.size() / -2.0).extend(0.0);
 
             for text_glyph in text_glyphs {
                 let color = text.sections[text_glyph.section_index].style.color;

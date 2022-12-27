@@ -64,7 +64,7 @@ pub fn update_clipping_system(
     mut node_query: Query<(&Node, &GlobalTransform, &Style, Option<&mut CalculatedClip>)>,
     children_query: Query<&Children>,
 ) {
-    for root_node in root_node_query.iter() {
+    for root_node in &root_node_query {
         update_clipping(
             &mut commands,
             &children_query,
@@ -93,7 +93,9 @@ fn update_clipping(
             commands.entity(entity).insert(CalculatedClip { clip });
         }
         (Some(clip), Some(mut old_clip)) => {
-            *old_clip = CalculatedClip { clip };
+            if old_clip.clip != clip {
+                *old_clip = CalculatedClip { clip };
+            }
         }
     }
 
@@ -102,18 +104,8 @@ fn update_clipping(
         Overflow::Visible => clip,
         Overflow::Hidden => {
             let node_center = global_transform.translation.truncate();
-            let node_rect = Rect {
-                min: node_center - node.size / 2.,
-                max: node_center + node.size / 2.,
-            };
-            if let Some(clip) = clip {
-                Some(Rect {
-                    min: clip.min.max_element_wise(node_rect.min),
-                    max: clip.max.min_element_wise(node_rect.max),
-                })
-            } else {
-                Some(node_rect)
-            }
+            let node_rect = Rect::from_center_size(node_center, node.calculated_size);
+            Some(clip.map_or(node_rect, |c| c.intersect(node_rect)))
         }
     };
 
