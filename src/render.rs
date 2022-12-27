@@ -3,12 +3,12 @@ pub mod color;
 pub mod extract_param;
 pub mod primitives;
 pub mod render_asset;
-pub mod render_component;
 pub mod render_graph;
 pub mod render_phase;
 pub mod render_resource;
 pub mod renderer;
 pub mod settings;
+pub mod spatial_bundle;
 pub mod texture;
 pub mod view;
 
@@ -35,7 +35,12 @@ pub use wgpu::AddressMode;
 
 pub mod prelude {
     pub use crate::render::{
-        cameras::Camera2d, color::Color, texture::Image, view::Visibility, AddressMode,
+        cameras::Camera2d,
+        color::Color,
+        spatial_bundle::SpatialBundle,
+        texture::Image,
+        view::{Visibility, VisibilityBundle},
+        AddressMode,
     };
 }
 

@@ -18,6 +18,12 @@ pub struct Transform {
 pub const IDENTITY_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
 
 impl Transform {
+    pub const IDENTITY: Self = Transform {
+        translation: Vec3::ZERO,
+        rotation: Rad::ZERO,
+        scale: IDENTITY_SCALE,
+    };
+
     #[inline]
     pub fn from_xy(x: f32, y: f32) -> Self {
         Self::from_translation(Vec3::new(x, y, 0.0))

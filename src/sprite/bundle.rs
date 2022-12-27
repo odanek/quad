@@ -3,7 +3,7 @@ use crate::{
     ecs::Bundle,
     render::{
         texture::{Image, DEFAULT_IMAGE_HANDLE},
-        view::Visibility,
+        view::{ComputedVisibility, Visibility},
     },
     transform::{GlobalTransform, Transform},
 };
@@ -16,8 +16,8 @@ pub struct SpriteBundle {
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     pub texture: Handle<Image>,
-    /// User indication of whether an entity is visible
     pub visibility: Visibility,
+    pub computed_visibility: ComputedVisibility,
 }
 
 impl Default for SpriteBundle {
@@ -28,6 +28,7 @@ impl Default for SpriteBundle {
             global_transform: Default::default(),
             texture: Handle::weak(HandleId::with_id::<Image>(DEFAULT_IMAGE_HANDLE)),
             visibility: Default::default(),
+            computed_visibility: Default::default(),
         }
     }
 }
@@ -35,13 +36,10 @@ impl Default for SpriteBundle {
 /// to as a `TextureAtlas`)
 #[derive(Bundle, Clone, Default)]
 pub struct SpriteSheetBundle {
-    /// The specific sprite from the texture atlas to be drawn
     pub sprite: TextureAtlasSprite,
-    /// A handle to the texture atlas that holds the sprite images
     pub texture_atlas: Handle<TextureAtlas>,
-    /// Data pertaining to how the sprite is drawn on the screen
     pub transform: Transform,
     pub global_transform: GlobalTransform,
-    /// User indication of whether an entity is visible
     pub visibility: Visibility,
+    pub computed_visibility: ComputedVisibility,
 }

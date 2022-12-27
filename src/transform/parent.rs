@@ -1,14 +1,11 @@
-use std::ops::Deref;
-
 use crate::ecs::{Component, Entity};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Component)]
-pub struct Parent(pub Entity);
+pub struct Parent(pub(crate) Entity);
 
-impl Deref for Parent {
-    type Target = Entity;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl Parent {
+    /// Gets the [`Entity`] ID of the parent.
+    pub fn get(&self) -> Entity {
+        self.0
     }
 }

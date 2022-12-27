@@ -33,7 +33,7 @@ use crate::{
         },
         renderer::{RenderDevice, RenderQueue},
         texture::{Image, QuadDefault},
-        view::{Msaa, ViewUniform, ViewUniformOffset, ViewUniforms, Visibility},
+        view::{ComputedVisibility, Msaa, ViewUniform, ViewUniformOffset, ViewUniforms},
     },
     transform::GlobalTransform,
     ty::{FloatOrd, Vec2},
@@ -237,10 +237,17 @@ pub fn extract_sprite_events(
 pub fn extract_sprites(
     mut extracted_sprites: ResMut<ExtractedSprites>,
     texture_atlases: Extract<Res<Assets<TextureAtlas>>>,
-    sprite_query: Extract<Query<(&Visibility, &Sprite, &GlobalTransform, &Handle<Image>)>>,
+    sprite_query: Extract<
+        Query<(
+            &ComputedVisibility,
+            &Sprite,
+            &GlobalTransform,
+            &Handle<Image>,
+        )>,
+    >,
     atlas_query: Extract<
         Query<(
-            &Visibility,
+            &ComputedVisibility,
             &TextureAtlasSprite,
             &GlobalTransform,
             &Handle<TextureAtlas>,
@@ -249,7 +256,7 @@ pub fn extract_sprites(
 ) {
     extracted_sprites.sprites.clear();
     for (visibility, sprite, transform, handle) in sprite_query.iter() {
-        if !visibility.is_visible {
+        if !visibility.is_visible() {
             continue;
         }
         // PERF: we don't check in this function that the `Image` asset is ready, since it should be in most cases and hashing the handle is expensive
@@ -267,7 +274,7 @@ pub fn extract_sprites(
         });
     }
     for (visibility, atlas_sprite, transform, texture_atlas_handle) in atlas_query.iter() {
-        if !visibility.is_visible {
+        if !visibility.is_visible() {
             continue;
         }
         if let Some(texture_atlas) = texture_atlases.get(texture_atlas_handle) {

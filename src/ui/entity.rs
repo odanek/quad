@@ -4,7 +4,7 @@ use crate::{
     ecs::{Bundle, Component},
     render::{
         cameras::{Camera, DepthCalculation, OrthographicProjection, WindowOrigin},
-        view::{Visibility, VisibleEntities},
+        view::{ComputedVisibility, Visibility, VisibleEntities},
     },
     text::Text,
     transform::{GlobalTransform, Transform},
@@ -34,6 +34,8 @@ pub struct NodeBundle {
     pub global_transform: GlobalTransform,
     /// Describes the visibility properties of the node
     pub visibility: Visibility,
+    /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
+    pub computed_visibility: ComputedVisibility,
 }
 
 /// A UI node that is an image
@@ -59,6 +61,8 @@ pub struct ImageBundle {
     pub global_transform: GlobalTransform,
     /// Describes the visibility properties of the node
     pub visibility: Visibility,
+    /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
+    pub computed_visibility: ComputedVisibility,
 }
 
 /// A UI node that is text
@@ -80,6 +84,8 @@ pub struct UiTextBundle {
     pub global_transform: GlobalTransform,
     /// Describes the visibility properties of the node
     pub visibility: Visibility,
+    /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
+    pub computed_visibility: ComputedVisibility,
 }
 
 impl Default for UiTextBundle {
@@ -93,12 +99,13 @@ impl Default for UiTextBundle {
             transform: Default::default(),
             global_transform: Default::default(),
             visibility: Default::default(),
+            computed_visibility: Default::default(),
         }
     }
 }
 
 /// A UI node that is a button
-#[derive(Bundle, Clone, Debug)]
+#[derive(Bundle, Clone, Debug, Default)]
 pub struct ButtonBundle {
     /// Describes the size of the node
     pub node: Node,
@@ -120,24 +127,10 @@ pub struct ButtonBundle {
     pub global_transform: GlobalTransform,
     /// Describes the visibility properties of the node
     pub visibility: Visibility,
+    /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
+    pub computed_visibility: ComputedVisibility,
 }
 
-impl Default for ButtonBundle {
-    fn default() -> Self {
-        ButtonBundle {
-            button: Button,
-            interaction: Default::default(),
-            focus_policy: Default::default(),
-            node: Default::default(),
-            style: Default::default(),
-            background_color: Default::default(),
-            image: Default::default(),
-            transform: Default::default(),
-            global_transform: Default::default(),
-            visibility: Default::default(),
-        }
-    }
-}
 #[derive(Component, Default)]
 pub struct CameraUi;
 

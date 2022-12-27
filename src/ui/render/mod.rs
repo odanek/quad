@@ -27,7 +27,7 @@ use crate::{
         },
         renderer::{RenderDevice, RenderQueue},
         texture::Image,
-        view::{ViewUniforms, Visibility},
+        view::{ComputedVisibility, ViewUniforms},
     },
     sprite::{Rect, SpriteAssetEvents, TextureAtlas},
     text::{DefaultTextPipeline, Text},
@@ -129,14 +129,14 @@ pub fn extract_uinodes(
             &GlobalTransform,
             &BackgroundColor,
             &UiImage,
-            &Visibility,
+            &ComputedVisibility,
             Option<&CalculatedClip>,
         )>,
     >,
 ) {
     extracted_uinodes.uinodes.clear();
     for (uinode, transform, color, image, visibility, clip) in uinode_query.iter() {
-        if !visibility.is_visible {
+        if !visibility.is_visible() {
             continue;
         }
         let image_handle_id = image.texture.id;
@@ -170,7 +170,7 @@ pub fn extract_text_uinodes(
             &Node,
             &GlobalTransform,
             &Text,
-            &Visibility,
+            &ComputedVisibility,
             Option<&CalculatedClip>,
         )>,
     >,
@@ -178,7 +178,7 @@ pub fn extract_text_uinodes(
     let scale_factor = windows.scale_factor(WindowId::primary()) as f32;
 
     for (entity, uinode, transform, text, visibility, clip) in uinode_query.iter() {
-        if !visibility.is_visible {
+        if !visibility.is_visible() {
             continue;
         }
         // Skip if size is set to zero (e.g. when a parent is set to `Display::None`)

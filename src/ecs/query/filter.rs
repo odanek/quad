@@ -223,7 +223,7 @@ pub struct AddedFetch<'w, T> {
 
 unsafe impl<T: Component> WorldQuery for Added<T> {
     type Fetch<'w> = AddedFetch<'w, T>;
-    type Item<'w> = ();
+    type Item<'w> = bool;
     type ReadOnly = Self;
     type State = ComponentId;
 
@@ -266,15 +266,16 @@ unsafe impl<T: Component> WorldQuery for Added<T> {
     }
 
     unsafe fn fetch<'w>(
-        _fetch: &mut Self::Fetch<'w>,
+        fetch: &mut Self::Fetch<'w>,
         _entity: Entity,
-        _table_row: usize,
+        table_row: usize,
     ) -> Self::Item<'w> {
-    }
-
-    unsafe fn filter_fetch(fetch: &mut Self::Fetch<'_>, _entity: Entity, table_row: usize) -> bool {
         let ticks = &*(*fetch.table_ticks.add(table_row)).get();
         ticks.is_added(fetch.system_ticks.last_change_tick)
+    }
+
+    unsafe fn filter_fetch(fetch: &mut Self::Fetch<'_>, entity: Entity, table_row: usize) -> bool {
+        Self::fetch(fetch, entity, table_row)
     }
 }
 
@@ -290,7 +291,7 @@ pub struct ChangedFetch<'w, T> {
 
 unsafe impl<T: Component> WorldQuery for Changed<T> {
     type Fetch<'w> = ChangedFetch<'w, T>;
-    type Item<'w> = ();
+    type Item<'w> = bool;
     type ReadOnly = Self;
     type State = ComponentId;
 
@@ -333,15 +334,16 @@ unsafe impl<T: Component> WorldQuery for Changed<T> {
     }
 
     unsafe fn fetch<'w>(
-        _fetch: &mut Self::Fetch<'w>,
+        fetch: &mut Self::Fetch<'w>,
         _entity: Entity,
-        _table_row: usize,
+        table_row: usize,
     ) -> Self::Item<'w> {
-    }
-
-    unsafe fn filter_fetch(fetch: &mut Self::Fetch<'_>, _entity: Entity, table_row: usize) -> bool {
         let ticks = &*(*fetch.table_ticks.add(table_row)).get();
         ticks.is_changed(fetch.system_ticks.last_change_tick)
+    }
+
+    unsafe fn filter_fetch(fetch: &mut Self::Fetch<'_>, entity: Entity, table_row: usize) -> bool {
+        Self::fetch(fetch, entity, table_row)
     }
 }
 

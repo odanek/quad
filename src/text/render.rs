@@ -3,7 +3,11 @@ use cgm::Zero;
 use crate::{
     asset::Assets,
     ecs::{Bundle, Changed, Entity, Local, ParamSet, Query, Res, ResMut, With},
-    render::{extract_param::Extract, texture::Image, view::Visibility},
+    render::{
+        extract_param::Extract,
+        texture::Image,
+        view::{ComputedVisibility, Visibility},
+    },
     sprite::{Anchor, ExtractedSprite, ExtractedSprites, TextureAtlas},
     transform::{GlobalTransform, Transform},
     ty::{Vec2, Vec3},
@@ -24,6 +28,7 @@ pub struct TextBundle {
     pub global_transform: GlobalTransform,
     pub text_size: TextSize,
     pub visibility: Visibility,
+    pub computed_visibility: ComputedVisibility,
 }
 
 #[allow(clippy::type_complexity)]
@@ -32,12 +37,20 @@ pub fn extract_text_sprite(
     texture_atlases: Extract<Res<Assets<TextureAtlas>>>,
     text_pipeline: Extract<Res<DefaultTextPipeline>>,
     windows: Extract<Res<Windows>>,
-    text2d_query: Extract<Query<(Entity, &Visibility, &Text, &GlobalTransform, &TextSize)>>,
+    text2d_query: Extract<
+        Query<(
+            Entity,
+            &ComputedVisibility,
+            &Text,
+            &GlobalTransform,
+            &TextSize,
+        )>,
+    >,
 ) {
     let scale_factor = windows.scale_factor(WindowId::primary()) as f32;
 
     for (entity, visibility, text, transform, calculated_size) in text2d_query.iter() {
-        if !visibility.is_visible {
+        if !visibility.is_visible() {
             continue;
         }
         let (width, height) = (calculated_size.size.x, calculated_size.size.y);
