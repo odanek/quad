@@ -7,7 +7,7 @@ use crate::{
     ty::Vec2,
 };
 
-use super::Rect;
+use super::{Anchor, Rect};
 
 /// An atlas containing multiple textures (like a spritesheet or a tilemap).
 /// [Example usage animating sprite.](https://github.com/bevyengine/bevy/blob/latest/examples/2d/sprite_sheet.rs)
@@ -32,6 +32,7 @@ pub struct TextureAtlasSprite {
     /// An optional custom size for the sprite that will be used when rendering, instead of the size
     /// of the sprite's image in the atlas
     pub custom_size: Option<Vec2>,
+    pub anchor: Anchor,
 }
 
 impl Default for TextureAtlasSprite {
@@ -42,6 +43,7 @@ impl Default for TextureAtlasSprite {
             flip_x: false,
             flip_y: false,
             custom_size: None,
+            anchor: Anchor::default(),
         }
     }
 }

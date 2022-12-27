@@ -4,7 +4,7 @@ use crate::{
     asset::Assets,
     ecs::{Bundle, Changed, Entity, Local, ParamSet, Query, Res, ResMut, With},
     render::{extract_param::Extract, texture::Image, view::Visibility},
-    sprite::{ExtractedSprite, ExtractedSprites, TextureAtlas},
+    sprite::{Anchor, ExtractedSprite, ExtractedSprites, TextureAtlas},
     transform::{GlobalTransform, Transform},
     ty::{Vec2, Vec3},
     windowing::{WindowId, Windows},
@@ -83,6 +83,7 @@ pub fn extract_text_sprite(
                     image_handle_id: handle.id,
                     flip_x: false,
                     flip_y: false,
+                    anchor: Anchor::Center.as_vec(),
                 });
             }
         }
