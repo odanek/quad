@@ -5,7 +5,7 @@ use crate::{
     ecs::{Component, Entity, ParamSet, Query, With},
     render::{
         cameras::{Camera, CameraProjection, OrthographicProjection},
-        primitives::{Aabb, Frustum},
+        primitives::{Frustum},
     },
     transform::GlobalTransform,
 };
@@ -76,6 +76,7 @@ pub fn update_frusta<T: Component + CameraProjection + Send + Sync + 'static>(
     }
 }
 
+// TODO Sprites don't have Aabb so they are not culled?
 #[allow(clippy::type_complexity)]
 pub fn check_visibility(
     mut view_query: Query<(&mut VisibleEntities, &Frustum), With<Camera>>,
@@ -85,7 +86,6 @@ pub fn check_visibility(
             Entity,
             &Visibility,
             &mut ComputedVisibility,
-            Option<&Aabb>, // TODO Sprites don't have Aabb so they are not culled?
             Option<&GlobalTransform>,
         )>,
     )>,
@@ -95,21 +95,14 @@ pub fn check_visibility(
         computed_visibility.is_visible = false;
     }
 
-    for (mut visible_entities, frustum) in view_query.iter_mut() {
+    for (mut visible_entities, _frustum) in view_query.iter_mut() {
         visible_entities.entities.clear();
 
-        for (entity, visibility, mut computed_visibility, maybe_aabb, maybe_transform) in
+        for (entity, visibility, mut computed_visibility, maybe_transform) in
             visible_entity_query.p1().iter_mut()
         {
             if !visibility.is_visible {
                 continue;
-            }
-
-            // If we have an aabb and transform, do frustum culling
-            if let (Some(aabb), Some(transform)) = (maybe_aabb, maybe_transform) {
-                if !frustum.intersects_obb(aabb, &transform.compute_matrix()) {
-                    continue;
-                }
             }
 
             computed_visibility.is_visible = true;

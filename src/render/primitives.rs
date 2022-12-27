@@ -5,43 +5,6 @@ use crate::{
     ty::{Mat4, Vec3, Vec4},
 };
 
-#[derive(Component, Clone, Debug, Default)]
-pub struct Aabb {
-    pub center: Vec3,
-    pub half_extents: Vec3,
-}
-
-impl Aabb {
-    pub fn from_min_max(minimum: Vec3, maximum: Vec3) -> Self {
-        let center = 0.5 * (maximum + minimum);
-        let half_extents = 0.5 * (maximum - minimum);
-        Self {
-            center,
-            half_extents,
-        }
-    }
-
-    /// Calculate the relative radius of the AABB with respect to a plane
-    pub fn relative_radius(&self, p_normal: &Vec3, axes: &[Vec3]) -> f32 {
-        let half_extents = self.half_extents;
-        Vec3::new(
-            p_normal.dot(axes[0]),
-            p_normal.dot(axes[1]),
-            p_normal.dot(axes[2]),
-        )
-        .abs()
-        .dot(half_extents)
-    }
-
-    pub fn min(&self) -> Vec3 {
-        self.center - self.half_extents
-    }
-
-    pub fn max(&self) -> Vec3 {
-        self.center + self.half_extents
-    }
-}
-
 /// A plane defined by a normal and distance value along the normal
 /// Any point p is in the plane if n.p = d
 /// For planes defining half-spaces such as for frusta, if n.p > d then p is on the positive side of the plane.
@@ -82,24 +45,5 @@ impl Frustum {
             .extend(-view_backward.dot(far_center))
             .normalize();
         Self { planes }
-    }
-
-    pub fn intersects_obb(&self, aabb: &Aabb, model_to_world: &Mat4) -> bool {
-        let aabb_center_world = *model_to_world * aabb.center.extend(1.0);
-        let axes = [
-            model_to_world.x.truncate(),
-            model_to_world.y.truncate(),
-            model_to_world.z.truncate(),
-        ];
-
-        for plane in &self.planes {
-            let p_normal = plane.normal_d.truncate();
-            // TODO Is the relative radius needed for 2D? Just cull based on the camera bounding rect.
-            let relative_radius = aabb.relative_radius(&p_normal, &axes);
-            if plane.normal_d.dot(aabb_center_world) + relative_radius <= 0.0 {
-                return false;
-            }
-        }
-        true
     }
 }
