@@ -98,7 +98,7 @@ pub fn check_visibility(
     for (mut visible_entities, _frustum) in view_query.iter_mut() {
         visible_entities.entities.clear();
 
-        for (entity, visibility, mut computed_visibility, maybe_transform) in
+        for (entity, visibility, mut computed_visibility, _maybe_transform) in
             visible_entity_query.p1().iter_mut()
         {
             if !visibility.is_visible {
