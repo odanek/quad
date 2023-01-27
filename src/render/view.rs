@@ -6,7 +6,7 @@ use crevice::std140::AsStd140;
 pub use visibility::*;
 use wgpu::{
     Color, Extent3d, Operations, RenderPassColorAttachment, TextureDescriptor, TextureDimension,
-    TextureFormat, TextureUsages,
+    TextureUsages,
 };
 
 use crate::{
@@ -24,7 +24,7 @@ use super::{
     render_asset::RenderAssets,
     render_resource::{DynamicUniformVec, Texture, TextureView},
     renderer::{RenderDevice, RenderQueue},
-    texture::{Image, QuadDefault, TextureCache},
+    texture::{Image, TextureCache, TEXTURE_FORMAT},
 };
 
 pub fn view_plugin(app: &mut App, render_app: &mut App) {
@@ -185,8 +185,9 @@ fn prepare_view_targets(
                             mip_level_count: 1,
                             sample_count: msaa.samples,
                             dimension: TextureDimension::D2,
-                            format: TextureFormat::quad_default(),
+                            format: TEXTURE_FORMAT,
                             usage: TextureUsages::RENDER_ATTACHMENT,
+                            view_formats: &[],
                         },
                     );
                     Some(sampled_texture.default_view.clone())

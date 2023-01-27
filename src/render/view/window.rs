@@ -2,7 +2,6 @@ use std::{
     collections::{HashMap, HashSet},
     ops::{Deref, DerefMut},
 };
-use wgpu::TextureFormat;
 
 use crate::{
     app::{App, RenderStage},
@@ -11,7 +10,7 @@ use crate::{
         extract_param::Extract,
         render_resource::TextureView,
         renderer::{RenderDevice, RenderInstance},
-        texture::QuadDefault,
+        texture::TEXTURE_FORMAT,
     },
     windowing::{PresentMode, RawWindowHandleWrapper, WindowId, Windows},
 };
@@ -116,11 +115,13 @@ pub fn prepare_windows(
             .entry(window.id)
             .or_insert_with(|| unsafe {
                 // NOTE: On some OSes this MUST be called from the main thread.
-                render_instance.create_surface(&window.handle.get_handle())
+                render_instance
+                    .create_surface(&window.handle.get_handle())
+                    .unwrap()
             });
 
         let swap_chain_descriptor = wgpu::SurfaceConfiguration {
-            format: TextureFormat::quad_default(),
+            format: TEXTURE_FORMAT,
             width: window.physical_width,
             height: window.physical_height,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -130,6 +131,7 @@ pub fn prepare_windows(
                 PresentMode::Immediate => wgpu::PresentMode::Immediate,
             },
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
+            view_formats: vec![],
         };
 
         // Do the initial surface configuration if it hasn't been configured yet

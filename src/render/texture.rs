@@ -30,17 +30,8 @@ pub fn image_plugin(app: &mut App, render_app: &mut App) {
         .add_system_to_stage(RenderStage::Cleanup, update_texture_cache_system);
 }
 
-pub trait QuadDefault {
-    fn quad_default() -> Self;
-}
+#[cfg(any(target_os = "android", target_arch = "wasm32"))]
+pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8UnormSrgb;
 
-impl QuadDefault for wgpu::TextureFormat {
-    fn quad_default() -> Self {
-        if cfg!(target_os = "android") || cfg!(target_arch = "wasm32") {
-            // Bgra8UnormSrgb texture missing on some Android devices
-            wgpu::TextureFormat::Rgba8UnormSrgb
-        } else {
-            wgpu::TextureFormat::Bgra8UnormSrgb
-        }
-    }
-}
+#[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
+pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;

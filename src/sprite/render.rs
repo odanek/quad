@@ -7,8 +7,8 @@ use wgpu::{
     BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
     BindingResource, BindingType, BlendState, BufferBindingType, BufferSize, BufferUsages,
     ColorTargetState, ColorWrites, FrontFace, MultisampleState, PolygonMode, PrimitiveState,
-    PrimitiveTopology, SamplerBindingType, ShaderStages, TextureFormat, TextureSampleType,
-    TextureViewDimension, VertexFormat, VertexStepMode,
+    PrimitiveTopology, SamplerBindingType, ShaderStages, TextureSampleType, TextureViewDimension,
+    VertexFormat, VertexStepMode,
 };
 
 use crate::{
@@ -32,7 +32,7 @@ use crate::{
             VertexBufferLayout, VertexState,
         },
         renderer::{RenderDevice, RenderQueue},
-        texture::{Image, QuadDefault},
+        texture::{Image, TEXTURE_FORMAT},
         view::{ComputedVisibility, Msaa, ViewUniform, ViewUniformOffset, ViewUniforms},
     },
     transform::GlobalTransform,
@@ -158,7 +158,7 @@ impl SpecializedPipeline for SpritePipeline {
                 shader: Handle::weak(shader_handle),
                 entry_point: "fragment".into(),
                 targets: vec![Some(ColorTargetState {
-                    format: TextureFormat::quad_default(),
+                    format: TEXTURE_FORMAT,
                     blend: Some(BlendState::ALPHA_BLENDING),
                     write_mask: ColorWrites::ALL,
                 })],

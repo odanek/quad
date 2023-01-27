@@ -8,7 +8,7 @@ use crate::{
     ty::Vec2,
 };
 
-use super::{image_texture_conversion::image_to_texture, QuadDefault};
+use super::{image_texture_conversion::image_to_texture, TEXTURE_FORMAT};
 use thiserror::Error;
 use wgpu::{
     Extent3d, ImageCopyTexture, ImageDataLayout, Origin3d, TextureDimension, TextureFormat,
@@ -102,7 +102,7 @@ pub struct Image {
 
 impl Default for Image {
     fn default() -> Self {
-        let format = wgpu::TextureFormat::quad_default();
+        let format = TEXTURE_FORMAT;
         let data = vec![255; format.pixel_size()];
         Image {
             data,
@@ -118,6 +118,7 @@ impl Default for Image {
                 mip_level_count: 1,
                 sample_count: 1,
                 usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+                view_formats: &[],
             },
             sampler_descriptor: wgpu::SamplerDescriptor::default(),
         }

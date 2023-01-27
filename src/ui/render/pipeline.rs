@@ -2,8 +2,8 @@ use crevice::std140::AsStd140;
 use wgpu::{
     BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingType, BlendState, BufferBindingType,
     BufferSize, ColorTargetState, ColorWrites, FrontFace, MultisampleState, PolygonMode,
-    PrimitiveState, PrimitiveTopology, SamplerBindingType, ShaderStages, TextureFormat,
-    TextureSampleType, TextureViewDimension, VertexFormat, VertexStepMode,
+    PrimitiveState, PrimitiveTopology, SamplerBindingType, ShaderStages, TextureSampleType,
+    TextureViewDimension, VertexFormat, VertexStepMode,
 };
 
 use crate::{
@@ -15,7 +15,7 @@ use crate::{
             VertexBufferLayout, VertexState,
         },
         renderer::RenderDevice,
-        texture::QuadDefault,
+        texture::TEXTURE_FORMAT,
         view::ViewUniform,
     },
 };
@@ -104,7 +104,7 @@ impl SpecializedPipeline for UiPipeline {
                 shader: Handle::weak(HandleId::with_id::<Shader>(UI_SHADER_HANDLE)),
                 entry_point: "fragment".into(),
                 targets: vec![Some(ColorTargetState {
-                    format: TextureFormat::quad_default(),
+                    format: TEXTURE_FORMAT,
                     blend: Some(BlendState::ALPHA_BLENDING),
                     write_mask: ColorWrites::ALL,
                 })],

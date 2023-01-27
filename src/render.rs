@@ -68,12 +68,15 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
     app.add_asset::<Shader>()
         .init_asset_loader::<ShaderLoader>();
 
-    let instance = wgpu::Instance::new(options.backends);
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: options.backends,
+        dx12_shader_compiler: wgpu::Dx12Compiler::Fxc,
+    });
     let surface = {
         let windows = app.world.resource_mut::<Windows>();
         let raw_handle = windows.get_primary().map(|window| unsafe {
             let handle = window.raw_window_handle().get_handle();
-            instance.create_surface(&handle)
+            instance.create_surface(&handle).unwrap()
         });
         raw_handle
     };
