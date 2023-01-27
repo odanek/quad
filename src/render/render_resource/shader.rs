@@ -55,7 +55,7 @@ impl AssetLoader for ShaderLoader {
 
             let shader = match ext {
                 "wgsl" => Shader::from_wgsl(String::from_utf8(Vec::from(bytes))?),
-                _ => panic!("Unhandled shader extension: {}", ext),
+                _ => panic!("Unhandled shader extension: {ext}"),
             };
 
             let asset = LoadedAsset::new(shader);

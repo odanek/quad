@@ -90,6 +90,7 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
     }
 
     #[inline]
+    #[allow(clippy::needless_lifetimes)]
     pub fn get_mut<'w, 's>(
         &'s mut self,
         world: &'w mut World,
@@ -100,6 +101,7 @@ impl<Q: WorldQuery, F: ReadOnlyWorldQuery> QueryState<Q, F> {
     }
 
     #[inline]
+    #[allow(clippy::needless_lifetimes)]
     pub fn get_manual<'w, 's>(
         &'s self,
         world: &'w World,

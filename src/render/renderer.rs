@@ -43,7 +43,7 @@ pub fn render_system(world: &mut World) {
             }
         }
 
-        panic!("Error running render graph: {}", e);
+        panic!("Error running render graph: {e}");
     }
 
     // Remove ViewTarget components to ensure swap chain TextureViews are dropped.

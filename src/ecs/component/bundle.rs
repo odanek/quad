@@ -127,7 +127,7 @@ fn initialize_bundle(
     deduped.sort();
     deduped.dedup();
     if deduped.len() != component_ids.len() {
-        panic!("Bundle {} has duplicate components", bundle_type_name);
+        panic!("Bundle {bundle_type_name} has duplicate components");
     }
 
     BundleInfo { id, component_ids }

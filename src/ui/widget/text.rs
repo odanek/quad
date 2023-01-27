@@ -108,7 +108,7 @@ pub fn text_system(
                     new_queue.push(entity);
                 }
                 Err(e @ TextError::FailedToAddGlyph(_)) => {
-                    panic!("Fatal error when processing text: {}.", e);
+                    panic!("Fatal error when processing text: {e}.");
                 }
                 Ok(()) => {
                     let text_layout_info = text_pipeline.get_glyphs(&entity).expect(

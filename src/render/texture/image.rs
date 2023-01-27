@@ -286,7 +286,7 @@ impl Image {
 
         let image_crate_format = format
             .as_image_crate_format()
-            .ok_or_else(|| TextureError::UnsupportedTextureFormat(format!("{:?}", format)))?;
+            .ok_or_else(|| TextureError::UnsupportedTextureFormat(format!("{format:?}")))?;
         let dyn_img = image::load_from_memory_with_format(buffer, image_crate_format)?;
         Ok(image_to_texture(dyn_img, is_srgb))
     }
