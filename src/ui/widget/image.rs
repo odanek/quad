@@ -7,16 +7,11 @@ use crate::{
 };
 
 /// Describes how to resize the Image node
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, Default)]
 pub enum ImageMode {
     /// Keep the aspect ratio of the image
+    #[default]
     KeepAspect,
-}
-
-impl Default for ImageMode {
-    fn default() -> Self {
-        ImageMode::KeepAspect
-    }
 }
 
 /// Updates calculated size of the node based on the image provided

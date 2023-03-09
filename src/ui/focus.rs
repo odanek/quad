@@ -11,35 +11,25 @@ use super::{CalculatedClip, Node};
 /// Describes what type of input interaction has occurred for a UI node.
 ///
 /// This is commonly queried with a `Changed<Interaction>` filter.
-#[derive(Component, Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Component, Copy, Clone, Eq, PartialEq, Debug, Default)]
 pub enum Interaction {
     /// The node has been clicked
     Clicked,
     /// The node has been hovered over
     Hovered,
     /// Nothing has happened
+    #[default]
     None,
 }
 
-impl Default for Interaction {
-    fn default() -> Self {
-        Interaction::None
-    }
-}
-
 /// Describes whether the node should block interactions with lower nodes
-#[derive(Component, Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Component, Copy, Clone, Eq, PartialEq, Debug, Default)]
 pub enum FocusPolicy {
     /// Blocks interaction
+    #[default]
     Block,
     /// Lets interaction pass through
     Pass,
-}
-
-impl Default for FocusPolicy {
-    fn default() -> Self {
-        FocusPolicy::Block
-    }
 }
 
 /// Contains entities whose Interaction should be set to None
