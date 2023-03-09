@@ -5,7 +5,7 @@ use crate::{
     sprite::TextureAtlas,
     text::{DefaultTextPipeline, Font, FontAtlasSet, Text, TextError},
     ty::Vec2,
-    ui::{CalculatedSize, Size, Style, Val},
+    ui::{CalculatedSize, Style, Val},
     windowing::{WindowId, Windows},
 };
 
@@ -110,14 +110,11 @@ pub fn text_system(
                 Err(e @ TextError::FailedToAddGlyph(_)) => {
                     panic!("Fatal error when processing text: {e}.");
                 }
-                Ok(()) => {
-                    let text_layout_info = text_pipeline.get_glyphs(&entity).expect(
-                        "Failed to get glyphs from the pipeline that have just been computed",
+                Ok(size) => {
+                    calculated_size.size = Vec2::new(
+                        scale_value(size.x, inv_scale_factor),
+                        scale_value(size.y, inv_scale_factor),
                     );
-                    calculated_size.size = Size {
-                        width: Val::Px(scale_value(text_layout_info.size.x, inv_scale_factor)),
-                        height: Val::Px(scale_value(text_layout_info.size.y, inv_scale_factor)),
-                    };
                 }
             }
         }

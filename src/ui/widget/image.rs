@@ -3,7 +3,8 @@ use crate::{
     ecs::{Component, Query, Res, Without},
     render::texture::Image,
     text::Text,
-    ui::{CalculatedSize, Size, UiImage, Val},
+    ty::Vec2,
+    ui::{CalculatedSize, UiImage},
 };
 
 /// Describes how to resize the Image node
@@ -21,13 +22,14 @@ pub fn update_image_calculated_size_system(
 ) {
     for (mut calculated_size, image) in &mut query {
         if let Some(texture) = textures.get(&image.texture) {
-            let size = Size {
-                width: Val::Px(texture.texture_descriptor.size.width as f32),
-                height: Val::Px(texture.texture_descriptor.size.height as f32),
-            };
+            let size = Vec2::new(
+                texture.texture_descriptor.size.width as f32,
+                texture.texture_descriptor.size.height as f32,
+            );
             // Update only if size has changed to avoid needless layout calculations
             if size != calculated_size.size {
                 calculated_size.size = size;
+                calculated_size.preserve_aspect_ratio = true;
             }
         }
     }

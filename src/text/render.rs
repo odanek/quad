@@ -159,13 +159,10 @@ pub fn text_system(
                 Err(e @ TextError::FailedToAddGlyph(_)) => {
                     panic!("Fatal error when processing text: {e}.");
                 }
-                Ok(()) => {
-                    let text_layout_info = text_pipeline.get_glyphs(&entity).expect(
-                        "Failed to get glyphs from the pipeline that have just been computed",
-                    );
+                Ok(size) => {
                     calculated_size.size = Vec2::new(
-                        scale_value(text_layout_info.size.x, 1. / scale_factor),
-                        scale_value(text_layout_info.size.y, 1. / scale_factor),
+                        scale_value(size.x, 1. / scale_factor),
+                        scale_value(size.y, 1. / scale_factor),
                     );
                 }
             }

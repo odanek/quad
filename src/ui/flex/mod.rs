@@ -3,6 +3,7 @@ mod convert;
 use std::{collections::HashMap, fmt};
 use taffy::{
     prelude::{AvailableSpace, Size},
+    style_helpers::TaffyMaxContent,
     Taffy,
 };
 
@@ -48,14 +49,17 @@ impl FlexSurface {
     pub fn upsert_node(&mut self, entity: Entity, style: &Style, scale_factor: f64) {
         let mut added = false;
         let taffy = &mut self.taffy;
-        let taffy_style = convert::from_style(scale_factor, style);
         let taffy_node = self.entity_to_taffy.entry(entity).or_insert_with(|| {
             added = true;
-            taffy.new_leaf(taffy_style).unwrap()
+            taffy
+                .new_leaf(convert::from_style(scale_factor, style))
+                .unwrap()
         });
 
         if !added {
-            self.taffy.set_style(*taffy_node, taffy_style).unwrap();
+            self.taffy
+                .set_style(*taffy_node, convert::from_style(scale_factor, style))
+                .unwrap();
         }
     }
 
@@ -70,15 +74,22 @@ impl FlexSurface {
         let taffy_style = convert::from_style(scale_factor, style);
         let measure = taffy::node::MeasureFunc::Boxed(Box::new(
             move |constraints: Size<Option<f32>>, _available: Size<AvailableSpace>| {
-                let mut size = convert::from_f32_size(scale_factor, calculated_size.size);
+                let mut size = Size {
+                    width: (scale_factor * calculated_size.size.x as f64) as f32,
+                    height: (scale_factor * calculated_size.size.y as f64) as f32,
+                };
                 match (constraints.width, constraints.height) {
                     (None, None) => {}
                     (Some(width), None) => {
-                        size.height = width * size.height / size.width;
+                        if calculated_size.preserve_aspect_ratio {
+                            size.height = width * size.height / size.width;
+                        }
                         size.width = width;
                     }
                     (None, Some(height)) => {
-                        size.width = height * size.width / size.height;
+                        if calculated_size.preserve_aspect_ratio {
+                            size.width = height * size.width / size.height;
+                        }
                         size.height = height;
                     }
                     (Some(width), Some(height)) => {
@@ -94,7 +105,7 @@ impl FlexSurface {
             self.taffy.set_style(*taffy_node, taffy_style).unwrap();
             self.taffy.set_measure(*taffy_node, Some(measure)).unwrap();
         } else {
-            let taffy_node = taffy.new_leaf(taffy_style).unwrap();
+            let taffy_node = taffy.new_leaf_with_measure(taffy_style, measure).unwrap();
             self.entity_to_taffy.insert(entity, taffy_node);
         }
     }

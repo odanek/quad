@@ -2,7 +2,7 @@ use std::ops::{Div, DivAssign, Mul, MulAssign};
 
 use super::Val;
 
-#[derive(Copy, Clone, PartialEq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub struct UiRect {
     pub left: Val,
     pub right: Val,
@@ -10,7 +10,20 @@ pub struct UiRect {
     pub bottom: Val,
 }
 
+impl Default for UiRect {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
 impl UiRect {
+    pub const DEFAULT: Self = Self {
+        left: Val::DEFAULT,
+        right: Val::DEFAULT,
+        top: Val::DEFAULT,
+        bottom: Val::DEFAULT,
+    };
+
     pub fn new(left: Val, right: Val, top: Val, bottom: Val) -> Self {
         UiRect {
             left,

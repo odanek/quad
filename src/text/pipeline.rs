@@ -28,6 +28,7 @@ impl<ID> Default for TextPipeline<ID> {
     }
 }
 
+#[derive(Clone, Default, Debug)]
 pub struct TextLayoutInfo {
     pub glyphs: Vec<PositionedGlyph>,
     pub size: Vec2,
@@ -58,7 +59,7 @@ impl<ID: Hash + Eq> TextPipeline<ID> {
         font_atlas_set_storage: &mut Assets<FontAtlasSet>,
         texture_atlases: &mut Assets<TextureAtlas>,
         textures: &mut Assets<Image>,
-    ) -> Result<(), TextError> {
+    ) -> Result<Vec2, TextError> {
         let mut scaled_fonts = Vec::new();
         let sections = sections
             .iter()
@@ -93,7 +94,7 @@ impl<ID: Hash + Eq> TextPipeline<ID> {
                     size: Vec2::new(0., 0.),
                 },
             );
-            return Ok(());
+            return Ok(Vec2::default());
         }
 
         let mut min_x = std::f32::MAX;
@@ -123,6 +124,6 @@ impl<ID: Hash + Eq> TextPipeline<ID> {
 
         self.glyph_map.insert(id, TextLayoutInfo { glyphs, size });
 
-        Ok(())
+        Ok(size)
     }
 }

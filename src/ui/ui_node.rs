@@ -1,5 +1,6 @@
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 
+use cgm::Zero;
 use thiserror::Error;
 
 use crate::{
@@ -10,32 +11,59 @@ use crate::{
         texture::{Image, DEFAULT_IMAGE_HANDLE},
     },
     sprite::Rect,
+    transform::GlobalTransform,
     ty::Vec2,
 };
 
 use super::{Size, UiRect};
 
-/// Describes the size of a UI node
-#[derive(Component, Debug, Clone, Default)]
+#[derive(Component, Debug, Clone)]
 pub struct Node {
-    /// The size of the node as width and height in pixels
+    /// The size of the node as width and height in logical pixels
     /// automatically calculated by [`super::flex::flex_node_system`]
     pub(crate) calculated_size: Vec2,
 }
 
 impl Node {
-    /// The calculated node size as width and height in pixels
+    /// The calculated node size as width and height in logical pixels
     /// automatically calculated by [`super::flex::flex_node_system`]
     pub fn size(&self) -> Vec2 {
         self.calculated_size
     }
+
+    /// Returns the logical pixel coordinates of the UI node, based on its `GlobalTransform`.
+    #[inline]
+    pub fn logical_rect(&self, transform: &GlobalTransform) -> Rect {
+        Rect::from_center_size(transform.translation.truncate(), self.size())
+    }
+
+    /// Returns the physical pixel coordinates of the UI node, based on its `GlobalTransform` and the scale factor.
+    #[inline]
+    pub fn physical_rect(&self, transform: &GlobalTransform, scale_factor: f32) -> Rect {
+        let rect = self.logical_rect(transform);
+        Rect {
+            min: rect.min / scale_factor,
+            max: rect.max / scale_factor,
+        }
+    }
+}
+
+impl Node {
+    pub const DEFAULT: Self = Self {
+        calculated_size: Vec2::ZERO,
+    };
+}
+
+impl Default for Node {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
 }
 
 /// An enum that describes possible types of value in flexbox layout options
-#[derive(Copy, Clone, PartialEq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Val {
     /// No value defined
-    #[default]
     Undefined,
     /// Automatically determine this value
     Auto,
@@ -43,6 +71,16 @@ pub enum Val {
     Px(f32),
     /// Set this value in percent
     Percent(f32),
+}
+
+impl Val {
+    pub const DEFAULT: Self = Self::Undefined;
+}
+
+impl Default for Val {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
 }
 
 impl Mul<f32> for Val {
@@ -138,7 +176,7 @@ impl Val {
     /// Returns a [`ValArithmeticError::NonEvaluateable`] if the [`Val`] is impossible to evaluate into [`Val::Px`].
     /// Otherwise it returns an [`f32`] containing the evaluated value in pixels.
     ///
-    /// **Note:** If a [`Val::Px`] is evaluated, it's innver value returned unchanged.
+    /// **Note:** If a [`Val::Px`] is evaluated, it's inner value returned unchanged.
     pub fn evaluate(&self, size: f32) -> Result<f32, ValArithmeticError> {
         match self {
             Val::Percent(value) => Ok(size * value / 100.0),
@@ -207,7 +245,8 @@ pub struct Style {
     pub flex_wrap: FlexWrap,
     /// How items are aligned according to the cross axis
     pub align_items: AlignItems,
-    /// Like align_items but for only this item
+    /// How this item is aligned according to the cross axis.
+    /// Overrides [`AlignItems`].
     pub align_self: AlignSelf,
     /// How to align each line, only applies if flex_wrap is set to
     /// [`FlexWrap::Wrap`] and there are multiple lines of items
@@ -216,138 +255,224 @@ pub struct Style {
     pub justify_content: JustifyContent,
     /// The position of the node as described by its Rect
     pub position: UiRect,
-    /// The margin of the node
+    /// The amount of space around a node outside its border.
+    ///
+    /// If a percentage value is used, the percentage is calculated based on the width of the parent node.
+    /// 
+    /// A node with this style and a parent with dimensions of 100px by 300px, will have calculated margins of 10px on both left and right edges, and 15px on both top and bottom egdes.
     pub margin: UiRect,
-    /// The padding of the node
+    /// The amount of space between the edges of a node and its contents.
+    ///
+    /// If a percentage value is used, the percentage is calculated based on the width of the parent node.
+    ///
+    /// A node with this style and a parent with dimensions of 300px by 100px, will have calculated padding of 3px on the left, 6px on the right, 9px on the top and 12px on the bottom.
     pub padding: UiRect,
-    /// The border of the node
+    /// The amount of space between the margins of a node and its padding.
+    ///
+    /// If a percentage value is used, the percentage is calculated based on the width of the parent node.
+    ///
+    /// The size of the node will be expanded if there are constraints that prevent the layout algorithm from placing the border within the existing node boundary.
+    ///
+    /// Rendering for borders is not yet implemented.
     pub border: UiRect,
     /// Defines how much a flexbox item should grow if there's space available
     pub flex_grow: f32,
     /// How to shrink if there's not enough space available
     pub flex_shrink: f32,
-    /// The initial size of the item
+    /// The initial length of the main axis, before other properties are applied.
+    ///
+    /// If both are set, `flex_basis` overrides `size` on the main axis but it obeys the bounds defined by `min_size` and `max_size`.
     pub flex_basis: Val,
-    /// The size of the flexbox
+    /// The ideal size of the flexbox
+    ///
+    /// `size.width` is used when it is within the bounds defined by `min_size.width` and `max_size.width`.
+    /// `size.height` is used when it is within the bounds defined by `min_size.height` and `max_size.height`.
     pub size: Size,
     /// The minimum size of the flexbox
+    ///
+    /// `min_size.width` is used if it is greater than either `size.width` or `max_size.width`, or both.
+    /// `min_size.height` is used if it is greater than either `size.height` or `max_size.height`, or both.
     pub min_size: Size,
     /// The maximum size of the flexbox
+    ///
+    /// `max_size.width` is used if it is within the bounds defined by `min_size.width` and `size.width`.
+    /// `max_size.height` is used if it is within the bounds defined by `min_size.height` and `size.height.
     pub max_size: Size,
     /// The aspect ratio of the flexbox
     pub aspect_ratio: Option<f32>,
     /// How to handle overflow
     pub overflow: Overflow,
     /// The size of the gutters between the rows and columns of the flexbox layout
+    ///
+    /// Values of `Size::UNDEFINED` and `Size::AUTO` are treated as zero.
     pub gap: Size,
+}
+
+impl Style {
+    pub const DEFAULT: Self = Self {
+        display: Display::DEFAULT,
+        position_type: PositionType::DEFAULT,
+        direction: Direction::DEFAULT,
+        flex_direction: FlexDirection::DEFAULT,
+        flex_wrap: FlexWrap::DEFAULT,
+        align_items: AlignItems::DEFAULT,
+        align_self: AlignSelf::DEFAULT,
+        align_content: AlignContent::DEFAULT,
+        justify_content: JustifyContent::DEFAULT,
+        position: UiRect::DEFAULT,
+        margin: UiRect::DEFAULT,
+        padding: UiRect::DEFAULT,
+        border: UiRect::DEFAULT,
+        flex_grow: 0.0,
+        flex_shrink: 1.0,
+        flex_basis: Val::Auto,
+        size: Size::AUTO,
+        min_size: Size::AUTO,
+        max_size: Size::AUTO,
+        aspect_ratio: None,
+        overflow: Overflow::DEFAULT,
+        gap: Size::UNDEFINED,
+    };
 }
 
 impl Default for Style {
     fn default() -> Self {
-        Self {
-            display: Default::default(),
-            position_type: Default::default(),
-            direction: Default::default(),
-            flex_direction: Default::default(),
-            flex_wrap: Default::default(),
-            align_items: Default::default(),
-            align_self: Default::default(),
-            align_content: Default::default(),
-            justify_content: Default::default(),
-            position: Default::default(),
-            margin: Default::default(),
-            padding: Default::default(),
-            border: Default::default(),
-            flex_grow: 0.0,
-            flex_shrink: 1.0,
-            flex_basis: Val::Auto,
-            size: Size::AUTO,
-            min_size: Size::AUTO,
-            max_size: Size::AUTO,
-            aspect_ratio: Default::default(),
-            overflow: Default::default(),
-            gap: Size::UNDEFINED,
-        }
+        Self::DEFAULT
     }
 }
 
 /// How items are aligned according to the cross axis
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum AlignItems {
-    /// Items are aligned at the start
+    /// Items are packed towards the start of the axis.
+    Start,
+    /// Items are packed towards the end of the axis.
+    End,
+    /// Items are packed towards the start of the axis, unless the flex direction is reversed;
+    /// then they are packed towards the end of the axis.
     FlexStart,
-    /// Items are aligned at the end
+    /// Items are packed towards the end of the axis, unless the flex direction is reversed;
+    /// then they are packed towards the end of the axis.
     FlexEnd,
-    /// Items are aligned at the center
+    /// Items are aligned at the center.
     Center,
-    /// Items are aligned at the baseline
+    /// Items are aligned at the baseline.
     Baseline,
-    /// Items are stretched across the whole cross axis
-    #[default]
+    /// Items are stretched across the whole cross axis.
     Stretch,
 }
 
-/// Works like [`AlignItems`] but applies only to a single item
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+impl AlignItems {
+    pub const DEFAULT: Self = Self::Stretch;
+}
+
+impl Default for AlignItems {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
+/// How this item is aligned according to the cross axis.
+/// Overrides [`AlignItems`].
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum AlignSelf {
-    /// Use the value of [`AlignItems`]
-    #[default]
+    /// Use the parent node's [`AlignItems`] value to determine how this item should be aligned.
     Auto,
-    /// If the parent has [`AlignItems::Center`] only this item will be at the start
+    /// This item will be aligned with the start of the axis.
+    Start,
+    /// This item will be aligned with the end of the axis.
+    End,
+    /// This item will be aligned with the start of the axis, unless the flex direction is reversed;
+    /// then it will be aligned with the end of the axis.
     FlexStart,
-    /// If the parent has [`AlignItems::Center`] only this item will be at the end
+    /// This item will be aligned with the start of the axis, unless the flex direction is reversed;
+    /// then it will be aligned with the end of the axis.
     FlexEnd,
-    /// If the parent has [`AlignItems::FlexStart`] only this item will be at the center
+    /// This item will be aligned at the center.
     Center,
-    /// If the parent has [`AlignItems::Center`] only this item will be at the baseline
+    /// This item will be aligned at the baseline.
     Baseline,
-    /// If the parent has [`AlignItems::Center`] only this item will stretch along the whole cross axis
+    /// This item will be stretched across the whole cross axis.
     Stretch,
+}
+
+impl AlignSelf {
+    pub const DEFAULT: Self = Self::Auto;
+}
+
+impl Default for AlignSelf {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
 }
 
 /// Defines how each line is aligned within the flexbox.
 ///
 /// It only applies if [`FlexWrap::Wrap`] is present and if there are multiple lines of items.
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum AlignContent {
-    /// Each line moves towards the start of the cross axis
+    /// Each line moves towards the start of the cross axis.
+    Start,
+    /// Each line moves towards the end of the cross axis.
+    End,
+    /// Each line moves towards the start of the cross axis, unless the flex direction is reversed; then the line moves towards the end of the cross axis.
     FlexStart,
-    /// Each line moves towards the end of the cross axis
+    /// Each line moves towards the end of the cross axis, unless the flex direction is reversed; then the line moves towards the start of the cross axis.
     FlexEnd,
-    /// Each line moves towards the center of the cross axis
+    /// Each line moves towards the center of the cross axis.
     Center,
-    /// Each line will stretch to fill the remaining space
-    #[default]
+    /// Each line will stretch to fill the remaining space.
     Stretch,
     /// Each line fills the space it needs, putting the remaining space, if any
-    /// inbetween the lines
+    /// inbetween the lines.
     SpaceBetween,
+    /// The gap between the first and last items is exactly THE SAME as the gap between items.
+    /// The gaps are distributed evenly.
+    SpaceEvenly,
     /// Each line fills the space it needs, putting the remaining space, if any
-    /// around the lines
+    /// around the lines.
     SpaceAround,
+}
+
+impl AlignContent {
+    pub const DEFAULT: Self = Self::Stretch;
+}
+
+impl Default for AlignContent {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
 }
 
 /// Defines the text direction
 ///
 /// For example English is written LTR (left-to-right) while Arabic is written RTL (right-to-left).
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Direction {
-    /// Inherit from parent node
-    #[default]
+    /// Inherit from parent node.
     Inherit,
-    /// Text is written left to right
+    /// Text is written left to right.
     LeftToRight,
-    /// Text is written right to left
+    /// Text is written right to left.
     RightToLeft,
+}
+
+impl Direction {
+    pub const DEFAULT: Self = Self::Inherit;
+}
+
+impl Default for Direction {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
 }
 
 /// Whether to use a Flexbox layout model.
 ///
 /// Part of the [`Style`] component.
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Display {
     /// Use Flexbox layout model to determine the position of this [`Node`].
-    #[default]
     Flex,
     /// Use no layout, don't render this node and its children.
     ///
@@ -356,85 +481,169 @@ pub enum Display {
     None,
 }
 
+impl Display {
+    pub const DEFAULT: Self = Self::Flex;
+}
+
+impl Default for Display {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
 /// Defines how flexbox items are ordered within a flexbox
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum FlexDirection {
-    /// Same way as text direction along the main axis
-    #[default]
+    /// Same way as text direction along the main axis.
     Row,
-    /// Flex from top to bottom
+    /// Flex from top to bottom.
     Column,
-    /// Opposite way as text direction along the main axis
+    /// Opposite way as text direction along the main axis.
     RowReverse,
-    /// Flex from bottom to top
+    /// Flex from bottom to top.
     ColumnReverse,
 }
 
+impl FlexDirection {
+    pub const DEFAULT: Self = Self::Row;
+}
+
+impl Default for FlexDirection {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
 /// Defines how items are aligned according to the main axis
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum JustifyContent {
-    /// Pushed towards the start
-    #[default]
+    /// Items are packed toward the start of the axis.
+    Start,
+    /// Items are packed toward the end of the axis.
+    End,
+    /// Pushed towards the start, unless the flex direction is reversed; then pushed towards the end.
     FlexStart,
-    /// Pushed towards the end
+    /// Pushed towards the end, unless the flex direction is reversed; then pushed towards the start.
     FlexEnd,
-    /// Centered along the main axis
+    /// Centered along the main axis.
     Center,
-    /// Remaining space is distributed between the items
+    /// Remaining space is distributed between the items.
     SpaceBetween,
-    /// Remaining space is distributed around the items
+    /// Remaining space is distributed around the items.
     SpaceAround,
-    /// Like [`JustifyContent::SpaceAround`] but with even spacing between items
+    /// Like [`JustifyContent::SpaceAround`] but with even spacing between items.
     SpaceEvenly,
 }
 
+impl JustifyContent {
+    pub const DEFAULT: Self = Self::FlexStart;
+}
+
+impl Default for JustifyContent {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
 /// Whether to show or hide overflowing items
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Overflow {
-    /// Show overflowing items
-    #[default]
+    /// Show overflowing items.
     Visible,
-    /// Hide overflowing items
+    /// Hide overflowing items.
     Hidden,
 }
 
+impl Overflow {
+    pub const DEFAULT: Self = Self::Visible;
+}
+
+impl Default for Overflow {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
 /// The strategy used to position this node
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum PositionType {
-    /// Relative to all other nodes with the [`PositionType::Relative`] value
-    #[default]
+    /// Relative to all other nodes with the [`PositionType::Relative`] value.
     Relative,
-    /// Independent of all other nodes
+    /// Independent of all other nodes.
     ///
-    /// As usual, the `Style.position` field of this node is specified relative to its parent node
+    /// As usual, the `Style.position` field of this node is specified relative to its parent node.
     Absolute,
 }
 
+impl PositionType {
+    const DEFAULT: Self = Self::Relative;
+}
+
+impl Default for PositionType {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
 /// Defines if flexbox items appear on a single line or on multiple lines
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum FlexWrap {
-    /// Single line, will overflow if needed
-    #[default]
+    /// Single line, will overflow if needed.
     NoWrap,
-    /// Multiple lines, if needed
+    /// Multiple lines, if needed.
     Wrap,
-    /// Same as [`FlexWrap::Wrap`] but new lines will appear before the previous one
+    /// Same as [`FlexWrap::Wrap`] but new lines will appear before the previous one.
     WrapReverse,
 }
 
+impl FlexWrap {
+    const DEFAULT: Self = Self::NoWrap;
+}
+
+impl Default for FlexWrap {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
 /// The calculated size of the node
-#[derive(Component, Default, Copy, Clone, Debug)]
+#[derive(Component, Copy, Clone, Debug)]
 pub struct CalculatedSize {
-    /// The size of the node
-    pub size: Size,
+    /// The size of the node in logical pixels
+    pub size: Vec2,
+    /// Whether to attempt to preserve the aspect ratio when determining the layout for this item
+    pub preserve_aspect_ratio: bool,
+}
+
+impl CalculatedSize {
+    const DEFAULT: Self = Self {
+        size: Vec2::ZERO,
+        preserve_aspect_ratio: false,
+    };
+}
+
+impl Default for CalculatedSize {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
 }
 
 /// The background color of the node
 ///
 /// This serves as the "fill" color.
 /// When combined with [`UiImage`], tints the provided texture.
-#[derive(Component, Default, Copy, Clone, Debug)]
+#[derive(Component, Copy, Clone, Debug)]
 pub struct BackgroundColor(pub Color);
+
+impl BackgroundColor {
+    pub const DEFAULT: Self = Self(Color::WHITE);
+}
+
+impl Default for BackgroundColor {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
 
 impl From<Color> for BackgroundColor {
     fn from(color: Color) -> Self {
