@@ -3,8 +3,6 @@ use proc_macro2::Span;
 use quote::quote;
 use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Error, Fields, FieldsNamed};
 
-static BUNDLE_ATTRIBUTE_NAME: &str = "bundle";
-
 pub fn derive_bundle(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
 
@@ -13,15 +11,6 @@ pub fn derive_bundle(input: TokenStream) -> TokenStream {
         Err(e) => return e.into_compile_error().into(),
     };
 
-    let is_bundle = named_fields
-        .iter()
-        .map(|field| {
-            field
-                .attrs
-                .iter()
-                .any(|a| *a.path.get_ident().as_ref().unwrap() == BUNDLE_ATTRIBUTE_NAME)
-        })
-        .collect::<Vec<bool>>();
     let field = named_fields
         .iter()
         .map(|field| field.ident.as_ref().unwrap())
@@ -34,31 +23,19 @@ pub fn derive_bundle(input: TokenStream) -> TokenStream {
     let mut field_component_ids = Vec::new();
     let mut field_get_components = Vec::new();
     let mut field_from_components = Vec::new();
-    for ((field_type, is_bundle), field) in
-        field_type.iter().zip(is_bundle.iter()).zip(field.iter())
+    for (field_type, field) in
+        field_type.iter().zip(field.iter())
     {
-        if *is_bundle {
-            field_component_ids.push(quote! {
-                component_ids.extend(<#field_type as ::quad::ecs::Bundle>::component_ids(components));
-            });
-            field_get_components.push(quote! {
-                self.#field.get_components(&mut func);
-            });
-            field_from_components.push(quote! {
-                #field: <#field_type as ::quad::bundle::Bundle>::from_components(&mut func),
-            });
-        } else {
-            field_component_ids.push(quote! {
-                component_ids.push(components.get_or_insert::<#field_type>());
-            });
-            field_get_components.push(quote! {
-                func((&mut self.#field as *mut #field_type).cast::<u8>());
-                std::mem::forget(self.#field);
-            });
-            field_from_components.push(quote! {
-                #field: func().cast::<#field_type>().read(),
-            });
-        }
+        field_component_ids.push(quote! {
+            component_ids.push(components.get_or_insert::<#field_type>());
+        });
+        field_get_components.push(quote! {
+            func((&mut self.#field as *mut #field_type).cast::<u8>());
+            std::mem::forget(self.#field);
+        });
+        field_from_components.push(quote! {
+            #field: func().cast::<#field_type>().read(),
+        });
     }
     let field_len = field.len();
     let generics = ast.generics;
