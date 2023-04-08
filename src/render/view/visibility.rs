@@ -31,10 +31,27 @@ impl std::cmp::PartialEq<&Visibility> for Visibility {
     }
 }
 
-bitflags::bitflags! {
-    pub(super) struct ComputedVisibilityFlags: u8 {
-        const VISIBLE_IN_VIEW = 1 << 0;
-        const VISIBLE_IN_HIERARCHY = 1 << 1;
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub(super) struct ComputedVisibilityFlags(u8);
+
+impl ComputedVisibilityFlags {
+    const VISIBLE_IN_VIEW: Self = ComputedVisibilityFlags(1 << 0);
+    const VISIBLE_IN_HIERARCHY: Self = ComputedVisibilityFlags(1 << 1);
+
+    pub const fn empty() -> Self {
+        Self(0)
+    }
+
+    pub const fn all() -> Self {
+        Self(Self::VISIBLE_IN_VIEW.0 | Self::VISIBLE_IN_HIERARCHY.0)
+    }
+
+    pub const fn contains(&self, key: Self) -> bool {
+        self.0 & key.0 == key.0
+    }
+
+    pub fn insert(&mut self, key: Self) {
+        self.0 |= key.0
     }
 }
 
@@ -62,7 +79,7 @@ impl ComputedVisibility {
     /// [`CoreStage::Update`] stage will yield the value from the previous frame.
     #[inline]
     pub fn is_visible(&self) -> bool {
-        self.flags.bits == ComputedVisibilityFlags::all().bits
+        self.flags == ComputedVisibilityFlags::all()
     }
 
     /// Whether this entity is visible in the entity hierarchy, which is determined by the [`Visibility`] component.

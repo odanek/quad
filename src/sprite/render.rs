@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::HashMap};
+use std::{cmp::Ordering, collections::HashMap, ops::BitOr};
 
 use bytemuck::{Pod, Zeroable};
 use cgm::{ElementWise, Zero};
@@ -97,28 +97,32 @@ impl FromWorld for SpritePipeline {
     }
 }
 
-bitflags::bitflags! {
-    #[repr(transparent)]
-    // NOTE: Apparently quadro drivers support up to 64x MSAA.
-    // MSAA uses the highest 6 bits for the MSAA sample count - 1 to support up to 64x MSAA.
-    pub struct SpritePipelineKey: u32 {
-        const NONE                        = 0;
-        const COLORED                     = (1 << 0);
-        const MSAA_RESERVED_BITS          = SpritePipelineKey::MSAA_MASK_BITS << SpritePipelineKey::MSAA_SHIFT_BITS;
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct SpritePipelineKey(u32);
+
+impl SpritePipelineKey {
+    const COLORED: Self = SpritePipelineKey(1 << 0);
+    const MSAA_MASK_BITS: u32 = 0b111111;
+    const MSAA_SHIFT_BITS: u32 = 32 - Self::MSAA_MASK_BITS.count_ones();
+
+    pub const fn contains(&self, key: Self) -> bool {
+        self.0 & key.0 == key.0
+    }
+
+    pub const fn from_msaa_samples(msaa_samples: u32) -> Self {
+        Self(((msaa_samples - 1) & Self::MSAA_MASK_BITS) << Self::MSAA_SHIFT_BITS)
+    }
+
+    pub const fn msaa_samples(&self) -> u32 {
+        ((self.0 >> Self::MSAA_SHIFT_BITS) & Self::MSAA_MASK_BITS) + 1
     }
 }
 
-impl SpritePipelineKey {
-    const MSAA_MASK_BITS: u32 = 0b111111;
-    const MSAA_SHIFT_BITS: u32 = 32 - 6;
+impl BitOr for SpritePipelineKey {
+    type Output = Self;
 
-    pub fn from_msaa_samples(msaa_samples: u32) -> Self {
-        let msaa_bits = ((msaa_samples - 1) & Self::MSAA_MASK_BITS) << Self::MSAA_SHIFT_BITS;
-        SpritePipelineKey::from_bits(msaa_bits).unwrap()
-    }
-
-    pub fn msaa_samples(&self) -> u32 {
-        ((self.bits >> Self::MSAA_SHIFT_BITS) & Self::MSAA_MASK_BITS) + 1
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(self.0 | rhs.0)
     }
 }
 

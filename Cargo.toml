@@ -11,9 +11,9 @@ repository = "https://github.com/odanek/quad"
 [dependencies]
 quad_macros = { path = "macros", version = "0.0.1" }
 cgm = { path = "../cgm" }
-anyhow = "1.0.69"
-thiserror = "1.0.39"
-winit = "0.28.2"
+anyhow = "1.0.70"
+thiserror = "1.0.40"
+winit = "0.28.3"
 raw-window-handle = "0.5.1"
 log = "0.4.17"
 image = "0.24.5"
@@ -27,12 +27,11 @@ wgpu = "0.15.1"
 naga = { version = "0.11.0", features = ["wgsl-in"] }
 hex = "0.4.3"
 bytemuck = { version = "1.13.0", features = ["derive"] }
-crevice = "0.12.0"
+crevice = "0.13.0"
 rectangle-pack = "0.4.2"
 guillotiere = "0.6.2"
-bitflags = "1.3.2"
-ab_glyph = "0.2.10"
+ab_glyph = "0.2.20"
 glyph_brush_layout = "0.2.3"
 derive_deref = "1.1.1"
 rodio = { version = "0.17.1", default-features = false, features = ["vorbis"] }
-taffy = { version = "0.3.6", default-features = false, features = ["std"] }
+taffy = { version = "0.3.8", default-features = false, features = ["std"] }
