@@ -258,7 +258,7 @@ pub struct Style {
     /// The amount of space around a node outside its border.
     ///
     /// If a percentage value is used, the percentage is calculated based on the width of the parent node.
-    /// 
+    ///
     /// A node with this style and a parent with dimensions of 100px by 300px, will have calculated margins of 10px on both left and right edges, and 15px on both top and bottom egdes.
     pub margin: UiRect,
     /// The amount of space between the edges of a node and its contents.
