@@ -62,18 +62,17 @@ fn extract_windows(
             window.physical_height().max(1),
         );
 
-        let mut extracted_window =
-            extracted_windows
-                .entry(window.id())
-                .or_insert(ExtractedWindow {
-                    id: window.id(),
-                    handle: window.raw_window_handle(),
-                    physical_width: new_width,
-                    physical_height: new_height,
-                    present_mode: window.present_mode(),
-                    swap_chain_texture: None,
-                    size_changed: false,
-                });
+        let extracted_window = extracted_windows
+            .entry(window.id())
+            .or_insert(ExtractedWindow {
+                id: window.id(),
+                handle: window.raw_window_handle(),
+                physical_width: new_width,
+                physical_height: new_height,
+                present_mode: window.present_mode(),
+                swap_chain_texture: None,
+                size_changed: false,
+            });
 
         // NOTE: Drop the swap chain frame here
         extracted_window.swap_chain_texture = None;

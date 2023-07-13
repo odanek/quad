@@ -502,9 +502,7 @@ impl RenderAsset for Image {
             &image.data,
             ImageDataLayout {
                 offset: 0,
-                bytes_per_row: Some(
-                    image.texture_descriptor.size.width * format_size as u32,
-                ),
+                bytes_per_row: Some(image.texture_descriptor.size.width * format_size as u32),
                 rows_per_image: if image.texture_descriptor.size.depth_or_array_layers > 1 {
                     Some(image.texture_descriptor.size.height)
                 } else {
