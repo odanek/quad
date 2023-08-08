@@ -11,20 +11,20 @@ repository = "https://github.com/odanek/quad"
 [dependencies]
 quad_macros = { path = "macros", version = "0.0.1" }
 cgm = { path = "../cgm" }
-anyhow = "1.0.71"
-thiserror = "1.0.40"
+anyhow = "1.0.72"
+thiserror = "1.0.44"
 winit = "0.28.6"
 raw-window-handle = "0.5.2"
-log = "0.4.18"
+log = "0.4.19"
 image = "0.24.6"
 downcast-rs = "1.2.0"
 crossbeam-channel = "0.5.8"
 futures-lite = "1.13.0"
-async-channel = "1.8.0"
+async-channel = "1.9.0"
 async-executor = "1.5.1"
 parking_lot = "0.12.1"
-wgpu = "0.16.1"
-naga = { version = "0.12.2", features = ["wgsl-in"] }
+wgpu = "0.17.0"
+naga = { version = "0.13.0", features = ["wgsl-in"] }
 hex = "0.4.3"
 bytemuck = { version = "1.13.1", features = ["derive"] }
 crevice = "0.13.0"
