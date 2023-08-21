@@ -11,12 +11,12 @@ repository = "https://github.com/odanek/quad"
 [dependencies]
 quad_macros = { path = "macros", version = "0.0.1" }
 cgm = { path = "../cgm" }
-anyhow = "1.0.72"
-thiserror = "1.0.44"
+anyhow = "1.0.75"
+thiserror = "1.0.47"
 winit = "0.28.6"
 raw-window-handle = "0.5.2"
-log = "0.4.19"
-image = "0.24.6"
+log = "0.4.20"
+image = "0.24.7"
 downcast-rs = "1.2.0"
 crossbeam-channel = "0.5.8"
 futures-lite = "1.13.0"
@@ -34,4 +34,4 @@ ab_glyph = "0.2.21"
 glyph_brush_layout = "0.2.3"
 derive_deref = "1.1.1"
 rodio = { version = "0.17.1", default-features = false, features = ["vorbis"] }
-taffy = { version = "0.3.12", default-features = false, features = ["std"] }
+taffy = { version = "0.3.13", default-features = false, features = ["std"] }
