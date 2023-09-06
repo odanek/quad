@@ -26,7 +26,7 @@ parking_lot = "0.12.1"
 wgpu = "0.17.0"
 naga = { version = "0.13.0", features = ["wgsl-in"] }
 hex = "0.4.3"
-bytemuck = { version = "1.13.1", features = ["derive"] }
+bytemuck = { version = "1.14", features = ["derive"] }
 crevice = "0.13.0"
 rectangle-pack = "0.4.2"
 guillotiere = "0.6.2"
