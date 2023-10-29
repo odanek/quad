@@ -1,4 +1,4 @@
-use wgpu::{LoadOp, Operations, RenderPassDescriptor};
+use wgpu::{LoadOp, Operations, RenderPassDescriptor, StoreOp};
 
 use crate::{
     ecs::{QueryState, With, World},
@@ -50,12 +50,14 @@ impl Node for MainPass2dNode {
 
         let color_attachment = target.get_color_attachment(Operations {
             load: LoadOp::Load,
-            store: true,
+            store: StoreOp::Store,
         });
         let pass_descriptor = RenderPassDescriptor {
             label: Some("main_pass_2d"),
             color_attachments: &[Some(color_attachment)],
             depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
         };
 
         let draw_functions = world.resource::<DrawFunctions<Transparent2d>>();

@@ -1,13 +1,17 @@
 use winit::{
+    error::EventLoopError,
     event::{DeviceEvent, Event, WindowEvent},
-    event_loop::ControlFlow, error::EventLoopError,
+    event_loop::ControlFlow,
 };
 
 use super::context::RunContext;
 
 pub type AppEventLoop = winit::event_loop::EventLoop<()>;
 
-pub fn winit_runner(mut context: RunContext, event_loop: AppEventLoop) -> Result<(), EventLoopError> {
+pub fn winit_runner(
+    mut context: RunContext,
+    event_loop: AppEventLoop,
+) -> Result<(), EventLoopError> {
     let mut active = true;
     let mut exit = false;
 

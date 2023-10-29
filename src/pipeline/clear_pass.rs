@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use wgpu::{
     LoadOp, Operations, RenderPassColorAttachment, RenderPassDepthStencilAttachment,
-    RenderPassDescriptor,
+    RenderPassDescriptor, StoreOp,
 };
 
 use crate::{
@@ -72,7 +72,7 @@ impl Node for ClearPassNode {
             }
             let color_attachment = target.get_color_attachment(Operations {
                 load: LoadOp::Clear((*color).into()),
-                store: true,
+                store: StoreOp::Store,
             });
             let pass_descriptor = RenderPassDescriptor {
                 label: Some("clear_pass"),
@@ -81,10 +81,12 @@ impl Node for ClearPassNode {
                     view: &depth.view,
                     depth_ops: Some(Operations {
                         load: LoadOp::Clear(0.0),
-                        store: true,
+                        store: StoreOp::Store,
                     }),
                     stencil_ops: None,
                 }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
             };
 
             render_context
@@ -118,13 +120,15 @@ impl Node for ClearPassNode {
                             .unwrap_or(&clear_color.0))
                         .into(),
                     ),
-                    store: true,
+                    store: StoreOp::Store,
                 },
             };
             let pass_descriptor = RenderPassDescriptor {
                 label: Some("clear_pass"),
                 color_attachments: &[Some(color_attachment)],
                 depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
             };
 
             render_context

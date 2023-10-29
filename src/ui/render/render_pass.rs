@@ -1,4 +1,4 @@
-use wgpu::{LoadOp, Operations, RenderPassColorAttachment, RenderPassDescriptor};
+use wgpu::{LoadOp, Operations, RenderPassColorAttachment, RenderPassDescriptor, StoreOp};
 
 use crate::{
     ecs::{Entity, Query, QueryState, Res, SystemParamItem, With, World},
@@ -77,13 +77,15 @@ impl Node for UiPassNode {
             resolve_target: None,
             ops: Operations {
                 load: LoadOp::Load,
-                store: true,
+                store: StoreOp::Store,
             },
         };
         let pass_descriptor = RenderPassDescriptor {
             label: Some("ui_pass"),
             color_attachments: &[Some(color_attachment)],
             depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
         };
 
         let draw_functions = world.resource::<DrawFunctions<TransparentUi>>();
