@@ -1,9 +1,21 @@
-use crate::ecs::{Event, Resource};
+use crate::{
+    ecs::{Event, Resource},
+    windowing::WindowId,
+};
 
 use super::{
     button::{ButtonState, Buttons},
+    keycode::Key,
     KeyCode,
 };
+
+#[derive(Debug, Clone, Event)]
+pub struct KeyInput {
+    pub window_id: WindowId,
+    pub key_code: KeyCode,
+    pub logical_key: Key,
+    pub state: ButtonState,
+}
 
 #[derive(Default, Resource)]
 pub struct KeyboardInput {
@@ -34,11 +46,4 @@ impl KeyboardInput {
     pub fn key_state(&self, key: KeyCode) -> ButtonState {
         self.buttons.button_state(key)
     }
-}
-
-#[derive(Debug, Clone, Event)]
-pub struct KeyInput {
-    pub scan_code: u32,
-    pub key_code: Option<KeyCode>,
-    pub state: ButtonState,
 }

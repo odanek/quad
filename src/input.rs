@@ -1,13 +1,15 @@
 mod button;
+mod converter;
 mod gamepad;
 mod keyboard;
 mod keycode;
 mod mouse;
 mod touch;
 
+pub use converter::convert_keyboard_input;
 pub use gamepad::GamepadInput;
 pub use keyboard::{KeyInput, KeyboardInput};
-pub use keycode::KeyCode;
+pub use keycode::{Key, KeyCode, NativeKey, NativeKeyCode};
 pub use mouse::*;
 pub use touch::*;
 

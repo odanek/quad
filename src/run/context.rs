@@ -3,8 +3,8 @@ use crate::{
     audio::AudioDevice,
     ecs::Events,
     input::{
-        KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
-        MouseWheel, TouchInput, Touches,
+        convert_keyboard_input, Key, KeyInput, KeyboardInput, MouseButtonInput, MouseInput,
+        MouseMotion, MouseScrollUnit, MouseWheel, TouchInput, Touches,
     },
     ty::{Vec2, Vec2i},
     windowing::{
@@ -118,21 +118,30 @@ impl RunContext {
             .send(WindowMoved { id, position });
     }
 
-    pub fn handle_keyboard_event(&mut self, input: winit::event::KeyboardInput) {
-        if let Some(keycode) = input.virtual_keycode {
-            self.app
-                .world
-                .resource_mut::<KeyboardInput>()
-                .toggle(keycode.into(), input.state.into());
+    pub fn handle_keyboard_event(&mut self, window_id: WindowId, event: &winit::event::KeyEvent) {
+        let key_input = convert_keyboard_input(window_id, event);
+
+        self.app
+            .world
+            .resource_mut::<KeyboardInput>()
+            .toggle(key_input.key_code, key_input.state);
+
+        if let Key::Character(char) = &key_input.logical_key {
+            if let Some(first_char) = char.chars().next() {
+                self.app
+                    .world
+                    .resource_mut::<Events<ReceivedCharacter>>()
+                    .send(ReceivedCharacter {
+                        window_id,
+                        char: first_char,
+                    });
+            }
         }
+
         self.app
             .world
             .resource_mut::<Events<KeyInput>>()
-            .send(KeyInput {
-                scan_code: input.scancode,
-                state: input.state.into(),
-                key_code: input.virtual_keycode.map(Into::into),
-            });
+            .send(key_input);
     }
 
     pub fn handle_mouse_button(
@@ -252,13 +261,6 @@ impl RunContext {
             .send(touch_input);
     }
 
-    pub fn handle_received_character(&mut self, id: WindowId, c: char) {
-        self.app
-            .world
-            .resource_mut::<Events<ReceivedCharacter>>()
-            .send(ReceivedCharacter { id, char: c });
-    }
-
     pub fn handle_window_focused(&mut self, id: WindowId, focused: bool) {
         let mut windows = self.app.world.resource_mut::<Windows>();
         let window = windows.get_mut(id).unwrap();
@@ -270,12 +272,7 @@ impl RunContext {
             .send(WindowFocused { id, focused });
     }
 
-    pub fn handle_scale_factor_changed(
-        &mut self,
-        id: WindowId,
-        scale_factor: f64,
-        inner_size: winit::dpi::PhysicalSize<u32>,
-    ) {
+    pub fn handle_scale_factor_changed(&mut self, id: WindowId, scale_factor: f64) {
         self.app
             .world
             .resource_mut::<Events<WindowBackendScaleFactorChanged>>()
@@ -287,8 +284,12 @@ impl RunContext {
         let old_scale_factor = window.scale_factor();
         let old_physical_width = window.physical_width();
         let old_physical_height = window.physical_height();
+        let new_physical_width = window.winit_window().inner_size().width;
+        let new_physical_height = window.winit_window().inner_size().height;
+
         window.update_backend_scale_factor(scale_factor);
-        window.update_physical_size(inner_size.width, inner_size.height);
+        window.update_physical_size(new_physical_width, new_physical_height);
+
         let logical_width = window.width();
         let logical_height = window.height();
 
@@ -300,7 +301,7 @@ impl RunContext {
                 .send(WindowScaleFactorChanged { id, scale_factor });
         }
 
-        if old_physical_width != inner_size.width || old_physical_height != inner_size.height {
+        if old_physical_width != new_physical_width || old_physical_height != new_physical_height {
             self.app
                 .world
                 .resource_mut::<Events<WindowResized>>()

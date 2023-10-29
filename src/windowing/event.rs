@@ -53,7 +53,7 @@ pub struct WindowMoved {
 
 #[derive(Debug, Clone, Event)]
 pub struct ReceivedCharacter {
-    pub id: WindowId,
+    pub window_id: WindowId,
     pub char: char,
 }
 

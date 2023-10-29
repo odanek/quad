@@ -198,7 +198,7 @@ impl<'w> EntityMut<'w> {
 
                 removed_components
                     .entry(component_id)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(entity);
 
                 let table = old_table;
@@ -255,7 +255,7 @@ impl<'w> EntityMut<'w> {
             if old_archetype.contains(component_id) {
                 removed_components
                     .entry(component_id)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(entity);
             }
         }
@@ -448,7 +448,7 @@ fn despawn_self(world: &mut World, entity: Entity) {
     for &component_id in archetype.components() {
         removed_components
             .entry(component_id)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(entity);
     }
 }

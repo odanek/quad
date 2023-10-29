@@ -1,26 +1,26 @@
 use winit::{
     event::{DeviceEvent, Event, WindowEvent},
-    event_loop::ControlFlow,
+    event_loop::ControlFlow, error::EventLoopError,
 };
 
 use super::context::RunContext;
 
 pub type AppEventLoop = winit::event_loop::EventLoop<()>;
 
-pub fn winit_runner(mut context: RunContext, event_loop: AppEventLoop) {
+pub fn winit_runner(mut context: RunContext, event_loop: AppEventLoop) -> Result<(), EventLoopError> {
     let mut active = true;
     let mut exit = false;
 
-    event_loop.run(move |event, _, control_flow| {
+    event_loop.run(move |event, event_loop| {
         if exit {
-            *control_flow = ControlFlow::Exit;
+            event_loop.exit();
             return;
         } else {
-            *control_flow = ControlFlow::Poll;
+            event_loop.set_control_flow(ControlFlow::Poll);
         }
 
         match event {
-            Event::MainEventsCleared => {
+            Event::AboutToWait => {
                 if active && !exit {
                     exit = context.update();
                 }
@@ -41,8 +41,8 @@ pub fn winit_runner(mut context: RunContext, event_loop: AppEventLoop) {
                 };
 
                 match event {
-                    WindowEvent::KeyboardInput { input, .. } => {
-                        context.handle_keyboard_event(input)
+                    WindowEvent::KeyboardInput { ref event, .. } => {
+                        context.handle_keyboard_event(window_id, event)
                     }
                     WindowEvent::MouseInput { button, state, .. } => {
                         context.handle_mouse_button(button, state)
@@ -72,22 +72,11 @@ pub fn winit_runner(mut context: RunContext, event_loop: AppEventLoop) {
                     WindowEvent::Touch(touch) => {
                         context.handle_touch(window_id, touch);
                     }
-                    WindowEvent::ReceivedCharacter(c) => {
-                        context.handle_received_character(window_id, c);
-                    }
                     WindowEvent::Focused(focused) => {
                         context.handle_window_focused(window_id, focused);
                     }
-                    WindowEvent::ScaleFactorChanged {
-                        scale_factor,
-                        new_inner_size,
-                        ..
-                    } => {
-                        context.handle_scale_factor_changed(
-                            window_id,
-                            scale_factor,
-                            *new_inner_size,
-                        );
+                    WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                        context.handle_scale_factor_changed(window_id, scale_factor);
                     }
                     _ => (),
                 }
@@ -106,5 +95,5 @@ pub fn winit_runner(mut context: RunContext, event_loop: AppEventLoop) {
             }
             _ => (),
         }
-    });
+    })
 }

@@ -22,13 +22,13 @@ unsafe impl Sync for RawWindowHandleWrapper {}
 pub struct HasRawWindowHandleWrapper(RawWindowHandle, RawDisplayHandle);
 
 unsafe impl HasRawWindowHandle for HasRawWindowHandleWrapper {
-    fn raw_window_handle(&self) -> RawWindowHandle {
+    fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {
         self.0
     }
 }
 
 unsafe impl HasRawDisplayHandle for HasRawWindowHandleWrapper {
-    fn raw_display_handle(&self) -> raw_window_handle::RawDisplayHandle {
+    fn raw_display_handle(&self) -> RawDisplayHandle {
         self.1
     }
 }

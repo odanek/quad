@@ -34,7 +34,7 @@ impl Quad {
             app: App::default(),
             render_app: App::default(),
             audio_device: AudioDevice::default(),
-            event_loop: Some(EventLoop::new()),
+            event_loop: Some(EventLoop::new().unwrap()),
         };
         quad.add_pools(&config);
         quad.add_plugins(&config);
@@ -86,7 +86,7 @@ impl Quad {
         let audio_device = std::mem::replace(&mut self.audio_device, AudioDevice::empty());
         let event_loop = self.event_loop.take().unwrap();
         let context = RunContext::new(app, render_app, audio_device, scene);
-        winit_runner(context, event_loop);
+        winit_runner(context, event_loop).expect("Event loop failed");
     }
 
     fn add_pools(&mut self, config: &QuadConfig) {
