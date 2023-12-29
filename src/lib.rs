@@ -20,6 +20,7 @@ pub mod ty;
 pub mod ui;
 pub mod windowing;
 
+#[allow(unused_imports)]
 pub mod prelude {
     pub use crate::{
         app::prelude::*, asset::prelude::*, audio::prelude::*, ecs::prelude::*, input::prelude::*,
