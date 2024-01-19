@@ -1,8 +1,8 @@
-use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
+use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 
 use crate::ty::{Vec2, Vec2i, Vec2u};
 
-use super::{handle::RawWindowHandleWrapper, WindowSize};
+use super::{handle::WindowHandleWrapper, WindowSize};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -55,7 +55,7 @@ pub struct Window {
     position: Option<Vec2i>,
     cursor_position: Option<Vec2>,
     focused: bool,
-    raw_window_handle: RawWindowHandleWrapper,
+    window_handle: WindowHandleWrapper,
     winit_window: winit::window::Window,
 }
 
@@ -98,9 +98,9 @@ impl Window {
             position,
             cursor_position: None,
             focused: true,
-            raw_window_handle: RawWindowHandleWrapper::new(
-                winit_window.raw_window_handle(),
-                winit_window.raw_display_handle(),
+            window_handle: WindowHandleWrapper::new(
+                winit_window.window_handle().unwrap().as_raw(),
+                winit_window.display_handle().unwrap().as_raw(),
             ),
             winit_window,
         }
@@ -170,8 +170,8 @@ impl Window {
         &self.winit_window
     }
 
-    pub(crate) fn raw_window_handle(&self) -> RawWindowHandleWrapper {
-        self.raw_window_handle.clone()
+    pub(crate) fn window_handle(&self) -> WindowHandleWrapper {
+        self.window_handle.clone()
     }
 
     pub(crate) fn update_physical_size(&mut self, width: u32, height: u32) {

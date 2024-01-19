@@ -12,7 +12,7 @@ use crate::{
         renderer::{RenderDevice, RenderInstance},
         texture::TEXTURE_FORMAT,
     },
-    windowing::{PresentMode, RawWindowHandleWrapper, WindowId, Windows},
+    windowing::{PresentMode, WindowHandleWrapper, WindowId, Windows},
 };
 
 pub fn window_render_plugin(_app: &mut App, render_app: &mut App) {
@@ -25,7 +25,7 @@ pub fn window_render_plugin(_app: &mut App, render_app: &mut App) {
 
 pub struct ExtractedWindow {
     pub id: WindowId,
-    pub handle: RawWindowHandleWrapper,
+    pub handle: WindowHandleWrapper,
     pub physical_width: u32,
     pub physical_height: u32,
     pub present_mode: PresentMode,
@@ -66,7 +66,7 @@ fn extract_windows(
             .entry(window.id())
             .or_insert(ExtractedWindow {
                 id: window.id(),
-                handle: window.raw_window_handle(),
+                handle: window.window_handle(),
                 physical_width: new_width,
                 physical_height: new_height,
                 present_mode: window.present_mode(),
@@ -95,7 +95,7 @@ fn extract_windows(
 
 #[derive(Default, Resource)]
 pub struct WindowSurfaces {
-    surfaces: HashMap<WindowId, wgpu::Surface>,
+    surfaces: HashMap<WindowId, wgpu::Surface<'static>>,
     /// List of windows that we have already called the initial `configure_surface` for
     configured_windows: HashSet<WindowId>,
 }
@@ -112,10 +112,10 @@ pub fn prepare_windows(
         let surface = window_surfaces
             .surfaces
             .entry(window.id)
-            .or_insert_with(|| unsafe {
+            .or_insert_with(|| {
                 // NOTE: On some OSes this MUST be called from the main thread.
                 render_instance
-                    .create_surface(&window.handle.get_handle())
+                    .create_surface(window.handle.clone())
                     .unwrap()
             });
 
@@ -131,6 +131,7 @@ pub fn prepare_windows(
             },
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
             view_formats: vec![],
+            desired_maximum_frame_latency: 2,
         };
 
         // Do the initial surface configuration if it hasn't been configured yet

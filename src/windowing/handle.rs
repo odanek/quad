@@ -1,34 +1,28 @@
 use raw_window_handle::{
-    HasRawDisplayHandle, HasRawWindowHandle, RawDisplayHandle, RawWindowHandle,
+    DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, RawDisplayHandle,
+    RawWindowHandle, WindowHandle,
 };
 
 #[derive(Debug, Clone)]
-pub struct RawWindowHandleWrapper(RawWindowHandle, RawDisplayHandle);
+pub struct WindowHandleWrapper(RawWindowHandle, RawDisplayHandle);
 
-impl RawWindowHandleWrapper {
+impl WindowHandleWrapper {
     pub(crate) fn new(window: RawWindowHandle, display: RawDisplayHandle) -> Self {
         Self(window, display)
     }
+}
 
-    #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn get_handle(&self) -> HasRawWindowHandleWrapper {
-        HasRawWindowHandleWrapper(self.0, self.1)
+unsafe impl Send for WindowHandleWrapper {}
+unsafe impl Sync for WindowHandleWrapper {}
+
+impl HasWindowHandle for WindowHandleWrapper {
+    fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
+        unsafe { Ok(WindowHandle::borrow_raw(self.0)) }
     }
 }
 
-unsafe impl Send for RawWindowHandleWrapper {}
-unsafe impl Sync for RawWindowHandleWrapper {}
-
-pub struct HasRawWindowHandleWrapper(RawWindowHandle, RawDisplayHandle);
-
-unsafe impl HasRawWindowHandle for HasRawWindowHandleWrapper {
-    fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {
-        self.0
-    }
-}
-
-unsafe impl HasRawDisplayHandle for HasRawWindowHandleWrapper {
-    fn raw_display_handle(&self) -> RawDisplayHandle {
-        self.1
+impl HasDisplayHandle for WindowHandleWrapper {
+    fn display_handle(&self) -> Result<DisplayHandle<'_>, HandleError> {
+        unsafe { Ok(DisplayHandle::borrow_raw(self.1)) }
     }
 }

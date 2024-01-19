@@ -86,7 +86,7 @@ pub struct RenderAdapterInfo(AdapterInfo);
 pub async fn initialize_renderer(
     instance: &Instance,
     options: &WgpuSettings,
-    request_adapter_options: &RequestAdapterOptions<'_>,
+    request_adapter_options: &RequestAdapterOptions<'_, '_>,
 ) -> (RenderDevice, RenderQueue, RenderAdapterInfo) {
     let adapter = instance
         .request_adapter(request_adapter_options)
@@ -99,15 +99,15 @@ pub async fn initialize_renderer(
     let trace_path = None;
 
     // Maybe get features and limits based on what is supported by the adapter/backend
-    let features = options.features;
-    let limits = options.limits.clone();
+    let required_features = options.features;
+    let required_limits = options.limits.clone();
 
     let (device, queue) = adapter
         .request_device(
             &wgpu::DeviceDescriptor {
                 label: options.device_label.as_ref().map(|a| a.as_ref()),
-                features,
-                limits,
+                required_features,
+                required_limits,
             },
             trace_path,
         )

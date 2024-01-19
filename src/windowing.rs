@@ -5,7 +5,7 @@ mod window;
 mod windows;
 
 pub use event::*;
-pub use handle::RawWindowHandleWrapper;
+pub use handle::WindowHandleWrapper;
 pub use size::{FullScreen, LogicalSize, PhysicalSize, WindowSize};
 pub use window::{PresentMode, Window, WindowDescriptor, WindowId};
 pub use windows::Windows;
