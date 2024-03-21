@@ -16,7 +16,7 @@ thiserror = "1.0.56"
 winit = {version = "0.29.10"}
 raw-window-handle = "0.6.0"
 log = "0.4.20"
-image = "0.24.8"
+image = "0.25.0"
 downcast-rs = "1.2.0"
 crossbeam-channel = "0.5.11"
 futures-lite = "2.2.0"
@@ -27,7 +27,7 @@ wgpu = "0.19.1"
 naga = { version = "0.19.0", features = ["wgsl-in"] }
 hex = "0.4.3"
 bytemuck = { version = "1.14.2", features = ["derive"] }
-crevice = "0.14.0"
+crevice = "0.15.0"
 rectangle-pack = "0.4.2"
 guillotiere = "0.6.2"
 ab_glyph = "0.2.23"
