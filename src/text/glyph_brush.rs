@@ -74,8 +74,8 @@ impl GlyphBrush {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
-        let mut max_y = std::f32::MIN;
-        let mut min_x = std::f32::MAX;
+        let mut max_y = f32::MIN;
+        let mut min_x = f32::MAX;
         for sg in &glyphs {
             let glyph = &sg.glyph;
             let scaled_font = sections_data[sg.section_index].3;

@@ -34,7 +34,7 @@ impl Default for TaskPoolOptions {
     fn default() -> Self {
         Self {
             min_total_threads: 1,
-            max_total_threads: std::usize::MAX,
+            max_total_threads: usize::MAX,
             io: TaskPoolThreadAssignmentPolicy {
                 min_threads: 1,
                 max_threads: 4,

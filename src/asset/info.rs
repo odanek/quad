@@ -1,7 +1,6 @@
 use std::{
     any::TypeId,
     collections::{HashMap, HashSet},
-    path::PathBuf,
 };
 
 use super::path::{AssetPath, LabelId};
@@ -21,7 +20,7 @@ pub struct AssetMeta {
 #[derive(Clone, Debug)]
 pub struct SourceInfo {
     pub meta: Option<SourceMeta>,
-    pub path: PathBuf,
+    // pub path: PathBuf,
     pub asset_types: HashMap<LabelId, TypeId>,
     pub load_state: LoadState,
     pub committed_assets: HashSet<LabelId>,

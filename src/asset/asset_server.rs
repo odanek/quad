@@ -247,7 +247,7 @@ impl AssetServer {
                     committed_assets: Default::default(),
                     load_state: LoadState::NotLoaded,
                     meta: None,
-                    path: asset_path.path().to_owned(),
+                    // path: asset_path.path().to_owned(),
                     version: 0,
                 }),
             };
