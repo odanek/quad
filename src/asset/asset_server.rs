@@ -3,7 +3,7 @@ use crossbeam_channel::TryRecvError;
 use parking_lot::{Mutex, RwLock};
 use std::{
     any::TypeId,
-    collections::{hash_map::Entry, HashMap},
+    collections::{HashMap, hash_map::Entry},
     path::Path,
     sync::Arc,
 };
@@ -15,6 +15,7 @@ use crate::{
 };
 
 use super::{
+    Asset, Assets, Handle, HandleId, HandleUntyped,
     handle::{RefChange, RefChangeChannel},
     info::{LoadState, SourceInfo, SourceMeta},
     io::{AssetIo, AssetIoError},
@@ -22,7 +23,6 @@ use super::{
         AssetLifecycle, AssetLifecycleChannel, AssetLifecycleEvent, AssetLoader, LoadContext,
     },
     path::{AssetPath, AssetPathId, LabelId, SourcePathId},
-    Asset, Assets, Handle, HandleId, HandleUntyped,
 };
 
 #[derive(Error, Debug)]

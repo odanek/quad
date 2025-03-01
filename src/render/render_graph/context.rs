@@ -213,7 +213,9 @@ pub enum RunSubGraphError {
     MissingSubGraph(Cow<'static, str>),
     #[error("passed in inputs, but this sub-graph doesn't have any")]
     SubGraphHasNoInputs(Cow<'static, str>),
-    #[error("sub graph (name: '{graph_name:?}') could not be run because slot '{slot_name}' at index {slot_index} has no value")]
+    #[error(
+        "sub graph (name: '{graph_name:?}') could not be run because slot '{slot_name}' at index {slot_index} has no value"
+    )]
     MissingInput {
         slot_index: usize,
         slot_name: Cow<'static, str>,

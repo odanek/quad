@@ -8,7 +8,7 @@ use crate::{
     ty::Vec2,
 };
 
-use super::{image_texture_conversion::image_to_texture, TEXTURE_FORMAT};
+use super::{TEXTURE_FORMAT, image_texture_conversion::image_to_texture};
 use thiserror::Error;
 use wgpu::{
     Extent3d, ImageCopyTexture, ImageDataLayout, Origin3d, TextureDimension, TextureFormat,

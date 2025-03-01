@@ -1,8 +1,8 @@
 use std::{
     ops::{Bound, Deref, RangeBounds},
     sync::{
-        atomic::{AtomicU64, Ordering},
         Arc,
+        atomic::{AtomicU64, Ordering},
     },
 };
 

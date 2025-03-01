@@ -26,7 +26,9 @@ pub enum RenderGraphRunnerError {
         slot_index: usize,
         slot_name: Cow<'static, str>,
     },
-    #[error("graph (name: '{graph_name:?}') could not be run because slot '{slot_name}' at index {slot_index} has no value")]
+    #[error(
+        "graph (name: '{graph_name:?}') could not be run because slot '{slot_name}' at index {slot_index} has no value"
+    )]
     MissingInput {
         slot_index: usize,
         slot_name: Cow<'static, str>,

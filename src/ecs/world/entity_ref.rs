@@ -2,11 +2,11 @@ use std::any::TypeId;
 
 use crate::{
     ecs::{
+        Entity,
         component::{Bundle, BundleInfo, CmptMut, Component, ComponentStatus, Components},
         entity::{Archetype, ArchetypeId, Archetypes, Entities, EntityLocation},
         storage::Storages,
         system::SystemTicks,
-        Entity,
     },
     transform::{Children, Parent},
 };
@@ -44,7 +44,7 @@ impl<'w> EntityRef<'w> {
         self.world
             .components()
             .get_id(TypeId::of::<T>())
-            .map_or(false, |id| self.archetype().contains(id))
+            .is_some_and(|id| self.archetype().contains(id))
     }
 
     #[inline]
@@ -94,7 +94,7 @@ impl<'w> EntityMut<'w> {
         self.world
             .components()
             .get_id(TypeId::of::<T>())
-            .map_or(false, |id| self.archetype().contains(id))
+            .is_some_and(|id| self.archetype().contains(id))
     }
 
     #[inline]

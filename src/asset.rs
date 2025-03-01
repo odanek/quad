@@ -6,12 +6,12 @@ mod io;
 mod loader;
 mod path;
 
-pub use asset_server::{free_unused_assets_system, AssetServer};
+pub use asset_server::{AssetServer, free_unused_assets_system};
 pub use assets::{AssetEvent, Assets};
 pub use handle::{Handle, HandleId, HandleUntyped};
 pub use io::FileAssetIo;
 pub use loader::{
-    update_asset_storage_system, Asset, AssetDynamic, AssetLoader, LoadContext, LoadedAsset,
+    Asset, AssetDynamic, AssetLoader, LoadContext, LoadedAsset, update_asset_storage_system,
 };
 
 use crate::{

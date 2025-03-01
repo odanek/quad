@@ -1,10 +1,10 @@
 use thiserror::Error;
 
 use crate::ecs::{
+    Entity, World,
     component::{ComponentId, Tick},
     entity::{ArchetypeGeneration, ArchetypeId},
     system::SystemTicks,
-    Entity, World,
 };
 
 use super::{

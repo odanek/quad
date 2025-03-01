@@ -1,13 +1,13 @@
 use crate::ecs::{
+    Res, ResMut, World,
     component::{Resource, ResourceId, Tick},
     system::function_system::SystemMeta,
-    Res, ResMut, World,
 };
 use std::{any::type_name, marker::PhantomData};
 
 use super::{
-    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
     SystemTicks,
+    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
 };
 
 pub struct ResState<T> {

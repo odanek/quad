@@ -18,7 +18,7 @@ use crate::{
     ui::entity::CameraUi,
 };
 
-use super::{draw_ui_graph, UiBatch, UiImageBindGroups, UiMeta};
+use super::{UiBatch, UiImageBindGroups, UiMeta, draw_ui_graph};
 
 pub struct UiPassDriverNode;
 

@@ -6,8 +6,8 @@ use std::{
 };
 
 use crate::ecs::{
-    component::{ComponentId, ComponentInfo, ComponentTicks, Components, Tick},
     Entity,
+    component::{ComponentId, ComponentInfo, ComponentTicks, Components, Tick},
 };
 
 use super::BlobVec;

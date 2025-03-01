@@ -22,7 +22,7 @@ use crate::{
         cameras::camera_plugin,
         render_graph::RenderGraph,
         render_resource::RenderPipelineCache,
-        renderer::{render_system, RenderInstance},
+        renderer::{RenderInstance, render_system},
         texture::image_plugin,
         view::{view_plugin, window::window_render_plugin},
     },
@@ -35,12 +35,12 @@ pub use wgpu::AddressMode;
 
 pub mod prelude {
     pub use crate::render::{
+        AddressMode,
         cameras::Camera2d,
         color::Color,
         spatial_bundle::SpatialBundle,
         texture::Image,
         view::{Visibility, VisibilityBundle},
-        AddressMode,
     };
 }
 

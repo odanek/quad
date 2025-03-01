@@ -2,7 +2,7 @@ use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 
 use crate::ty::{Vec2, Vec2i, Vec2u};
 
-use super::{handle::WindowHandleWrapper, WindowSize};
+use super::{WindowSize, handle::WindowHandleWrapper};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]

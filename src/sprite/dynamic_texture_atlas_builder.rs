@@ -1,4 +1,4 @@
-use guillotiere::{size2, Allocation, AtlasAllocator};
+use guillotiere::{Allocation, AtlasAllocator, size2};
 
 use crate::{
     asset::Assets,

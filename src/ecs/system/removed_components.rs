@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
 use crate::ecs::{
-    component::{ComponentId, Tick},
     Component, Entity, World,
+    component::{ComponentId, Tick},
 };
 
 use super::{

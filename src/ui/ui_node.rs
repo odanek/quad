@@ -8,7 +8,7 @@ use crate::{
     ecs::Component,
     render::{
         color::Color,
-        texture::{Image, DEFAULT_IMAGE_HANDLE},
+        texture::{DEFAULT_IMAGE_HANDLE, Image},
     },
     sprite::Rect,
     transform::GlobalTransform,

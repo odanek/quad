@@ -29,9 +29,9 @@ pub struct SourceInfo {
 
 impl SourceInfo {
     pub fn is_loaded(&self) -> bool {
-        self.meta.as_ref().map_or(false, |meta| {
-            self.committed_assets.len() == meta.assets.len()
-        })
+        self.meta
+            .as_ref()
+            .is_some_and(|meta| self.committed_assets.len() == meta.assets.len())
     }
 
     pub fn get_asset_type(&self, label_id: LabelId) -> Option<TypeId> {

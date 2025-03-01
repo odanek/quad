@@ -11,8 +11,8 @@ use crate::{
 };
 
 use super::{
-    widget::{Button, ImageMode},
     BackgroundColor, CalculatedSize, FocusPolicy, Interaction, Node, Style, UiImage,
+    widget::{Button, ImageMode},
 };
 
 /// The basic UI node

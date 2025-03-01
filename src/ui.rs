@@ -29,9 +29,9 @@ use self::{
 
 pub mod prelude {
     pub use crate::ui::{
-        entity::{NodeBundle, UiTextBundle},
         AlignItems, FlexDirection, JustifyContent, PositionType, Size, Style, UiRect, Val,
         ValArithmeticError,
+        entity::{NodeBundle, UiTextBundle},
     };
 }
 

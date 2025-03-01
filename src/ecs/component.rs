@@ -12,7 +12,7 @@ pub use ticks::{ComponentTicks, Tick};
 use std::{
     alloc::Layout,
     any::TypeId,
-    collections::{hash_map::Entry, HashMap},
+    collections::{HashMap, hash_map::Entry},
 };
 
 use crate::ecs::query::access::AccessIndex;

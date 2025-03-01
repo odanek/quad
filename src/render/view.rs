@@ -24,7 +24,7 @@ use super::{
     render_asset::RenderAssets,
     render_resource::{DynamicUniformVec, Texture, TextureView},
     renderer::{RenderDevice, RenderQueue},
-    texture::{Image, TextureCache, TEXTURE_FORMAT},
+    texture::{Image, TEXTURE_FORMAT, TextureCache},
 };
 
 pub fn view_plugin(app: &mut App, render_app: &mut App) {

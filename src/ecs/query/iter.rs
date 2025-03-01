@@ -1,10 +1,10 @@
 use std::{iter::FusedIterator, slice::Iter};
 
 use crate::ecs::{
+    World,
     entity::{ArchetypeId, Archetypes, Entity},
     storage::Tables,
     system::SystemTicks,
-    World,
 };
 
 use super::{

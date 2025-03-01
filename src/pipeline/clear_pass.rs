@@ -13,7 +13,7 @@ use crate::{
         render_graph::{Node, NodeRunError, RenderGraphContext, SlotInfo},
         renderer::RenderContext,
         texture::Image,
-        view::{window::ExtractedWindows, ExtractedView, ViewDepthTexture, ViewTarget},
+        view::{ExtractedView, ViewDepthTexture, ViewTarget, window::ExtractedWindows},
     },
 };
 

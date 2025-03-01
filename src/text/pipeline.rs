@@ -1,6 +1,6 @@
 use super::{
-    scale_value, Font, FontAtlasSet, GlyphBrush, PositionedGlyph, TextAlignment, TextError,
-    TextSection,
+    Font, FontAtlasSet, GlyphBrush, PositionedGlyph, TextAlignment, TextError, TextSection,
+    scale_value,
 };
 use crate::{
     asset::{Assets, Handle, HandleId},

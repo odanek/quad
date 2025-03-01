@@ -2,7 +2,7 @@ use crate::{
     asset::{Handle, HandleId},
     ecs::Bundle,
     render::{
-        texture::{Image, DEFAULT_IMAGE_HANDLE},
+        texture::{DEFAULT_IMAGE_HANDLE, Image},
         view::{ComputedVisibility, Visibility},
     },
     transform::{GlobalTransform, Transform},

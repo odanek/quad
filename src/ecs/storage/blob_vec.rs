@@ -1,5 +1,5 @@
 use std::{
-    alloc::{handle_alloc_error, Layout},
+    alloc::{Layout, handle_alloc_error},
     ptr::NonNull,
 };
 

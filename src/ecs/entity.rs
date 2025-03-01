@@ -208,7 +208,7 @@ impl Entities {
     pub fn contains(&self, entity: Entity) -> bool {
         self.meta
             .get(entity.id as usize)
-            .map_or(true, |meta| meta.generation == entity.generation)
+            .is_none_or(|meta| meta.generation == entity.generation)
     }
 
     pub fn update_location(&mut self, entity: Entity, location: EntityLocation) {

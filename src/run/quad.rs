@@ -10,7 +10,7 @@ use crate::{
     windowing::{Window, WindowDescriptor, WindowId},
 };
 
-use super::{context::RunContext, runner::winit_runner, Scene};
+use super::{Scene, context::RunContext, runner::winit_runner};
 
 #[derive(Default)]
 pub struct QuadConfig {

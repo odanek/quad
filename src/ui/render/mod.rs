@@ -21,7 +21,7 @@ use crate::{
         extract_param::Extract,
         render_asset::RenderAssets,
         render_graph::{RenderGraph, SlotInfo, SlotType},
-        render_phase::{sort_phase_system, DrawFunctions, RenderPhase},
+        render_phase::{DrawFunctions, RenderPhase, sort_phase_system},
         render_resource::{
             BindGroup, BufferVec, RenderPipelineCache, Shader, SpecializedPipelines,
         },

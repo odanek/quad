@@ -7,10 +7,10 @@ pub use task_pool_options::TaskPoolOptions;
 
 use crate::{
     asset::{
-        asset_plugin, update_asset_storage_system, Asset, AssetEvent, AssetLoader, AssetServer,
-        AssetServerSettings, Assets,
+        Asset, AssetEvent, AssetLoader, AssetServer, AssetServerSettings, Assets, asset_plugin,
+        update_asset_storage_system,
     },
-    audio::{audio_plugin, AudioDevice},
+    audio::{AudioDevice, audio_plugin},
     ecs::{
         Event, Events, FromWorld, IntoSystem, ReadOnlySystemParamFetch, Res, ResMut, Resource,
         SystemParam, World,
@@ -24,10 +24,10 @@ use crate::{
     run::{Scene, SceneResult, SceneStage},
     sprite::sprite_plugin,
     text::text_plugin,
-    timing::{timing_plugin, Time},
+    timing::{Time, timing_plugin},
     transform::transform_plugin,
     ui::ui_plugin,
-    windowing::{windowing_plugin, Window, Windows},
+    windowing::{Window, Windows, windowing_plugin},
 };
 
 use self::systems::Systems;

@@ -13,7 +13,7 @@ use crate::ecs::{Entity, ResMut, Resource, With, World};
 use super::{
     render_graph::RenderGraph,
     settings::WgpuSettings,
-    view::{window::ExtractedWindows, ViewTarget},
+    view::{ViewTarget, window::ExtractedWindows},
 };
 
 /// Updates the [`RenderGraph`] with all of its nodes and then runs it to render the entire frame.

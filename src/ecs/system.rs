@@ -1,7 +1,7 @@
 use super::{
+    World,
     component::{ComponentId, ResourceId, Tick},
     query::access::Access,
-    World,
 };
 
 pub mod command;

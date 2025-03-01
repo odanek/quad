@@ -1,9 +1,9 @@
 use crate::windowing::WindowId;
 
 use super::{
+    KeyCode, KeyInput,
     button::ButtonState,
     keycode::{Key, NativeKey, NativeKeyCode},
-    KeyCode, KeyInput,
 };
 
 pub fn convert_keyboard_input(

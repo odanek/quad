@@ -1,7 +1,7 @@
 use std::{
     future::Future,
     sync::Arc,
-    thread::{self, available_parallelism, JoinHandle},
+    thread::{self, JoinHandle, available_parallelism},
 };
 
 use futures_lite::future;

@@ -19,8 +19,8 @@ use crate::{
         extract_param::Extract,
         render_graph::{EmptyNode, RenderGraph, SlotInfo, SlotType},
         render_phase::{
-            batch_phase_system, sort_phase_system, BatchedPhaseItem, CachedPipelinePhaseItem,
-            DrawFunctionId, DrawFunctions, EntityPhaseItem, PhaseItem, RenderPhase,
+            BatchedPhaseItem, CachedPipelinePhaseItem, DrawFunctionId, DrawFunctions,
+            EntityPhaseItem, PhaseItem, RenderPhase, batch_phase_system, sort_phase_system,
         },
         render_resource::CachedPipelineId,
     },

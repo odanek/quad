@@ -3,8 +3,8 @@ use crate::{
     audio::AudioDevice,
     ecs::Events,
     input::{
-        convert_keyboard_input, Key, KeyInput, KeyboardInput, MouseButtonInput, MouseInput,
-        MouseMotion, MouseScrollUnit, MouseWheel, TouchInput, Touches,
+        Key, KeyInput, KeyboardInput, MouseButtonInput, MouseInput, MouseMotion, MouseScrollUnit,
+        MouseWheel, TouchInput, Touches, convert_keyboard_input,
     },
     ty::{Vec2, Vec2i},
     windowing::{

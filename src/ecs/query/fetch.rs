@@ -7,11 +7,11 @@ use std::{
 
 use crate::{
     ecs::{
+        World,
         component::{CmptMut, Component, ComponentId, ComponentTicks},
         entity::{Archetype, Entity},
         storage::Table,
         system::SystemTicks,
-        World,
     },
     macros::all_pair_tuples,
 };
@@ -131,8 +131,10 @@ unsafe impl<T: Component> WorldQuery for &T {
 
     fn update_component_access(state: &Self::State, access: &mut FilteredAccess<ComponentId>) {
         if access.access().has_write(*state) {
-            panic!("&{} conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
-                type_name::<T>());
+            panic!(
+                "&{} conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
+                type_name::<T>()
+            );
         }
         access.add_read(*state)
     }
@@ -193,8 +195,10 @@ unsafe impl<'__w, T: Component> WorldQuery for &'__w mut T {
 
     fn update_component_access(state: &Self::State, access: &mut FilteredAccess<ComponentId>) {
         if access.access().has_read(*state) {
-            panic!("&mut {} conflicts with a previous access in this query. Mutable component access must be unique.",
-                type_name::<T>());
+            panic!(
+                "&mut {} conflicts with a previous access in this query. Mutable component access must be unique.",
+                type_name::<T>()
+            );
         }
         access.add_write(*state);
     }
@@ -342,8 +346,10 @@ unsafe impl<T: Component> WorldQuery for ChangeTrackers<T> {
 
     fn update_component_access(state: &Self::State, access: &mut FilteredAccess<ComponentId>) {
         if access.access().has_write(*state) {
-            panic!("ChangeTrackers<{}> conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
-                std::any::type_name::<T>());
+            panic!(
+                "ChangeTrackers<{}> conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
+                std::any::type_name::<T>()
+            );
         }
         access.add_read(*state)
     }

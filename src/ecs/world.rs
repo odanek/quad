@@ -9,6 +9,7 @@ use std::{
 use self::entity_ref::{EntityMut, EntityRef};
 
 use super::{
+    Res,
     component::{
         Bundle, Bundles, Component, ComponentId, ComponentTicks, Components, ResMut, Resource,
         ResourceId, Resources, Tick,
@@ -23,7 +24,6 @@ use super::{
     },
     storage::Storages,
     system::SystemTicks,
-    Res,
 };
 
 pub struct World {

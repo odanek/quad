@@ -50,7 +50,7 @@ impl AssetIo for FileAssetIo {
                         Err(AssetIoError::NotFound(full_path))
                     } else {
                         Err(e.into())
-                    }
+                    };
                 }
             }
             Ok(bytes)

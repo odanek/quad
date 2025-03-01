@@ -1,9 +1,9 @@
 use std::marker::PhantomData;
 
 use crate::ecs::{
+    Entity, Resource, World,
     component::{Bundle, Component, Tick},
     entity::Entities,
-    Entity, Resource, World,
 };
 
 use super::{

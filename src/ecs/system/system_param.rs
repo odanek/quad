@@ -6,7 +6,7 @@ use std::{
 use quad_macros::impl_param_set;
 
 use crate::{
-    ecs::{component::Tick, World},
+    ecs::{World, component::Tick},
     macros::all_tuples,
 };
 

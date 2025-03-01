@@ -1,6 +1,6 @@
 use anyhow::Result;
 use crossbeam_channel::{Receiver, Sender};
-use downcast_rs::{impl_downcast, Downcast};
+use downcast_rs::{Downcast, impl_downcast};
 use std::{any::TypeId, collections::HashMap, path::Path};
 
 use crate::{
@@ -10,12 +10,12 @@ use crate::{
 };
 
 use super::{
+    Assets, Handle, HandleId,
     asset_server::AssetServer,
     handle::RefChangeChannel,
     info::AssetMeta,
     io::{AssetIo, AssetIoError},
     path::AssetPath,
-    Assets, Handle, HandleId,
 };
 
 pub trait AssetLoader: Send + Sync + 'static {

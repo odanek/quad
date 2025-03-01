@@ -22,6 +22,7 @@ pub use query::{
 };
 pub use schedule::{Schedule, Scheduler};
 pub use system::{
+    IntoSystem, System,
     command::Commands,
     function_system::SystemMeta,
     local::Local,
@@ -32,7 +33,6 @@ pub use system::{
         ParamSet, ReadOnlySystemParamFetch, StaticSystemParam, SystemParam, SystemParamFetch,
         SystemParamItem, SystemParamState, SystemState,
     },
-    IntoSystem, System,
 };
 pub use world::{FromWorld, World};
 

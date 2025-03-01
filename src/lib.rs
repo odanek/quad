@@ -1,3 +1,5 @@
+#![allow(unsafe_op_in_unsafe_fn, clippy::needless_lifetimes)]
+
 extern crate self as quad; // So that proc marcros can import stuff as ::quad::xxx
 
 mod macros;

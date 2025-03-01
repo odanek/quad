@@ -2,9 +2,9 @@ mod convert;
 
 use std::{collections::HashMap, fmt};
 use taffy::{
+    Taffy,
     prelude::{AvailableSpace, Size},
     style_helpers::TaffyMaxContent,
-    Taffy,
 };
 
 use crate::{

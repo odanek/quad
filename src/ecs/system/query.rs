@@ -1,6 +1,7 @@
 use std::any::TypeId;
 
 use crate::ecs::{
+    Entity, World,
     component::{CmptMut, Component, Tick},
     query::{
         fetch::{ROQueryItem, ReadOnlyWorldQuery, WorldQuery},
@@ -8,12 +9,11 @@ use crate::ecs::{
         state::{QueryEntityError, QuerySingleError, QueryState},
     },
     system::function_system::SystemMeta,
-    Entity, World,
 };
 
 use super::{
-    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
     SystemTicks,
+    system_param::{ReadOnlySystemParamFetch, SystemParam, SystemParamFetch, SystemParamState},
 };
 
 #[derive(Debug)]
@@ -231,7 +231,10 @@ unsafe impl<Q: WorldQuery + 'static, F: ReadOnlyWorldQuery + 'static> SystemPara
             .component_access
             .is_compatible(&state.component_access)
         {
-            panic!("Query parameters in system {} access components in a way that conflicts with Rust mutability rules.", system_meta.name);
+            panic!(
+                "Query parameters in system {} access components in a way that conflicts with Rust mutability rules.",
+                system_meta.name
+            );
         }
         system_meta
             .component_access

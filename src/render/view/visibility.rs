@@ -221,7 +221,8 @@ fn propagate_recursive(
         let (visibility, mut computed_visibility, child_parent) =
             visibility_query.get_mut(entity).map_err(drop)?;
         assert_eq!(
-            child_parent.get(), expected_parent,
+            child_parent.get(),
+            expected_parent,
             "Malformed hierarchy. This probably means that your hierarchy has been improperly maintained, or contains a cycle"
         );
         let visible_in_hierarchy = (parent_visible && visibility == Visibility::Inherited)

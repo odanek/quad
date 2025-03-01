@@ -150,7 +150,6 @@ pub struct PositionedGlyph {
 
 struct GlyphPlacementAdjuster(f32);
 
-#[cfg(not(feature = "subpixel_glyph_atlas"))]
 impl GlyphPlacementAdjuster {
     #[inline(always)]
     pub fn new(glyph: &mut Glyph) -> Self {

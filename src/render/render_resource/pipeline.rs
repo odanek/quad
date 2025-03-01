@@ -2,8 +2,8 @@ use std::{
     borrow::Cow,
     ops::Deref,
     sync::{
-        atomic::{AtomicU64, Ordering},
         Arc,
+        atomic::{AtomicU64, Ordering},
     },
 };
 use wgpu::{

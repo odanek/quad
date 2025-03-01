@@ -4,9 +4,9 @@ use crate::{
 };
 
 use super::{
+    KeyCode,
     button::{ButtonState, Buttons},
     keycode::Key,
-    KeyCode,
 };
 
 #[derive(Debug, Clone, Event)]

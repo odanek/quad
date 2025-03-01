@@ -1,13 +1,13 @@
 use std::{
-    any::{type_name, TypeId},
+    any::{TypeId, type_name},
     collections::HashMap,
 };
 
 use crate::{ecs::storage::Table, macros::all_tuples};
 
 use super::{
-    ticks::{ComponentTicks, Tick},
     Component, ComponentId, ComponentStatus, Components,
+    ticks::{ComponentTicks, Tick},
 };
 
 #[allow(clippy::missing_safety_doc)]

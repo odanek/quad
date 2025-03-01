@@ -39,7 +39,7 @@ impl FontAtlasSet {
     pub fn has_glyph(&self, glyph_id: GlyphId, glyph_position: Point, font_size: f32) -> bool {
         self.font_atlases
             .get(&FloatOrd(font_size))
-            .map_or(false, |font_atlas| {
+            .is_some_and(|font_atlas| {
                 font_atlas
                     .iter()
                     .any(|atlas| atlas.has_glyph(glyph_id, glyph_position.into()))

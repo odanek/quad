@@ -144,9 +144,7 @@ impl CachedPipelineState {
 
 #[derive(Error, Debug)]
 pub enum RenderPipelineError {
-    #[error(
-        "Pipeline cound not be compiled because the following shader is not loaded yet: {0:?}"
-    )]
+    #[error("Pipeline cound not be compiled because the following shader is not loaded yet: {0:?}")]
     ShaderNotLoaded(Handle<Shader>),
 }
 

@@ -1,7 +1,7 @@
 use crate::ecs::{
+    IntoSystem, System, World,
     component::{ComponentId, ResourceId},
     query::access::Access,
-    IntoSystem, System, World,
 };
 
 use super::Schedule;

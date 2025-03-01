@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use wgpu::{util::DeviceExt, RenderPipelineDescriptor as RawRenderPipelineDescriptor};
+use wgpu::{RenderPipelineDescriptor as RawRenderPipelineDescriptor, util::DeviceExt};
 
 use crate::{
     ecs::Resource,

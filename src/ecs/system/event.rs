@@ -1,8 +1,8 @@
 use std::{any::type_name, marker::PhantomData};
 
 use crate::ecs::{
-    component::{ResourceId, Tick},
     Event, EventReader, EventWriter, Events, ReadOnlySystemParamFetch, World,
+    component::{ResourceId, Tick},
 };
 
 use super::{

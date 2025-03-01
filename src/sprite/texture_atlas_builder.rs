@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use rectangle_pack::{
-    contains_smallest_box, pack_rects, volume_heuristic, GroupedRectsToPlace, PackedLocation,
-    RectToInsert, TargetBin,
+    GroupedRectsToPlace, PackedLocation, RectToInsert, TargetBin, contains_smallest_box,
+    pack_rects, volume_heuristic,
 };
 use thiserror::Error;
 use wgpu::{Extent3d, TextureDimension, TextureFormat};

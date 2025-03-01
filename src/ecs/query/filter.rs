@@ -2,11 +2,11 @@ use std::{cell::UnsafeCell, marker::PhantomData, ptr};
 
 use crate::{
     ecs::{
+        World,
         component::{Component, ComponentId, ComponentTicks},
         entity::{Archetype, Entity},
         storage::Table,
         system::SystemTicks,
-        World,
     },
     macros::{all_pair_tuples, all_tuples},
 };
@@ -234,8 +234,10 @@ unsafe impl<T: Component> WorldQuery for Added<T> {
     #[inline]
     fn update_component_access(state: &Self::State, access: &mut FilteredAccess<ComponentId>) {
         if access.access().has_write(*state) {
-            panic!("AddedState<{}> conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
-                std::any::type_name::<T>());
+            panic!(
+                "AddedState<{}> conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
+                std::any::type_name::<T>()
+            );
         }
         access.add_read(*state);
     }
@@ -302,8 +304,10 @@ unsafe impl<T: Component> WorldQuery for Changed<T> {
     #[inline]
     fn update_component_access(state: &Self::State, access: &mut FilteredAccess<ComponentId>) {
         if access.access().has_write(*state) {
-            panic!("AddedState<{}> conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
-                std::any::type_name::<T>());
+            panic!(
+                "AddedState<{}> conflicts with a previous access in this query. Shared access cannot coincide with exclusive access.",
+                std::any::type_name::<T>()
+            );
         }
         access.add_read(*state);
     }
