@@ -76,11 +76,10 @@ pub fn render_plugin(app: &mut App, render_app: &mut App) {
     });
     let surface = {
         let windows = app.world.resource_mut::<Windows>();
-        let raw_handle = windows.get_primary().map(|window| {
+        windows.get_primary().map(|window| {
             let handle = window.window_handle();
             instance.create_surface(handle).unwrap()
-        });
-        raw_handle
+        })
     };
     let request_adapter_options = wgpu::RequestAdapterOptions {
         power_preference: options.power_preference,

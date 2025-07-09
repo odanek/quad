@@ -140,14 +140,14 @@ impl Camera {
 }
 
 #[allow(clippy::type_complexity)]
-pub fn camera_system<T: CameraProjection + Component>(
+pub fn camera_system<T: CameraProjection + Component + 'static>(
     mut window_resized_events: EventReader<WindowResized>,
     mut window_created_events: EventReader<WindowCreated>,
     mut image_asset_events: EventReader<AssetEvent<Image>>,
     windows: Res<Windows>,
     images: Res<Assets<Image>>,
     mut queries: ParamSet<(
-        Query<(Entity, &mut Camera, &mut T)>,
+        Query<(Entity, &'static mut Camera, &'static mut T)>,
         Query<Entity, Added<Camera>>,
     )>,
 ) {

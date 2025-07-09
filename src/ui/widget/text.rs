@@ -46,7 +46,7 @@ pub fn text_system(
     mut text_queries: ParamSet<(
         Query<Entity, Or<(Changed<Text>, Changed<Style>)>>,
         Query<Entity, (With<Text>, With<Style>)>,
-        Query<(&Text, &Style, &mut CalculatedSize)>,
+        Query<(&'static Text, &'static Style, &'static mut CalculatedSize)>,
     )>,
 ) {
     let scale_factor = windows.scale_factor(WindowId::primary());

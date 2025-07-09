@@ -119,16 +119,8 @@ fn internal_event_reader<'a, T>(
     last_event_count: &mut usize,
     events: &'a Events<T>,
 ) -> impl DoubleEndedIterator<Item = (&'a T, EventId<T>)> {
-    let a_index = if *last_event_count > events.a_start_event_count {
-        *last_event_count - events.a_start_event_count
-    } else {
-        0
-    };
-    let b_index = if *last_event_count > events.b_start_event_count {
-        *last_event_count - events.b_start_event_count
-    } else {
-        0
-    };
+    let a_index = (*last_event_count).saturating_sub(events.a_start_event_count);
+    let b_index = (*last_event_count).saturating_sub(events.b_start_event_count);
     *last_event_count = events.event_count;
     match events.state {
         State::A => events

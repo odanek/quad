@@ -121,7 +121,7 @@ pub fn text_system(
     mut text_pipeline: ResMut<DefaultTextPipeline>,
     mut text_queries: ParamSet<(
         Query<Entity, (With<TextSize>, Changed<Text>)>,
-        Query<(&Text, &mut TextSize), With<TextSize>>,
+        Query<(&'static Text, &'static mut TextSize), With<TextSize>>,
     )>,
 ) {
     // Adds all entities where the text or the style has changed to the local queue
